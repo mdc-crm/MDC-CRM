@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v5 · Google Sheets</title>
+<title>MDC Interior — Sales CRM v5.1 · Google Sheets</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700&display=swap');
 :root{
@@ -215,7 +215,7 @@ textarea.form-input{resize:vertical;height:65px}
 <nav class="sidebar">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v5</div>
+    <div class="brand-sub">Sales CRM v5.1</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -409,10 +409,7 @@ function applySettingsUI(s) {
 // ══════════════════════════════════════════════════════════════
 // GOOGLE SHEETS API
 // ══════════════════════════════════════════════════════════════
-function getApiUrl() {
-     const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbwzsFySRCuxWHJh0_Mv_MV3bqYsO4BrJvMprA-Wi-HIA-CuqRRNCWV-MO5V0Glgww3E/exec';
-     return localStorage.getItem(LS_API_KEY) || DEFAULT_URL;
-   }
+function getApiUrl() { return localStorage.getItem(LS_API_KEY) || ''; }
 function setApiUrl(url) { apiUrl=url; localStorage.setItem(LS_API_KEY, url); }
 
 async function apiFetch(params) {
@@ -1081,11 +1078,24 @@ applySettingsUI(s0);
 updateBadges();
 showPage('dashboard', document.querySelector('[data-page=dashboard]'));
 
-// Auto-sync on load if API URL exists
+// ALWAYS sync from Sheets on load (not just when localStorage has data)
+// This ensures GitHub Pages users always get fresh data
 if(getApiUrl()) {
+  showLoading('Đang tải dữ liệu từ Google Sheets...');
   syncFromSheets().then(ok => {
-    if(ok) renderDashboard();
+    hideLoading();
+    if(ok) {
+      renderDashboard();
+    } else {
+      // No sheets connection - show connect page
+      if(!leads.length) {
+        showPage('connect', document.querySelector('[data-page=connect]'));
+      }
+    }
   });
+} else {
+  // No API URL configured - go straight to connect page
+  showPage('connect', document.querySelector('[data-page=connect]'));
 }
 
 // Auto-sync every 30 seconds (was 5 min)
@@ -1107,13 +1117,26 @@ window.addEventListener('focus', () => {
 const _origPushLead = pushLead;
 pushLead = async function(lead) {
   await _origPushLead(lead);
-  // Pull latest data after pushing to keep in sync with other devices
-  setTimeout(() => { if(!isSyncing) syncFromSheets(); }, 1000);
+  // Pull latest data from Sheets after saving — ensures data is real Sheets data
+  setTimeout(async () => {
+    if(!isSyncing) {
+      await syncFromSheets();
+      // Re-render current page with fresh data
+      const renders = {dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports};
+      if(renders[currentPage]) renders[currentPage]();
+    }
+  }, 800);
 };
 const _origRemoveLead = removeLead;
 removeLead = async function(id) {
   await _origRemoveLead(id);
-  setTimeout(() => { if(!isSyncing) syncFromSheets(); }, 1000);
+  setTimeout(async () => {
+    if(!isSyncing) {
+      await syncFromSheets();
+      const renders = {dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports};
+      if(renders[currentPage]) renders[currentPage]();
+    }
+  }, 800);
 };
 </script>
 </body>
