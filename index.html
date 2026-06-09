@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MDC Interior — Sales CRM v3 · Google Sheets</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700&display=swap');
+:root{
+  --navy:#0A1628;--navy2:#152540;--gold:#B8963E;--gold2:#D4AF6A;
+  --goldbg:#F8F3EA;--cream:#FDFAF4;--lgray:#F0EDE7;--mgray:#8A8480;
+  --charcoal:#28374A;--emerald:#0F5132;--lgreen:#E6F4EC;
+  --ruby:#7B1A2B;--lred:#FDEEF1;--sapphire:#0F3460;--lblue:#EBF3FC;
+  --amber:#7A3800;--lorange:#FFF0E0;--purple:#3D0D6E;--lpurple:#F0E8FB;
+  --teal:#0A4D45;--lteal:#E0F4F1;--white:#FFFFFF;
+  --sidebar-w:240px;--topbar-h:60px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--charcoal);display:flex;height:100vh;overflow:hidden}
+.sidebar{width:var(--sidebar-w);background:var(--navy);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;z-index:100}
+.sidebar-brand{padding:20px 20px 14px;border-bottom:1px solid rgba(184,150,62,.2)}
+.brand-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold2);letter-spacing:.5px}
+.brand-sub{font-size:10px;color:rgba(212,175,106,.55);letter-spacing:2px;text-transform:uppercase;margin-top:2px;font-family:'DM Mono',monospace}
+.brand-ver{display:flex;align-items:center;gap:5px;margin-top:5px;font-size:9px;font-family:'DM Mono',monospace}
+.sync-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sync-dot.green{background:#4ade80;animation:pulse 2s infinite}
+.sync-dot.yellow{background:#facc15;animation:pulse .8s infinite}
+.sync-dot.red{background:#f87171}
+.sync-dot.gray{background:#666}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sidebar-nav{padding:10px 0;flex:1}
+.nav-section{padding:10px 18px 3px;font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(212,175,106,.4);font-family:'DM Mono',monospace}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;color:rgba(255,255,255,.55);font-size:13px;transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.04)}
+.nav-item.active{color:var(--gold2);border-left-color:var(--gold);background:rgba(184,150,62,.08);font-weight:500}
+.nav-item .icon{font-size:15px;width:18px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--ruby);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;font-family:'DM Mono',monospace}
+.sidebar-footer{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07)}
+.user-info{display:flex;align-items:center;gap:10px}
+.user-avatar{width:32px;height:32px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--navy);flex-shrink:0}
+.user-name{font-size:12px;color:rgba(255,255,255,.8);font-weight:500}
+.user-role{font-size:10px;color:rgba(255,255,255,.4)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:var(--topbar-h);background:var(--white);border-bottom:1px solid #e8e4de;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);flex:1}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 14px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .18s;display:flex;align-items:center;gap:5px}
+.btn-primary{background:var(--navy);color:var(--gold2)}.btn-primary:hover{background:var(--navy2)}
+.btn-outline{background:transparent;border:1.5px solid #d4c9b8;color:var(--charcoal)}.btn-outline:hover{border-color:var(--gold);color:var(--amber)}
+.btn-sm{padding:5px 10px;font-size:11.5px}
+.btn-danger{background:var(--ruby);color:#fff}.btn-success{background:var(--emerald);color:#fff}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.search-bar{display:flex;align-items:center;background:var(--lgray);border:1.5px solid #e0dbd3;border-radius:7px;padding:6px 11px;gap:7px;width:210px}
+.search-bar input{border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:12.5px;color:var(--charcoal);width:100%;outline:none}
+.content{flex:1;overflow-y:auto;padding:20px 22px}
+/* SYNC BANNER */
+.sync-banner{padding:8px 20px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-family:'DM Mono',monospace;flex-shrink:0}
+.sync-banner.connected{background:#f0fdf4;border-bottom:1px solid #bbf7d0;color:var(--emerald)}
+.sync-banner.syncing{background:#fefce8;border-bottom:1px solid #fef08a;color:#713f12}
+.sync-banner.error{background:var(--lred);border-bottom:1px solid #fecaca;color:var(--ruby)}
+.sync-banner.setup{background:var(--goldbg);border-bottom:1px solid #e8d99a;color:var(--amber)}
+.sync-left{display:flex;align-items:center;gap:8px}
+/* SETUP SCREEN */
+.setup-screen{display:flex;align-items:center;justify-content:center;flex:1;padding:40px}
+.setup-card{background:var(--white);border:1px solid #e8e4de;border-radius:16px;padding:40px;max-width:580px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.06)}
+.setup-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.setup-sub{font-size:13px;color:var(--mgray);margin-bottom:28px}
+.setup-step{display:flex;gap:14px;margin-bottom:20px;padding:16px;background:var(--lgray);border-radius:10px}
+.step-num{width:28px;height:28px;background:var(--navy);color:var(--gold2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace}
+.step-content h4{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.step-content p{font-size:12px;color:var(--mgray);line-height:1.6}
+.url-input-wrap{display:flex;gap:8px;margin-top:20px}
+.url-input{flex:1;border:1.5px solid #e0dbd3;border-radius:8px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;color:var(--charcoal);outline:none;transition:border-color .15s;background:var(--cream)}
+.url-input:focus{border-color:var(--gold);background:var(--white)}
+.url-input::placeholder{color:var(--mgray)}
+/* TABLES */
+.tabs{display:flex;border-bottom:2px solid #e0dbd3;margin-bottom:18px}
+.tab{padding:9px 16px;font-size:12.5px;font-weight:500;color:var(--mgray);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .18s}
+.tab:hover{color:var(--charcoal)}.tab.active{color:var(--navy);border-bottom-color:var(--gold);font-weight:600}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.stat-card{background:var(--white);border:1px solid #e8e4de;border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent,var(--gold))}
+.stat-label{font-size:10.5px;color:var(--mgray);font-weight:500;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.stat-value{font-size:24px;font-weight:700;color:var(--navy);line-height:1;font-family:'DM Mono',monospace}
+.stat-sub{font-size:10.5px;color:var(--mgray);margin-top:4px}
+.stat-sub .up{color:var(--emerald);font-weight:600}
+.table-wrap{background:var(--white);border:1px solid #e8e4de;border-radius:12px;overflow:hidden}
+.table-toolbar{padding:12px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #f0ebe3;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--lgray);padding:9px 13px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--mgray);text-align:left;white-space:nowrap}
+tbody tr{border-bottom:1px solid #f5f1eb;transition:background .12s;cursor:pointer}
+tbody tr:hover{background:#fbf8f3}tbody tr:last-child{border-bottom:none}
+td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:10.5px;font-weight:600;white-space:nowrap}
+.badge::before{content:'●';font-size:7px}
+.badge-new{background:#EEF3FB;color:#0F3460}.badge-contacted{background:#EBF3FC;color:#1A5C87}
+.badge-consult{background:#F0E8FB;color:#3D0D6E}.badge-survey{background:#E0F4F1;color:#0A4D45}
+.badge-quote{background:#FFF0E0;color:#7A3800}.badge-nego{background:#FDEEF1;color:#7B1A2B}
+.badge-won{background:#E6F4EC;color:#0F5132}.badge-lost{background:#F5F5F5;color:#666}
+.score-bar{display:flex;align-items:center;gap:6px}
+.score-track{width:46px;height:4px;background:#e8e4de;border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px}
+.score-num{font-size:10.5px;font-weight:600;font-family:'DM Mono',monospace}
+.action-row{display:flex;gap:4px}
+.icon-btn{width:26px;height:26px;background:var(--lgray);border:none;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;color:var(--mgray)}
+.icon-btn:hover{background:var(--goldbg);color:var(--amber)}
+/* PANEL */
+.panel-overlay{position:fixed;inset:0;background:rgba(10,22,40,.45);z-index:200;display:none;backdrop-filter:blur(2px)}
+.panel-overlay.open{display:block}
+.detail-panel{position:fixed;top:0;right:-520px;width:520px;height:100vh;background:var(--white);z-index:300;box-shadow:-8px 0 40px rgba(0,0,0,.12);display:flex;flex-direction:column;transition:right .3s cubic-bezier(.4,0,.2,1);overflow:hidden}
+.detail-panel.open{right:0}
+.panel-header{padding:18px 20px 14px;border-bottom:1px solid #e8e4de;background:var(--navy);position:relative}
+.panel-close{position:absolute;top:14px;right:14px;width:28px;height:28px;background:rgba(255,255,255,.12);border:none;border-radius:50%;cursor:pointer;color:rgba(255,255,255,.7);font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.panel-close:hover{background:rgba(255,255,255,.22);color:white}
+.panel-lead-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--gold2);margin-bottom:3px}
+.panel-lead-sub{font-size:11px;color:rgba(255,255,255,.5)}
+.panel-body{flex:1;overflow-y:auto;padding:16px 20px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.info-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--mgray);font-weight:600;margin-bottom:3px}
+.info-value{font-size:13px;color:var(--charcoal);font-weight:500}
+.section-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--mgray);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #ede9e1;display:flex;align-items:center;justify-content:space-between}
+.timeline{margin-bottom:18px}
+.tl-item{display:flex;gap:10px;margin-bottom:12px}
+.tl-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:3px;position:relative}
+.tl-dot::after{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:1px;height:calc(100% + 3px);background:#e8e4de}
+.tl-item:last-child .tl-dot::after{display:none}
+.tl-text{font-size:12.5px;color:var(--charcoal);line-height:1.5}
+.tl-time{font-size:10.5px;color:var(--mgray);margin-top:2px;font-family:'DM Mono',monospace}
+.stage-selector{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:16px}
+.stage-btn{padding:6px 5px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;border:1.5px solid transparent;text-align:center;transition:all .15s;background:var(--lgray);color:var(--mgray)}
+.stage-btn.active{border-color:var(--stage-bc);background:var(--stage-bg);color:var(--stage-c)}
+.stage-btn:hover:not(.active){border-color:#ccc;color:var(--charcoal)}
+.note-input{display:flex;gap:7px;margin-top:8px}
+.note-input textarea{flex:1;border:1.5px solid #e0dbd3;border-radius:7px;padding:8px 11px;font-family:'Outfit',sans-serif;font-size:12.5px;color:var(--charcoal);resize:none;height:65px;outline:none;transition:border-color .15s}
+.note-input textarea:focus{border-color:var(--gold)}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.5);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:14px;width:560px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:slideUp .25s ease}
+.modal-lg{width:680px}
+@keyframes slideUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-header{padding:20px 22px 14px;border-bottom:1px solid #e8e4de;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:var(--navy)}
+.modal-body{padding:18px 22px}
+.modal-footer{padding:12px 22px 18px;display:flex;justify-content:flex-end;gap:9px;border-top:1px solid #f0ebe3}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:11px;font-weight:600;color:var(--charcoal)}
+.form-input{border:1.5px solid #e0dbd3;border-radius:7px;padding:8px 11px;font-family:'Outfit',sans-serif;font-size:12.5px;color:var(--charcoal);outline:none;transition:border-color .15s;background:var(--cream)}
+.form-input:focus{border-color:var(--gold);background:var(--white)}
+select.form-input{cursor:pointer}
+textarea.form-input{resize:vertical;height:65px}
+/* CONFIRM */
+.confirm-overlay{position:fixed;inset:0;background:rgba(10,22,40,.6);z-index:600;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--white);border-radius:14px;padding:26px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.confirm-icon{font-size:34px;margin-bottom:10px}
+.confirm-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.confirm-msg{font-size:12.5px;color:var(--mgray);margin-bottom:18px;line-height:1.6}
+.confirm-actions{display:flex;gap:9px;justify-content:center}
+/* PIPELINE */
+.pipeline{display:grid;grid-template-columns:repeat(8,1fr);gap:9px;overflow-x:auto;padding-bottom:4px}
+.pipeline-col{min-width:138px}
+.pipeline-header{padding:7px 9px;border-radius:7px 7px 0 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--white);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.pipeline-count{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 6px;font-family:'DM Mono',monospace;font-size:10px}
+.pipeline-card{background:var(--white);border:1px solid #e8e4de;border-radius:7px;padding:9px 10px;margin-bottom:7px;cursor:pointer;transition:all .18s;border-left:3px solid var(--sc,#ccc)}
+.pipeline-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);transform:translateY(-1px)}
+.pc-name{font-size:12px;font-weight:600;color:var(--charcoal);margin-bottom:3px}
+.pc-value{font-size:10.5px;color:var(--amber);font-weight:600;font-family:'DM Mono',monospace}
+.pc-owner{width:18px;height:18px;border-radius:50%;font-size:8px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;margin-top:5px}
+/* TASKS */
+.task-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:8px;background:var(--white);border:1px solid #e8e4de;margin-bottom:7px;cursor:pointer;transition:all .15s}
+.task-item:hover{border-color:var(--gold)}
+.task-check{width:17px;height:17px;border:2px solid #ccc;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;cursor:pointer}
+.task-check.done{background:var(--emerald);border-color:var(--emerald);color:white;font-size:10px}
+.task-text{flex:1;font-size:12.5px;color:var(--charcoal)}
+.task-text.done{text-decoration:line-through;color:var(--mgray)}
+.task-meta{font-size:10.5px;color:var(--mgray);display:flex;align-items:center;gap:7px}
+.task-urgency{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+/* CHARTS */
+.chart-row{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:18px}
+.chart-card{background:var(--white);border:1px solid #e8e4de;border-radius:12px;padding:16px}
+.chart-title{font-size:12.5px;font-weight:600;color:var(--charcoal);margin-bottom:14px}
+.funnel-row{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.funnel-label{font-size:10.5px;color:var(--mgray);width:88px;flex-shrink:0}
+.funnel-bar-wrap{flex:1;height:18px;background:#f0ece6;border-radius:4px;overflow:hidden}
+.funnel-bar{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:7px;font-size:9.5px;font-weight:600;color:white}
+.funnel-num{font-size:11px;font-weight:700;color:var(--charcoal);width:28px;text-align:right;font-family:'DM Mono',monospace}
+.bar-group{margin-bottom:9px}
+.bar-label-row{display:flex;justify-content:space-between;margin-bottom:3px}
+.bar-label{font-size:11.5px;color:var(--charcoal)}
+.bar-amount{font-size:11.5px;font-weight:600;color:var(--amber);font-family:'DM Mono',monospace}
+.bar-track{height:7px;background:#f0ece6;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px}
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:var(--gold2);padding:11px 16px;border-radius:9px;font-size:12.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);z-index:700;display:flex;align-items:center;gap:7px}
+.toast.show{transform:translateY(0);opacity:1}
+/* LOADING */
+.loading-overlay{position:fixed;inset:0;background:rgba(10,22,40,.6);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.loading-overlay.open{display:flex}
+.loading-box{background:var(--white);border-radius:12px;padding:24px 30px;text-align:center;min-width:200px}
+.spinner{width:32px;height:32px;border:3px solid var(--lgray);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--charcoal)}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#d4c9b8;border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-title">MDC Interior</div>
+    <div class="brand-sub">Sales CRM v3</div>
+    <div class="brand-ver">
+      <div class="sync-dot gray" id="sync-dot"></div>
+      <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
+    </div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Tổng quan</div>
+    <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-section">Bán hàng</div>
+    <div class="nav-item" data-page="leads" onclick="showPage('leads',this)"><span class="icon">👥</span> Quản lý Lead<span class="nav-badge" id="lead-count">0</span></div>
+    <div class="nav-item" data-page="pipeline" onclick="showPage('pipeline',this)"><span class="icon">🔀</span> Pipeline</div>
+    <div class="nav-item" data-page="tasks" onclick="showPage('tasks',this)"><span class="icon">✅</span> Công việc<span class="nav-badge" id="task-count">0</span></div>
+    <div class="nav-section">Phân tích</div>
+    <div class="nav-item" data-page="reports" onclick="showPage('reports',this)"><span class="icon">📈</span> Báo cáo</div>
+    <div class="nav-section">Hệ thống</div>
+    <div class="nav-item" data-page="connect" onclick="showPage('connect',this)"><span class="icon">🔗</span> Kết nối Sheets</div>
+    <div class="nav-item" data-page="settings" onclick="showPage('settings',this)"><span class="icon">⚙️</span> Cài đặt</div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="sidebar-avatar">AN</div>
+      <div>
+        <div class="user-name" id="sidebar-name">Nguyễn Văn An</div>
+        <div class="user-role" id="sidebar-role">Sale Lead · MDC</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main">
+  <div id="sync-banner" class="sync-banner setup">
+    <div class="sync-left">
+      <span id="sync-banner-icon">⚙️</span>
+      <span id="sync-banner-text">Chưa kết nối Google Sheets. Nhấn "Kết nối Sheets" để cài đặt.</span>
+    </div>
+    <button class="btn btn-sm" style="background:var(--amber);color:#fff" onclick="showPage('connect',document.querySelector('[data-page=connect]'))">Kết nối ngay →</button>
+  </div>
+  <div class="topbar">
+    <div class="page-title" id="page-title">Dashboard</div>
+    <div class="topbar-actions">
+      <button class="btn btn-outline btn-sm" id="sync-btn" onclick="syncNow()" title="Đồng bộ ngay">🔄 Sync</button>
+      <div class="search-bar"><span>🔍</span><input type="text" placeholder="Tìm kiếm lead..." id="global-search" oninput="handleSearch(this.value)"></div>
+      <button class="btn btn-primary btn-sm" onclick="openAddLead()">+ Thêm Lead</button>
+    </div>
+  </div>
+  <div class="content" id="page-content"></div>
+</main>
+
+<!-- PANEL -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+<div class="detail-panel" id="detail-panel">
+  <div class="panel-header">
+    <button class="panel-close" onclick="closePanel()">✕</button>
+    <div class="panel-lead-name" id="panel-name">–</div>
+    <div class="panel-lead-sub" id="panel-sub">–</div>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div class="modal-title" id="modal-title">✨ Thêm Lead mới</div><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Họ và Tên *</label><input type="text" class="form-input" id="f-name" placeholder="Nguyễn Văn A"></div>
+        <div class="form-group"><label class="form-label">Số điện thoại *</label><input type="text" class="form-input" id="f-phone" placeholder="0901 234 567"></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="f-email"></div>
+        <div class="form-group"><label class="form-label">Loại công trình</label><select class="form-input" id="f-type"><option>Căn hộ</option><option>Nhà phố</option><option>Biệt thự</option><option>Văn phòng</option><option>Showroom</option></select></div>
+        <div class="form-group"><label class="form-label">Nguồn lead</label><select class="form-input" id="f-source"><option>Facebook Ads</option><option>Instagram</option><option>Zalo OA</option><option>Giới thiệu KH cũ</option><option>Google Ads</option><option>Website</option><option>Telesale lạnh</option></select></div>
+        <div class="form-group"><label class="form-label">Ngân sách</label><select class="form-input" id="f-budget"><option>Dưới 200 triệu</option><option>200–500 triệu</option><option>500 triệu – 1 tỷ</option><option>1–2 tỷ</option><option>Trên 2 tỷ</option></select></div>
+        <div class="form-group"><label class="form-label">Giá trị HĐ dự kiến (đ)</label><input type="number" class="form-input" id="f-value" placeholder="500000000"></div>
+        <div class="form-group"><label class="form-label">Khu vực</label><input type="text" class="form-input" id="f-area" placeholder="Q2, TP.HCM"></div>
+        <div class="form-group"><label class="form-label">Dự kiến nhận nhà</label><input type="text" class="form-input" id="f-timeline" placeholder="Tháng 6/2025"></div>
+        <div class="form-group"><label class="form-label">Owner</label><select class="form-input" id="f-owner"><option value="AN">Nguyễn Văn An</option><option value="BT">Trần Thị Bình</option><option value="EM">Hoàng Văn Em</option></select></div>
+        <div class="form-group"><label class="form-label">Lead Score (0–100)</label><input type="number" class="form-input" id="f-score" min="0" max="100" placeholder="50"></div>
+        <div class="form-group"><label class="form-label">Giai đoạn</label><select class="form-input" id="f-stage"><option value="new">Mới</option><option value="contacted">Đã liên hệ</option><option value="consult">Tư vấn</option><option value="survey">Khảo sát</option><option value="quote">Báo giá</option><option value="nego">Đàm phán</option><option value="won">Chốt HĐ</option><option value="lost">Mất deal</option></select></div>
+        <div class="form-group full"><label class="form-label">Ghi chú / Nhu cầu</label><textarea class="form-input" id="f-note" placeholder="Phong cách thiết kế, yêu cầu đặc biệt, nỗi lo của KH..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Hủy</button><button class="btn btn-primary" id="modal-save-btn" onclick="saveLead()">💾 Lưu Lead</button></div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📝 Thêm Công việc</div><button class="icon-btn" onclick="document.getElementById('task-modal').classList.remove('open')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label class="form-label">Nội dung *</label><input type="text" class="form-input" id="t-text" placeholder="Gọi follow-up anh..."></div>
+        <div class="form-group"><label class="form-label">Lead liên quan</label><input type="text" class="form-input" id="t-lead" placeholder="Tên KH"></div>
+        <div class="form-group"><label class="form-label">Thời hạn</label><input type="text" class="form-input" id="t-due" placeholder="Hôm nay 15:00"></div>
+        <div class="form-group"><label class="form-label">Ưu tiên</label><select class="form-input" id="t-urgency"><option value="red">🔴 Khẩn cấp</option><option value="orange" selected>🟡 Quan trọng</option><option value="green">🟢 Bình thường</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="document.getElementById('task-modal').classList.remove('open')">Hủy</button><button class="btn btn-primary" onclick="saveTask()">💾 Lưu</button></div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="c-icon">⚠️</div>
+    <div class="confirm-title" id="c-title">Xác nhận</div>
+    <div class="confirm-msg" id="c-msg"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">Hủy</button>
+      <button class="btn btn-danger" id="c-ok" onclick="doConfirm()">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Đang xử lý...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="t-icon">✅</span><span id="t-msg">OK</span></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════════════════
+const LS_KEY      = 'mdc_crm_v3';
+const LS_API_KEY  = 'mdc_crm_api_url';
+const LS_SET_KEY  = 'mdc_crm_settings';
+
+const STAGES = [
+  {id:'new',      label:'Mới',        color:'#0F3460', badge:'badge-new'},
+  {id:'contacted',label:'Đã liên hệ', color:'#1A5C87', badge:'badge-contacted'},
+  {id:'consult',  label:'Tư vấn',     color:'#3D0D6E', badge:'badge-consult'},
+  {id:'survey',   label:'Khảo sát',   color:'#0A4D45', badge:'badge-survey'},
+  {id:'quote',    label:'Báo giá',    color:'#7A3800', badge:'badge-quote'},
+  {id:'nego',     label:'Đàm phán',   color:'#7B1A2B', badge:'badge-nego'},
+  {id:'won',      label:'Chốt HĐ',   color:'#0F5132', badge:'badge-won'},
+  {id:'lost',     label:'Mất deal',   color:'#555',    badge:'badge-lost'},
+];
+const SBG = {new:'#EEF3FB',contacted:'#EBF3FC',consult:'#F0E8FB',survey:'#E0F4F1',quote:'#FFF0E0',nego:'#FDEEF1',won:'#E6F4EC',lost:'#F5F5F5'};
+const SC  = {new:'#0F3460',contacted:'#1A5C87',consult:'#3D0D6E',survey:'#0A4D45',quote:'#7A3800',nego:'#7B1A2B',won:'#0F5132',lost:'#555'};
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let leads = [], tasks = [];
+let apiUrl = '';
+let isConnected = false;
+let isSyncing = false;
+let currentPage = 'dashboard';
+let selectedLead = null;
+let editingLeadId = null;
+let activeFilter = 'all';
+let searchQuery = '';
+let confirmCb = null;
+
+// ══════════════════════════════════════════════════════════════
+// LOCAL STORAGE (offline cache)
+// ══════════════════════════════════════════════════════════════
+function saveLocal() {
+  localStorage.setItem(LS_KEY, JSON.stringify({leads, tasks, at: Date.now()}));
+  updateBadges();
+}
+function loadLocal() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    leads = d.leads || [];
+    tasks = d.tasks || [];
+  } catch(e) { leads=[]; tasks=[]; }
+}
+function loadSettings() {
+  try { return {...{name:'Nguyễn Văn An',role:'Sale Lead',email:'an.nguyen@mdc.vn'},...JSON.parse(localStorage.getItem(LS_SET_KEY)||'{}')}; }
+  catch(e) { return {name:'Nguyễn Văn An',role:'Sale Lead',email:'an.nguyen@mdc.vn'}; }
+}
+function persistSettings(s) {
+  localStorage.setItem(LS_SET_KEY, JSON.stringify(s));
+  applySettingsUI(s);
+}
+function applySettingsUI(s) {
+  const av = document.getElementById('sidebar-avatar');
+  const nm = document.getElementById('sidebar-name');
+  const rl = document.getElementById('sidebar-role');
+  if(av) av.textContent = (s.name||'?').split(' ').pop().slice(0,2).toUpperCase();
+  if(nm) nm.textContent = s.name||'';
+  if(rl) rl.textContent = (s.role||'Sales') + ' · MDC';
+}
+
+// ══════════════════════════════════════════════════════════════
+// GOOGLE SHEETS API
+// ══════════════════════════════════════════════════════════════
+function getApiUrl() { return localStorage.getItem(LS_API_KEY) || ''; }
+function setApiUrl(url) { apiUrl=url; localStorage.setItem(LS_API_KEY, url); }
+
+async function apiFetch(params) {
+  const url = getApiUrl();
+  if(!url) throw new Error('API URL chưa được cài đặt');
+  const full = url + '?' + new URLSearchParams(params).toString();
+  try {
+    // Apps Script redirects to script.googleusercontent.com which causes CORS issues
+    // Solution: use 'no-cors' with a workaround OR follow redirect manually
+    // Best approach: simple GET with redirect:follow and no custom headers
+    const res = await fetch(full, {
+      method: 'GET',
+      redirect: 'follow'
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'API error');
+    return json;
+  } catch(e) {
+    console.error('apiFetch error:', e);
+    if(e.message === 'Failed to fetch' || e.name === 'TypeError') {
+      throw new Error('CORS blocked. Vui lòng dùng Chrome/Edge mới nhất, hoặc kiểm tra ad-blocker/extension.');
+    }
+    throw e;
+  }
+}
+
+async function apiPost(body) {
+  const url = getApiUrl();
+  if(!url) throw new Error('API URL chưa được cài đặt');
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify(body)
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || 'API error');
+    return json;
+  } catch(e) {
+    console.error('apiPost error:', e);
+    if(e.message === 'Failed to fetch' || e.name === 'TypeError') {
+      throw new Error('Không lưu lên Sheets được. Kiểm tra deployment với "Anyone" access.');
+    }
+    throw e;
+  }
+}
+
+// ── Sync ALL data from Sheets ─────────────────────────────────
+async function syncFromSheets() {
+  setSyncState('syncing', '🔄 Đang đồng bộ từ Google Sheets...');
+  try {
+    const data = await apiFetch({action:'getAll'});
+    if(data.leads)    leads = data.leads;
+    if(data.tasks)    tasks = data.tasks;
+    saveLocal();
+    setSyncState('connected', `✅ Đồng bộ lúc ${nowStr()}`);
+    isConnected = true;
+    updateBadges();
+    console.log('[MDC CRM] Sync OK:', leads.length, 'leads,', tasks.length, 'tasks');
+    return true;
+  } catch(e) {
+    console.error('[MDC CRM] Sync failed:', e);
+    setSyncState('error', '❌ ' + e.message);
+    isConnected = false;
+    return false;
+  }
+}
+
+// ── Push one lead to Sheets ───────────────────────────────────
+async function pushLead(lead) {
+  if(!getApiUrl()) return;
+  try { await apiPost({action:'saveLead', lead}); }
+  catch(e) { toast('⚠️ Lưu Sheets lỗi: ' + e.message, '⚠️'); }
+}
+
+async function removeLead(id) {
+  if(!getApiUrl()) return;
+  try { await apiPost({action:'deleteLead', id}); }
+  catch(e) { toast('⚠️ Xóa Sheets lỗi: ' + e.message, '⚠️'); }
+}
+
+async function pushTask(task) {
+  if(!getApiUrl()) return;
+  try { await apiPost({action:'saveTask', task}); }
+  catch(e) {}
+}
+
+async function removeTask(id) {
+  if(!getApiUrl()) return;
+  try { await apiPost({action:'deleteTask', id}); }
+  catch(e) {}
+}
+
+// ── Sync button ───────────────────────────────────────────────
+async function syncNow() {
+  if(isSyncing) return;
+  isSyncing = true;
+  document.getElementById('sync-btn').textContent = '⏳ Syncing...';
+  const ok = await syncFromSheets();
+  isSyncing = false;
+  document.getElementById('sync-btn').textContent = '🔄 Sync';
+  if(ok) {
+    const renders = {dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,tasks:renderTasks,reports:renderReports};
+    if(renders[currentPage]) renders[currentPage]();
+    toast('✅ Đồng bộ thành công!');
+  }
+}
+
+function setSyncState(state, text) {
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  const banner = document.getElementById('sync-banner');
+  const btext = document.getElementById('sync-banner-text');
+  const bicon = document.getElementById('sync-banner-icon');
+
+  dot.className = 'sync-dot ' + (state==='connected'?'green':state==='syncing'?'yellow':state==='error'?'red':'gray');
+  label.style.color = state==='connected'?'#4ade80':state==='syncing'?'#facc15':state==='error'?'#f87171':'rgba(212,175,106,.4)';
+  label.textContent = state==='connected'?'Đã kết nối':state==='syncing'?'Đang sync...':state==='error'?'Lỗi kết nối':'Chưa kết nối';
+
+  banner.className = 'sync-banner ' + (state==='connected'?'connected':state==='syncing'?'syncing':state==='error'?'error':'setup');
+  bicon.textContent = state==='connected'?'✅':state==='syncing'?'🔄':state==='error'?'❌':'⚙️';
+  btext.textContent = text;
+
+  if(state==='connected') {
+    banner.querySelector('button').style.display='none';
+  } else {
+    banner.querySelector('button').style.display='';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONNECT PAGE
+// ══════════════════════════════════════════════════════════════
+function renderConnect() {
+  const saved = getApiUrl();
+  document.getElementById('page-content').innerHTML = `
+    <div style="max-width:640px">
+      <div class="table-wrap" style="padding:28px;margin-bottom:16px">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);margin-bottom:6px">🔗 Kết nối Google Sheets</div>
+        <div style="font-size:13px;color:var(--mgray);margin-bottom:22px;line-height:1.7">Dữ liệu CRM sẽ được lưu vào Google Sheets và đồng bộ theo thời gian thực. Nhiều người có thể dùng cùng lúc trên nhiều máy.</div>
+
+        <div style="background:var(--lgray);border-radius:10px;padding:16px;margin-bottom:20px">
+          <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px">📋 Thực hiện 4 bước sau:</div>
+          ${[
+            ['1','Tạo Google Sheet mới','Vào sheets.google.com → Tạo Sheet → Đặt tên "MDC CRM Database"'],
+            ['2','Mở Apps Script','Trong Sheet → Extensions → Apps Script → Xóa code cũ → Dán code từ file .gs đã cung cấp → Lưu'],
+            ['3','Nhập Sheet ID vào code','Trong file .gs tìm dòng <code style="background:#e8e4de;padding:1px 5px;border-radius:3px;font-size:11px">SHEET_ID = \'PASTE_YOUR_SHEET_ID_HERE\'</code> → Thay bằng ID Sheet của bạn'],
+            ['4','Deploy Web App','Apps Script → Deploy → New deployment → Web App → Execute as: Me → Who has access: Anyone → Deploy → Copy URL'],
+          ].map(([n,title,desc])=>`
+            <div style="display:flex;gap:12px;margin-bottom:10px">
+              <div style="width:24px;height:24px;background:var(--navy);color:var(--gold2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace">${n}</div>
+              <div><div style="font-size:12.5px;font-weight:600;color:var(--charcoal);margin-bottom:2px">${title}</div><div style="font-size:12px;color:var(--mgray);line-height:1.6">${desc}</div></div>
+            </div>`).join('')}
+        </div>
+
+        <div style="font-size:12px;font-weight:600;color:var(--charcoal);margin-bottom:8px">Dán Web App URL vào đây:</div>
+        <div style="display:flex;gap:9px;margin-bottom:14px">
+          <input type="text" id="api-url-input" class="form-input" style="flex:1;font-family:'DM Mono',monospace;font-size:11.5px"
+            value="${saved}" placeholder="https://script.google.com/macros/s/ABC.../exec">
+          <button class="btn btn-primary" onclick="testAndSaveUrl()">🔌 Kết nối & Test</button>
+        </div>
+
+        ${saved ? `<div style="background:var(--lgreen);border:1px solid #bbf7d0;border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--emerald);display:flex;align-items:center;gap:8px"><span>✅</span> Đã có URL được lưu. Nhấn "Kết nối & Test" để kiểm tra lại.</div>` : ''}
+      </div>
+
+      <div class="table-wrap" style="padding:20px">
+        <div style="font-size:13px;font-weight:600;color:var(--charcoal);margin-bottom:12px">📂 Nhập dữ liệu từ máy cũ (nếu có)</div>
+        <p style="font-size:12.5px;color:var(--mgray);margin-bottom:12px">Nếu bạn đã dùng CRM v2 và có file backup JSON, hãy nhập vào đây để đẩy lên Sheets:</p>
+        <label class="btn btn-outline" style="cursor:pointer">
+          📂 Chọn file JSON backup
+          <input type="file" accept=".json" style="display:none" onchange="importAndPush(this)">
+        </label>
+      </div>
+    </div>`;
+}
+
+async function testAndSaveUrl() {
+  const url = document.getElementById('api-url-input').value.trim();
+  if(!url || !url.includes('script.google.com')) {
+    toast('⚠️ URL không hợp lệ. Phải là URL từ Google Apps Script.','⚠️'); return;
+  }
+  setApiUrl(url);
+  showLoading('Đang kiểm tra kết nối...');
+  try {
+    const d = await apiFetch({action:'ping'});
+    hideLoading();
+    toast('✅ Kết nối thành công! Đang tải dữ liệu...');
+    setSyncState('syncing','🔄 Đang tải dữ liệu lần đầu...');
+    await syncFromSheets();
+    showPage('dashboard', document.querySelector('[data-page=dashboard]'));
+  } catch(e) {
+    hideLoading();
+    setSyncState('error','❌ Không kết nối được: ' + e.message);
+    toast('❌ Lỗi: ' + e.message, '❌');
+    document.getElementById('page-content').innerHTML += `
+      <div style="background:var(--lred);border:1px solid #fecaca;border-radius:8px;padding:14px;margin-top:12px;font-size:12.5px;color:var(--ruby)">
+        <strong>❌ Lỗi kết nối:</strong> ${e.message}<br><br>
+        <strong>Kiểm tra lại:</strong><br>
+        • URL đã đúng dạng <code>https://script.google.com/macros/s/...</code>?<br>
+        • Đã deploy với "Who has access: Anyone"?<br>
+        • Đã nhập đúng SHEET_ID trong code Apps Script?<br>
+        • Thử chạy hàm <code>testSetup()</code> trong Apps Script editor để xem log.
+      </div>`;
+  }
+}
+
+async function importAndPush(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!data.leads && !data.tasks) { toast('⚠️ File JSON không hợp lệ','⚠️'); return; }
+      if(data.leads) leads = data.leads;
+      if(data.tasks) tasks = data.tasks;
+      saveLocal();
+      if(getApiUrl()) {
+        showLoading('Đang đẩy dữ liệu lên Google Sheets...');
+        try {
+          await apiPost({action:'bulkSaveLeads', leads});
+          await apiPost({action:'bulkSaveTasks', tasks});
+          hideLoading();
+          toast(`✅ Đã đẩy ${leads.length} leads lên Sheets!`);
+          updateBadges();
+        } catch(err) {
+          hideLoading();
+          toast('⚠️ Lỗi đẩy dữ liệu: ' + err.message,'⚠️');
+        }
+      } else {
+        saveLocal(); toast(`✅ Đã nhập ${leads.length} leads (chưa có Sheets URL)`);
+      }
+    } catch(err) { toast('⚠️ File JSON bị lỗi','⚠️'); }
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+// ══════════════════════════════════════════════════════════════
+// PAGES
+// ══════════════════════════════════════════════════════════════
+function showPage(page, el) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={dashboard:'Dashboard',leads:'Quản lý Lead',pipeline:'Pipeline',tasks:'Công việc',reports:'Báo cáo',connect:'Kết nối Google Sheets',settings:'Cài đặt'};
+  document.getElementById('page-title').textContent = titles[page]||page;
+  const renders={dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,tasks:renderTasks,reports:renderReports,connect:renderConnect,settings:renderSettings};
+  (renders[page]||(() => {}))();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function renderDashboard() {
+  const won=leads.filter(l=>l.stage==='won');
+  const active=leads.filter(l=>!['won','lost'].includes(l.stage));
+  const totalPV=active.reduce((s,l)=>s+(Number(l.value)||0),0);
+  const wonV=won.reduce((s,l)=>s+(Number(l.value)||0),0);
+  const hot=leads.filter(l=>l.score>=80&&!['won','lost'].includes(l.stage));
+  document.getElementById('page-content').innerHTML=`
+    <div class="stats-row">
+      <div class="stat-card" style="--accent:#0F3460"><div class="stat-label">Tổng Lead</div><div class="stat-value">${leads.length}</div><div class="stat-sub">Trong hệ thống CRM</div></div>
+      <div class="stat-card" style="--accent:#7A3800"><div class="stat-label">Pipeline</div><div class="stat-value">${formatB(totalPV)}</div><div class="stat-sub"><span class="up">${active.length}</span> đang hoạt động</div></div>
+      <div class="stat-card" style="--accent:#0F5132"><div class="stat-label">Đã Chốt HĐ</div><div class="stat-value">${won.length}</div><div class="stat-sub">Doanh thu: <span class="up">${formatB(wonV)}</span></div></div>
+      <div class="stat-card" style="--accent:#7B1A2B"><div class="stat-label">Hot Leads</div><div class="stat-value">${hot.length}</div><div class="stat-sub">Score <span class="up">≥ 80</span></div></div>
+      <div class="stat-card" style="--accent:#3D0D6E"><div class="stat-label">Win Rate</div><div class="stat-value">${leads.filter(l=>l.stage!=='new').length?Math.round(won.length/leads.filter(l=>l.stage!=='new').length*100):0}%</div><div class="stat-sub">Target: <span class="up">≥70%</span></div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-card">
+        <div class="chart-title">🔀 Phân bổ theo Giai đoạn</div>
+        <div class="funnel">${STAGES.filter(s=>s.id!=='lost').map(s=>{const n=leads.filter(l=>l.stage===s.id).length;const pct=leads.length?Math.round(n/leads.length*100):0;return`<div class="funnel-row"><div class="funnel-label">${s.label}</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${pct}%;background:${s.color}">${pct>8?n+' KH':''}</div></div><div class="funnel-num">${n}</div></div>`;}).join('')}</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🎯 KPI Overview</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${[['🎯 Lead tổng',''+leads.length,'–'],['✅ Đã chốt',''+won.length,'Target: 4'],['💰 Pipeline',formatB(totalPV),'–'],['⭐ Score TB',''+( leads.length?Math.round(leads.reduce((s,l)=>s+(Number(l.score)||0),0)/leads.length):0),'Target: ≥65']].map(([l,v,t])=>`<div style="background:var(--lgray);border-radius:8px;padding:11px"><div style="font-size:10.5px;color:var(--mgray)">${l}</div><div style="font-size:20px;font-weight:700;color:var(--navy);font-family:'DM Mono',monospace">${v}</div><div style="font-size:10px;color:var(--mgray)">${t}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--white);border:1px solid #e8e4de;border-radius:12px;padding:16px">
+      <div class="section-title">⚡ Leads gần đây</div>
+      ${leads.length===0?'<div style="text-align:center;padding:20px;color:var(--mgray)">Chưa có lead. <a href="#" onclick="openAddLead();return false" style="color:var(--gold)">Thêm mới →</a></div>'
+      :leads.slice(0,6).map(l=>{const st=STAGES.find(s=>s.id===l.stage);return`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f5f1eb">
+        <div style="width:30px;height:30px;border-radius:8px;background:${SBG[l.stage]};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${l.stage==='won'?'🏆':l.stage==='nego'?'🤝':'👤'}</div>
+        <div style="flex:1"><div style="font-size:12.5px;font-weight:600">${l.name}</div><div style="font-size:11px;color:var(--mgray)">${l.type||''} · ${l.area||''}</div></div>
+        <span class="badge ${st.badge}">${st.label}</span>
+        <span style="font-size:11.5px;color:var(--amber);font-weight:600;font-family:'DM Mono',monospace">${formatShort(Number(l.value)||0)}</span>
+        <button class="btn btn-outline btn-sm" onclick="openPanel(${l.id})">→</button>
+      </div>`;}).join('')}
+    </div>`;
+}
+
+// ── LEADS ─────────────────────────────────────────────────────
+function renderLeads() {
+  const filtered=leads.filter(l=>{
+    const ms=activeFilter==='all'||l.stage===activeFilter;
+    const q=searchQuery.toLowerCase();
+    const mq=!q||l.name.toLowerCase().includes(q)||l.phone.includes(q)||(l.area||'').toLowerCase().includes(q);
+    return ms&&mq;
+  });
+  document.getElementById('page-content').innerHTML=`
+    <div class="tabs">${[['all','Tất cả'],['new','Mới'],['contacted','Liên hệ'],['consult','Tư vấn'],['survey','Khảo sát'],['quote','Báo giá'],['nego','Đàm phán'],['won','Chốt'],['lost','Mất']].map(([id,label])=>`<div class="tab ${activeFilter===id?'active':''}" onclick="setFilter('${id}')">${label} <span style="font-size:10px;color:var(--mgray)">(${id==='all'?leads.length:leads.filter(l=>l.stage===id).length})</span></div>`).join('')}</div>
+    <div class="table-wrap">
+      <div class="table-toolbar">
+        <span style="font-size:12px;color:var(--mgray)">${filtered.length} lead</span>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="exportCSV()">📊 Xuất CSV</button>
+          <button class="btn btn-primary btn-sm" onclick="openAddLead()">+ Thêm Lead</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>👤 Khách hàng</th><th>📱 SĐT</th><th>🏠 Loại CT</th><th>📣 Nguồn</th><th>💰 Giá trị</th><th>📊 Score</th><th>🏷️ Giai đoạn</th><th>👤 Owner</th><th>⚡</th></tr></thead>
+        <tbody>${filtered.length===0?`<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--mgray)">Không có lead nào</td></tr>`:filtered.map((l,i)=>{
+          const st=STAGES.find(s=>s.id===l.stage);
+          const sc=l.score>=80?'#0F5132':l.score>=60?'#7A3800':'#7B1A2B';
+          return`<tr onclick="openPanel(${l.id})">
+            <td style="color:var(--mgray);font-family:'DM Mono',monospace;font-size:10.5px">${i+1}</td>
+            <td><div style="font-weight:600;font-size:12.5px">${l.name}</div><div style="font-size:10.5px;color:var(--mgray)">${l.area||'–'}</div></td>
+            <td style="font-family:'DM Mono',monospace;font-size:11.5px">${l.phone}</td>
+            <td style="font-size:12px">${l.type||'–'}</td>
+            <td style="font-size:12px">${l.source||'–'}</td>
+            <td style="font-weight:600;color:var(--amber);font-family:'DM Mono',monospace;font-size:11.5px">${formatShort(Number(l.value)||0)}</td>
+            <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${l.score}%;background:${sc}"></div></div><div class="score-num">${l.score}</div></div></td>
+            <td><span class="badge ${st.badge}">${st.label}</span></td>
+            <td><div class="pc-owner" style="background:${ownerColor(l.owner)}">${l.owner||'?'}</div></td>
+            <td onclick="event.stopPropagation()"><div class="action-row">
+              <button class="icon-btn" title="Sửa" onclick="openEditLead(${l.id})">✏️</button>
+              <button class="icon-btn" title="Xóa" onclick="confirmDeleteLead(${l.id})">🗑️</button>
+            </div></td>
+          </tr>`;}).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── PIPELINE ──────────────────────────────────────────────────
+function renderPipeline() {
+  const won=leads.filter(l=>l.stage==='won');
+  const active=leads.filter(l=>!['won','lost'].includes(l.stage));
+  document.getElementById('page-content').innerHTML=`
+    <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card" style="--accent:var(--sapphire)"><div class="stat-label">Pipeline</div><div class="stat-value">${formatB(active.reduce((s,l)=>s+(Number(l.value)||0),0))}</div></div>
+      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Đã Chốt</div><div class="stat-value">${formatB(won.reduce((s,l)=>s+(Number(l.value)||0),0))}</div></div>
+      <div class="stat-card" style="--accent:var(--ruby)"><div class="stat-label">Mất deal</div><div class="stat-value">${leads.filter(l=>l.stage==='lost').length}</div></div>
+      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Win Rate</div><div class="stat-value">${leads.filter(l=>!['new'].includes(l.stage)).length?Math.round(won.length/leads.filter(l=>!['new'].includes(l.stage)).length*100):0}%</div></div>
+    </div>
+    <div class="pipeline">${STAGES.filter(s=>s.id!=='lost').map(s=>{const cols=leads.filter(l=>l.stage===s.id);return`<div class="pipeline-col">
+      <div class="pipeline-header" style="background:${s.color}"><span>${s.label}</span><span class="pipeline-count">${cols.length}</span></div>
+      ${cols.map(l=>`<div class="pipeline-card" style="--sc:${s.color}" onclick="openPanel(${l.id})"><div class="pc-name">${l.name}</div><div class="pc-value">${formatShort(Number(l.value)||0)}</div><div class="pc-owner" style="background:${ownerColor(l.owner)}">${l.owner||'?'}</div></div>`).join('')}
+      <div style="padding:7px;border:1.5px dashed #e0dbd3;border-radius:7px;text-align:center;font-size:10.5px;color:var(--mgray);cursor:pointer" onclick="openAddLead()">+ Thêm</div>
+    </div>`;}).join('')}</div>`;
+}
+
+// ── TASKS ─────────────────────────────────────────────────────
+function renderTasks() {
+  const pending=tasks.filter(t=>!t.done);
+  document.getElementById('page-content').innerHTML=`
+    <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card" style="--accent:var(--ruby)"><div class="stat-label">Còn lại</div><div class="stat-value">${pending.length}</div></div>
+      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Đã xong</div><div class="stat-value">${tasks.filter(t=>t.done).length}</div></div>
+      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Tỷ lệ</div><div class="stat-value">${tasks.length?Math.round(tasks.filter(t=>t.done).length/tasks.length*100):0}%</div></div>
+      <div class="stat-card" style="--accent:var(--sapphire)"><div class="stat-label">Tổng</div><div class="stat-value">${tasks.length}</div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:13.5px;font-weight:600;color:var(--navy)">📋 Danh sách công việc</div>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('task-modal').classList.add('open')">+ Thêm việc</button>
+    </div>
+    <div>${tasks.length===0?'<div style="text-align:center;padding:30px;color:var(--mgray)">Không có công việc</div>':tasks.map(t=>`
+      <div class="task-item">
+        <div class="task-urgency" style="background:${t.urgency==='red'?'#7B1A2B':t.urgency==='orange'?'#7A3800':'#0F5132'}"></div>
+        <div class="task-check ${t.done?'done':''}" onclick="toggleTask('${t.id}',event)">${t.done?'✓':''}</div>
+        <div style="flex:1"><div class="task-text ${t.done?'done':''}">${t.text}</div><div class="task-meta"><span>👤 ${t.lead}</span><span>⏰ ${t.due}</span></div></div>
+        <button class="icon-btn" onclick="event.stopPropagation();confirmDeleteTask('${t.id}')">🗑️</button>
+      </div>`).join('')}</div>`;
+}
+
+async function toggleTask(id, e) {
+  if(e) e.stopPropagation();
+  const t=tasks.find(t=>String(t.id)===String(id));
+  if(!t) return;
+  t.done=!t.done;
+  saveLocal();
+  renderTasks();
+  updateBadges();
+  await pushTask(t);
+  toast(t.done?'✅ Hoàn thành!':'↩️ Chưa xong');
+}
+
+async function saveTask() {
+  const text=document.getElementById('t-text').value.trim();
+  if(!text){toast('⚠️ Nhập nội dung!','⚠️');return;}
+  const task={id:Date.now(),text,lead:document.getElementById('t-lead').value||'Chung',due:document.getElementById('t-due').value||'–',urgency:document.getElementById('t-urgency').value,done:false};
+  tasks.push(task);
+  saveLocal();
+  document.getElementById('task-modal').classList.remove('open');
+  renderTasks();
+  await pushTask(task);
+  toast('📝 Đã thêm công việc!');
+}
+
+async function confirmDeleteTask(id) {
+  showConfirm('🗑️','Xóa task','Xóa công việc này?',async()=>{
+    tasks=tasks.filter(t=>String(t.id)!==String(id));
+    saveLocal(); renderTasks();
+    await removeTask(id);
+    toast('🗑️ Đã xóa task!');
+  });
+}
+
+// ── REPORTS ───────────────────────────────────────────────────
+function renderReports() {
+  const won=leads.filter(l=>l.stage==='won');
+  const wonV=won.reduce((s,l)=>s+(Number(l.value)||0),0);
+  const srcMap={};leads.forEach(l=>{const s=l.source||'Khác';srcMap[s]=(srcMap[s]||0)+1;});
+  const srcArr=Object.entries(srcMap).sort((a,b)=>b[1]-a[1]);
+  const maxS=srcArr[0]?srcArr[0][1]:1;
+  document.getElementById('page-content').innerHTML=`
+    <div class="stats-row">
+      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Doanh thu chốt</div><div class="stat-value">${formatB(wonV)}</div></div>
+      <div class="stat-card" style="--accent:var(--sapphire)"><div class="stat-label">Win Rate</div><div class="stat-value">${leads.filter(l=>l.stage!=='new').length?Math.round(won.length/leads.filter(l=>l.stage!=='new').length*100):0}%</div></div>
+      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Giá trị TB</div><div class="stat-value">${won.length?formatShort(Math.round(wonV/won.length)):0}</div></div>
+      <div class="stat-card" style="--accent:var(--purple)"><div class="stat-label">Kênh Lead</div><div class="stat-value">${srcArr.length}</div></div>
+      <div class="stat-card" style="--accent:var(--teal)"><div class="stat-label">Score TB</div><div class="stat-value">${leads.length?Math.round(leads.reduce((s,l)=>s+(Number(l.score)||0),0)/leads.length):0}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="chart-card"><div class="chart-title">📣 Lead theo nguồn</div><div class="bar-chart">${srcArr.map(([s,n])=>`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s}</span><span class="bar-amount">${n} lead</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/maxS*100)}%;background:var(--navy)"></div></div></div>`).join('')||'<div style="color:var(--mgray);text-align:center;padding:20px">Chưa có dữ liệu</div>'}</div></div>
+      <div class="chart-card"><div class="chart-title">🏷️ Phân bổ theo Giai đoạn</div><div class="bar-chart">${STAGES.map(s=>{const n=leads.filter(l=>l.stage===s.id).length;return`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s.label}</span><span class="bar-amount">${n} lead</span></div><div class="bar-track"><div class="bar-fill" style="width:${leads.length?Math.round(n/leads.length*100):0}%;background:${s.color}"></div></div></div>`;}).join('')}</div></div>
+    </div>`;
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────
+function renderSettings() {
+  const s=loadSettings();
+  document.getElementById('page-content').innerHTML=`
+    <div style="max-width:560px">
+      <div class="table-wrap" style="padding:22px;margin-bottom:14px">
+        <div class="section-title">👤 Thông tin Sales</div>
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Họ tên</label><input class="form-input" id="s-name" value="${s.name||''}"></div>
+          <div class="form-group"><label class="form-label">Chức vụ</label><input class="form-input" id="s-role" value="${s.role||''}"></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="s-email" value="${s.email||''}"></div>
+          <div class="form-group"><label class="form-label">SĐT</label><input class="form-input" id="s-phone" value="${s.phone||''}"></div>
+        </div>
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" onclick="saveSettingsForm()">💾 Lưu</button>
+        </div>
+      </div>
+      <div class="table-wrap" style="padding:22px">
+        <div class="section-title">🔗 Trạng thái kết nối</div>
+        <div style="background:var(--lgray);border-radius:8px;padding:12px;font-size:12px;font-family:'DM Mono',monospace;line-height:1.9">
+          API URL: ${getApiUrl()||'Chưa cài đặt'}<br>
+          Trạng thái: ${isConnected?'✅ Đã kết nối':'❌ Chưa kết nối'}<br>
+          Leads trong cache: ${leads.length}<br>
+          Tasks trong cache: ${tasks.length}
+        </div>
+        <div style="margin-top:10px;display:flex;gap:9px">
+          <button class="btn btn-outline btn-sm" onclick="showPage('connect',document.querySelector('[data-page=connect]'))">⚙️ Cài đặt kết nối</button>
+          <button class="btn btn-outline btn-sm" onclick="syncNow()">🔄 Sync ngay</button>
+          <button class="btn btn-outline btn-sm" onclick="exportCSV()">📊 Xuất CSV</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function saveSettingsForm() {
+  persistSettings({name:document.getElementById('s-name').value,role:document.getElementById('s-role').value,email:document.getElementById('s-email').value,phone:document.getElementById('s-phone').value||''});
+}
+
+// ══════════════════════════════════════════════════════════════
+// PANEL
+// ══════════════════════════════════════════════════════════════
+function openPanel(id) {
+  selectedLead=leads.find(l=>l.id==id);
+  if(!selectedLead) return;
+  const l=selectedLead;
+  const st=STAGES.find(s=>s.id===l.stage);
+  document.getElementById('panel-name').textContent=l.name;
+  document.getElementById('panel-sub').textContent=`${l.type||''} · ${l.area||''} · Score: ${l.score}`;
+  document.getElementById('panel-overlay').classList.add('open');
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('panel-body').innerHTML=`
+    <div class="section-title">Thông tin</div>
+    <div class="info-grid">
+      <div class="info-item"><div class="info-label">Điện thoại</div><div class="info-value">📱 ${l.phone}</div></div>
+      <div class="info-item"><div class="info-label">Email</div><div class="info-value">✉️ ${l.email||'–'}</div></div>
+      <div class="info-item"><div class="info-label">Loại CT</div><div class="info-value">🏠 ${l.type||'–'}</div></div>
+      <div class="info-item"><div class="info-label">Khu vực</div><div class="info-value">📍 ${l.area||'–'}</div></div>
+      <div class="info-item"><div class="info-label">Ngân sách</div><div class="info-value">💰 ${l.budget||'–'}</div></div>
+      <div class="info-item"><div class="info-label">Giá trị HĐ</div><div class="info-value" style="color:var(--amber);font-weight:700">${formatShort(Number(l.value)||0)}</div></div>
+      <div class="info-item"><div class="info-label">Nguồn</div><div class="info-value">📣 ${l.source||'–'}</div></div>
+      <div class="info-item"><div class="info-label">Score</div><div class="info-value"><div class="score-bar"><div class="score-track" style="width:70px"><div class="score-fill" style="width:${l.score}%;background:${l.score>=80?'#0F5132':l.score>=60?'#7A3800':'#7B1A2B'}"></div></div><div class="score-num">${l.score}/100</div></div></div></div>
+    </div>
+    <div class="section-title">📝 Ghi chú</div>
+    <div style="background:var(--lgray);border-radius:8px;padding:11px;font-size:12.5px;color:var(--charcoal);margin-bottom:16px;line-height:1.6">${l.note||'Chưa có ghi chú'}</div>
+    <div class="section-title">🏷️ Cập nhật Giai đoạn</div>
+    <div class="stage-selector">${STAGES.map(s=>`<div class="stage-btn ${l.stage===s.id?'active':''}" style="--stage-bg:${SBG[s.id]};--stage-c:${SC[s.id]};--stage-bc:${SC[s.id]}" onclick="updateStage(${l.id},'${s.id}')">${s.label}</div>`).join('')}</div>
+    <div class="section-title">📜 Lịch sử <button class="btn btn-outline btn-sm" style="font-size:10px" onclick="openEditLead(${l.id})">✏️ Sửa thông tin</button></div>
+    <div class="timeline">${(Array.isArray(l.history)?l.history:[]).map(h=>`<div class="tl-item"><div class="tl-dot"></div><div><div class="tl-text">${h.t}</div><div class="tl-time">${h.time}</div></div></div>`).join('')||'<div style="color:var(--mgray);font-size:12px">Chưa có lịch sử</div>'}</div>
+    <div class="note-input">
+      <textarea id="qn-${l.id}" placeholder="Ghi chú nhanh..."></textarea>
+      <button class="btn btn-primary" style="height:65px;white-space:nowrap;font-size:12px" onclick="saveNote(${l.id})">💾 Lưu</button>
+    </div>`;
+}
+function closePanel(){ document.getElementById('panel-overlay').classList.remove('open');document.getElementById('detail-panel').classList.remove('open');selectedLead=null; }
+
+async function updateStage(id,stage) {
+  const l=leads.find(l=>l.id==id); if(!l) return;
+  const old=STAGES.find(s=>s.id===l.stage).label;
+  l.stage=stage;
+  const nw=STAGES.find(s=>s.id===stage).label;
+  if(!Array.isArray(l.history)) l.history=[];
+  l.history.unshift({t:`Cập nhật: ${old} → ${nw}`,time:nowStr()});
+  l.lastContact=new Date().toISOString().split('T')[0];
+  saveLocal(); openPanel(id);
+  if(currentPage==='leads') renderLeads();
+  if(currentPage==='pipeline') renderPipeline();
+  await pushLead(l);
+  toast(`🔄 Chuyển sang: ${nw}`);
+}
+
+async function saveNote(id) {
+  const ta=document.getElementById('qn-'+id); if(!ta) return;
+  const txt=ta.value.trim(); if(!txt) return;
+  const l=leads.find(l=>l.id==id); if(!l) return;
+  if(!Array.isArray(l.history)) l.history=[];
+  l.history.unshift({t:txt,time:nowStr()});
+  l.lastContact=new Date().toISOString().split('T')[0];
+  ta.value='';
+  saveLocal(); openPanel(id);
+  await pushLead(l);
+  toast('💾 Đã lưu ghi chú!');
+}
+
+// ══════════════════════════════════════════════════════════════
+// ADD / EDIT LEAD
+// ══════════════════════════════════════════════════════════════
+function openAddLead() {
+  editingLeadId=null;
+  document.getElementById('modal-title').textContent='✨ Thêm Lead mới';
+  document.getElementById('modal-save-btn').textContent='💾 Lưu Lead';
+  ['f-name','f-phone','f-email','f-value','f-area','f-timeline','f-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-score').value='50';
+  document.getElementById('f-stage').value='new';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openEditLead(id) {
+  const l=leads.find(l=>l.id==id); if(!l) return;
+  editingLeadId=id;
+  document.getElementById('modal-title').textContent=`✏️ Sửa – ${l.name}`;
+  document.getElementById('modal-save-btn').textContent='💾 Cập nhật';
+  document.getElementById('f-name').value=l.name;document.getElementById('f-phone').value=l.phone;
+  document.getElementById('f-email').value=l.email||'';document.getElementById('f-type').value=l.type||'Căn hộ';
+  document.getElementById('f-source').value=l.source||'Facebook Ads';document.getElementById('f-budget').value=l.budget||'200–500 triệu';
+  document.getElementById('f-value').value=l.value||'';document.getElementById('f-area').value=l.area||'';
+  document.getElementById('f-timeline').value=l.timeline||'';document.getElementById('f-owner').value=l.owner||'AN';
+  document.getElementById('f-score').value=l.score||50;document.getElementById('f-stage').value=l.stage||'new';
+  document.getElementById('f-note').value=l.note||'';
+  document.getElementById('modal-overlay').classList.add('open');
+  closePanel();
+}
+
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open');editingLeadId=null; }
+
+async function saveLead() {
+  const name=document.getElementById('f-name').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  if(!name||!phone){toast('⚠️ Nhập Tên và SĐT!','⚠️');return;}
+  const now=new Date().toISOString().split('T')[0];
+  if(editingLeadId) {
+    const l=leads.find(l=>l.id==editingLeadId); if(!l) return;
+    Object.assign(l,{name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,value:parseInt(document.getElementById('f-value').value)||l.value||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,owner:document.getElementById('f-owner').value,score:parseInt(document.getElementById('f-score').value)||50,stage:document.getElementById('f-stage').value,note:document.getElementById('f-note').value,lastContact:now});
+    if(!Array.isArray(l.history)) l.history=[];
+    l.history.unshift({t:'Cập nhật thông tin lead',time:nowStr()});
+    saveLocal(); closeModal();
+    if(currentPage==='leads') renderLeads();
+    if(currentPage==='pipeline') renderPipeline();
+    await pushLead(l);
+    toast(`✅ Đã cập nhật: ${name}!`);
+  } else {
+    const newLead={id:Date.now(),name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,value:parseInt(document.getElementById('f-value').value)||500000000,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,stage:document.getElementById('f-stage').value,score:parseInt(document.getElementById('f-score').value)||50,owner:document.getElementById('f-owner').value,note:document.getElementById('f-note').value,created:now,lastContact:now,history:[{t:`Lead mới từ ${document.getElementById('f-source').value}`,time:nowStr()}]};
+    leads.unshift(newLead);
+    saveLocal(); closeModal();
+    if(currentPage==='leads') renderLeads();
+    if(currentPage==='pipeline') renderPipeline();
+    await pushLead(newLead);
+    toast(`✅ Đã thêm: ${name}!`);
+  }
+  updateBadges();
+}
+
+async function confirmDeleteLead(id) {
+  const l=leads.find(l=>l.id==id); if(!l) return;
+  showConfirm('🗑️','Xóa Lead',`Xóa lead "${l.name}"? Không thể hoàn tác.`,async()=>{
+    leads=leads.filter(l=>l.id!=id);
+    saveLocal();
+    if(currentPage==='leads') renderLeads();
+    if(currentPage==='pipeline') renderPipeline();
+    updateBadges();
+    await removeLead(id);
+    toast(`🗑️ Đã xóa: ${l.name}`);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════════════════════
+function exportCSV() {
+  const h=['ID','Tên','SĐT','Email','Loại CT','Nguồn','Ngân sách','Giá trị','Khu vực','Timeline','Giai đoạn','Score','Owner','Ghi chú'];
+  const rows=leads.map(l=>[l.id,l.name,l.phone,l.email||'',l.type,l.source,l.budget,l.value||0,l.area||'',l.timeline||'',l.stage,l.score,l.owner,`"${(l.note||'').replace(/"/g,'""')}"`].join(','));
+  const csv=[h.join(','),...rows].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`MDC_Leads_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  toast('📊 Đã xuất CSV!');
+}
+
+// ══════════════════════════════════════════════════════════════
+// CONFIRM / LOADING / TOAST
+// ══════════════════════════════════════════════════════════════
+function showConfirm(icon,title,msg,cb) {
+  confirmCb=cb;
+  document.getElementById('c-icon').textContent=icon;
+  document.getElementById('c-title').textContent=title;
+  document.getElementById('c-msg').textContent=msg;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm(){ document.getElementById('confirm-overlay').classList.remove('open');confirmCb=null; }
+function doConfirm(){ if(confirmCb) confirmCb(); closeConfirm(); }
+
+function showLoading(t){ document.getElementById('loading-text').textContent=t||'Đang xử lý...';document.getElementById('loading-overlay').classList.add('open'); }
+function hideLoading(){ document.getElementById('loading-overlay').classList.remove('open'); }
+
+let tTimer;
+function toast(msg,icon='✅'){
+  document.getElementById('t-msg').textContent=msg;
+  document.getElementById('t-icon').textContent=icon;
+  const el=document.getElementById('toast');
+  el.classList.add('show');clearTimeout(tTimer);
+  tTimer=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+function formatB(v){if(v>=1e9)return(v/1e9).toFixed(1)+'B';if(v>=1e6)return Math.round(v/1e6)+'M';return v?v.toLocaleString('vi-VN'):'0'}
+function formatShort(v){if(v>=1e9)return(v/1e9).toFixed(1)+' tỷ';if(v>=1e6)return Math.round(v/1e6)+' triệu';return v?v.toLocaleString('vi-VN'):'0'}
+function ownerColor(o){return o==='AN'?'#0F3460':o==='BT'?'#0F5132':o==='EM'?'#3D0D6E':'#666'}
+function nowStr(){const d=new Date();return d.toLocaleDateString('vi-VN')+' '+d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}
+function setFilter(f){activeFilter=f;renderLeads()}
+function handleSearch(q){searchQuery=q;if(currentPage==='leads')renderLeads()}
+function updateBadges(){document.getElementById('lead-count').textContent=leads.length;document.getElementById('task-count').textContent=tasks.filter(t=>!t.done).length}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+loadLocal();
+const s0=loadSettings();
+applySettingsUI(s0);
+updateBadges();
+showPage('dashboard', document.querySelector('[data-page=dashboard]'));
+
+// Auto-sync on load if API URL exists
+if(getApiUrl()) {
+  syncFromSheets().then(ok => {
+    if(ok) renderDashboard();
+  });
+}
+
+// Auto-sync every 5 minutes
+setInterval(()=>{ if(getApiUrl() && !isSyncing) syncFromSheets(); }, 5*60*1000);
+</script>
+</body>
+</html>
