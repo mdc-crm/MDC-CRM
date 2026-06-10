@@ -487,6 +487,7 @@ input[type="time"].form-input{font-family:'DM Mono',monospace;font-size:12px}
     <div class="nav-item" data-page="tasks" onclick="showPage('tasks',this)"><span class="icon">✅</span> Công việc<span class="nav-badge" id="task-count">0</span></div>
     <div class="nav-section admin-only">Phân tích</div>
     <div class="nav-item admin-only" data-page="staff" onclick="showPage('staff',this)"><span class="icon">👤</span> Nhân sự & Phân quyền</div>
+    <div class="nav-item admin-only" data-page="actlog" onclick="showPage('actlog',this)"><span class="icon">📋</span> Nhật ký thao tác</div>
     <div class="nav-section admin-only">Hệ thống</div>
     <div class="nav-item admin-only" data-page="connect" onclick="showPage('connect',this)"><span class="icon">🔗</span> Kết nối Sheets</div>
     <div class="nav-item admin-only" data-page="settings" onclick="showPage('settings',this)"><span class="icon">⚙️</span> Cài đặt</div>
@@ -698,6 +699,7 @@ function doLogin(){
   currentUser=found;
   localStorage.setItem(LS_SESSION,JSON.stringify({id:found.id,at:Date.now()}));
   startApp();
+  setTimeout(()=>logActivity('login','Hệ thống','',found.name,'Đăng nhập CRM','',''),2000);
 }
 
 function doLogout(){
@@ -1247,6 +1249,19 @@ async function removeLead(id){if(!getApiUrl()) return;try{await apiPost({action:
 async function pushTask(task){if(!getApiUrl()) return;try{await apiPost({action:'saveTask',task});}catch(e){}}
 async function removeTask(id){if(!getApiUrl()) return;try{await apiPost({action:'deleteTask',id});}catch(e){}}
 
+// ══ Ghi nhật ký thao tác nhân viên lên Sheets ══
+function logActivity(action, target, targetId, targetName, detail='', oldStage='', newStage=''){
+  if(!getApiUrl() || !currentUser) return;
+  const payload={
+    action, target, targetId, targetName, detail, oldStage, newStage,
+    staffId   : currentUser.id,
+    staffName : currentUser.name,
+    device    : navigator.userAgent.slice(0,60),
+  };
+  // Fire-and-forget — không await, không block UI
+  apiPost({action:'logActivity',...payload}).catch(()=>{});
+}
+
 async function syncNow(){
   if(isSyncing) return;
   isSyncing=true;
@@ -1287,14 +1302,15 @@ function showPage(page,el){
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  const titles={dashboard:'Dashboard',pipeline_tk:'Pipeline Thiết kế',pipeline_tc:'Pipeline Thi công',leads:'Tất cả Khách hàng',tasks:'Công việc',reports:'Báo cáo',staff:'Nhân sự & Phân quyền',connect:'Kết nối Google Sheets',settings:'Cài đặt'};
+  const titles={dashboard:'Dashboard',pipeline_tk:'Pipeline Thiết kế',pipeline_tc:'Pipeline Thi công',leads:'Tất cả Khách hàng',tasks:'Công việc',reports:'Báo cáo',staff:'Nhân sự & Phân quyền',connect:'Kết nối Google Sheets',settings:'Cài đặt',actlog:'Nhật ký thao tác'};
   document.getElementById('page-title').textContent=titles[page]||page;
   const renders={
     dashboard:renderDashboard,
     pipeline_tk:()=>renderPipelineBoard('tk'),
     pipeline_tc:()=>renderPipelineBoard('tc'),
     leads:renderLeads,tasks:renderTasks,
-    reports:renderReports,connect:renderConnect,settings:renderSettings
+    reports:renderReports,connect:renderConnect,settings:renderSettings,
+    actlog:renderActivityLog
   };
   (renders[page]||(() => {}))();
 }
@@ -1442,6 +1458,7 @@ async function quickLogContact(id){
   l.lastContact=new Date().toISOString().split('T')[0];
   if(!Array.isArray(l.history))l.history=[];
   l.history.unshift({t:'✓ Đã liên hệ KH (ghi nhanh từ Dashboard)',time:nowStr()});
+  logActivity('logContact','KH',l.id,l.name,'Ghi nhận liên hệ nhanh từ Dashboard',l.stage||'','');
   saveLocal();rerenderCurrent();
   await pushLead(l);
   toast(`✓ Đã ghi nhận liên hệ: ${l.name}`);
@@ -1944,6 +1961,8 @@ async function saveTask(){
       due: date + (document.getElementById('t-time').value ? ' ' + document.getElementById('t-time').value : ''),
     };
     tasks.push(task);
+    logActivity('addTask','CV',task.id,task.text,
+      `KH: ${task.lead||'Chung'} · Ngày: ${task.date}`,task.stage||'','');
     // Set active KH to this lead after adding
     if(leadId) activeKhId = leadId;
     toast('📝 Đã thêm công việc!');
@@ -1962,6 +1981,8 @@ async function toggleTask(id,e){
   if(!t)return;
   t.done=!t.done;
   t.doneAt=t.done?new Date().toISOString():null;
+  logActivity(t.done?'completeTask':'uncompleteTask','CV',t.id,t.text,
+    `KH: ${t.lead||'–'}${t.stage?' · GĐ: '+t.stage:''}`,t.stage||'','');
   // Hoàn thành task gắn KH → tự ghi nhận đã tương tác với KH
   if(t.done && t.leadId){
     const l=leads.find(l=>l.id==t.leadId);
@@ -2015,6 +2036,131 @@ function renderReports(){
 }
 
 // ── CONNECT ───────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// NHẬT KÝ THAO TÁC
+// ══════════════════════════════════════════════════════════════
+let actLogs = [];
+let actLogFilter = '';
+let actLogPage = 1;
+const ACT_PER_PAGE = 50;
+
+async function renderActivityLog(){
+  const el = document.getElementById('content-area');
+  el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--mgray)">
+    <div class="spinner" style="margin:0 auto 12px"></div>Đang tải nhật ký...</div>`;
+  try {
+    const data = await apiFetch({action:'getLogs',limit:500});
+    actLogs = data.logs || [];
+    actLogPage = 1;
+    renderLogTable();
+  } catch(e) {
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--ruby)">
+      ❌ Lỗi tải nhật ký: ${e.message}<br>
+      <small style="color:var(--mgray)">Cần cập nhật Apps Script lên phiên bản mới</small></div>`;
+  }
+}
+
+function renderLogTable(){
+  const el = document.getElementById('content-area');
+  const filtered = actLogFilter
+    ? actLogs.filter(l =>
+        l.staffName?.toLowerCase().includes(actLogFilter) ||
+        l.action?.toLowerCase().includes(actLogFilter) ||
+        l.targetName?.toLowerCase().includes(actLogFilter) ||
+        l.detail?.toLowerCase().includes(actLogFilter))
+    : actLogs;
+
+  const total = filtered.length;
+  const start = (actLogPage-1)*ACT_PER_PAGE;
+  const page  = filtered.slice(start, start+ACT_PER_PAGE);
+  const totalPages = Math.ceil(total/ACT_PER_PAGE)||1;
+
+  // Stats
+  const byStaff = {};
+  actLogs.forEach(l=>{
+    if(!byStaff[l.staffName]) byStaff[l.staffName]={name:l.staffName,count:0,last:''};
+    byStaff[l.staffName].count++;
+    if(!byStaff[l.staffName].last) byStaff[l.staffName].last=l.time;
+  });
+  const staffStats = Object.values(byStaff).sort((a,b)=>b.count-a.count);
+
+  const actionIcons = {
+    'Thêm khách hàng mới':'🟢','Sửa thông tin KH':'✏️','Xóa khách hàng':'🔴',
+    'Chuyển giai đoạn':'🔄','Thêm công việc':'📝','Sửa công việc':'✏️',
+    'Xóa công việc':'🗑️','Hoàn thành công việc':'✅','Bỏ hoàn thành CV':'↩️',
+    'Ghi nhận liên hệ':'📞','Thêm ghi chú':'💬','Chuyển sang pipeline TC':'⚡',
+    'Đăng nhập':'🔐','Đồng bộ dữ liệu':'🔄',
+  };
+
+  el.innerHTML = `
+  <!-- Thống kê theo nhân viên -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:18px">
+    ${staffStats.slice(0,6).map(s=>`
+    <div style="background:var(--white);border:1px solid #e8e4de;border-radius:10px;padding:12px 14px;display:flex;gap:10px;align-items:center">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--navy);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">
+        ${(s.name||'?').split(' ').pop().slice(0,2).toUpperCase()}
+      </div>
+      <div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--charcoal)">${s.name||'Chưa xác định'}</div>
+        <div style="font-size:11px;color:var(--mgray)">${s.count} thao tác · ${s.last?.slice(0,8)||''}</div>
+      </div>
+    </div>`).join('')}
+  </div>
+
+  <!-- Toolbar -->
+  <div class="table-wrap">
+    <div class="table-toolbar">
+      <input type="text" class="form-input" style="width:260px;padding:6px 11px"
+        placeholder="🔍 Tìm nhân viên, thao tác, KH..."
+        oninput="actLogFilter=this.value.toLowerCase();actLogPage=1;renderLogTable()"
+        value="${actLogFilter}">
+      <span style="font-size:12px;color:var(--mgray);margin-left:auto">${total} bản ghi · Trang ${actLogPage}/${totalPages}</span>
+      <button class="btn btn-outline btn-sm" onclick="actLogPage=Math.max(1,actLogPage-1);renderLogTable()" ${actLogPage<=1?'disabled':''}>← Trước</button>
+      <button class="btn btn-outline btn-sm" onclick="actLogPage=Math.min(${totalPages},actLogPage+1);renderLogTable()" ${actLogPage>=totalPages?'disabled':''}>Tiếp →</button>
+    </div>
+    <table>
+      <thead><tr>
+        <th>⏰ Thời gian</th>
+        <th>👤 Nhân viên</th>
+        <th>🏷️ Thao tác</th>
+        <th>📌 Đối tượng</th>
+        <th>📝 Chi tiết</th>
+        <th>🔄 Giai đoạn</th>
+      </tr></thead>
+      <tbody>
+        ${page.length ? page.map(l=>{
+          const icon = actionIcons[l.action]||'📌';
+          const isDelete = l.action.includes('Xóa');
+          const isAdd = l.action.includes('Thêm');
+          const rowBg = isDelete?'background:#fff5f5':isAdd?'background:#f0fdf4':'';
+          return `<tr style="${rowBg}">
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--mgray);white-space:nowrap">${l.time||'–'}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:7px">
+                <div style="width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--gold2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">
+                  ${(l.staffName||'?').split(' ').pop().slice(0,2).toUpperCase()}
+                </div>
+                <span style="font-size:12px;font-weight:500">${l.staffName||'–'}</span>
+              </div>
+            </td>
+            <td><span style="font-size:12px">${icon} ${l.action||'–'}</span></td>
+            <td>
+              <div style="font-size:12px;font-weight:500;color:var(--charcoal)">${l.targetName||'–'}</div>
+              <div style="font-size:10.5px;color:var(--mgray)">${l.target||''} ${l.targetId?'#'+String(l.targetId).slice(-6):''}</div>
+            </td>
+            <td style="font-size:11.5px;color:var(--mgray);max-width:200px">${l.detail||'–'}</td>
+            <td style="font-size:11px;font-family:'DM Mono',monospace">
+              ${l.oldStage&&l.newStage ? `<span style="color:var(--mgray)">${l.oldStage}</span> → <span style="color:var(--emerald)">${l.newStage}</span>` : '–'}
+            </td>
+          </tr>`;
+        }).join('') : `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--mgray)">
+          ${actLogFilter?'Không tìm thấy kết quả':'Chưa có nhật ký nào. Các thao tác sẽ được ghi lại tự động.'}
+        </td></tr>`}
+      </tbody>
+    </table>
+  </div>`;
+}
+
 function renderConnect(){
   const saved=getApiUrl();
   document.getElementById('page-content').innerHTML=`
@@ -2218,6 +2364,7 @@ async function updateStage(id,stage){
   saveLocal(); openPanel(id); rerenderCurrent();
   await pushLead(l);
   for(const t of newChkTasks) pushTask(t);
+  logActivity('changeStage','KH',l.id,l.name,`${old} → ${nw}`,old,nw);
   if(newChkTasks.length > 0)
     toast(`🔄 → ${nw} · ✅ ${newChkTasks.length} việc mới`);
   else
@@ -2227,6 +2374,7 @@ async function updateStage(id,stage){
 async function handleTransferAccept(id){
   document.getElementById('transfer-modal').classList.remove('open');
   const l=leads.find(l=>l.id==id); if(!l) return;
+  logActivity('transferPipeline','KH',l.id,l.name,'Chuyển sang Pipeline Thi công','tk_quote_tc','tc_new');
 
   // KH trong TK → chuyển sang Nghiệm thu TK
   l.stage='tk_accept';
@@ -2265,6 +2413,7 @@ async function saveNote(id){
   if(!Array.isArray(l.history)) l.history=[];
   l.history.unshift({t:txt,time:nowStr()});
   l.lastContact=new Date().toISOString().split('T')[0];
+  logActivity('addNote','KH',l.id,l.name,txt.slice(0,80),l.stage||'','');
   ta.value=''; saveLocal(); openPanel(id);
   await pushLead(l);
   toast('💾 Đã lưu ghi chú!');
@@ -2343,11 +2492,13 @@ async function saveLead(){
     l.history.unshift({t:'Cập nhật thông tin KH',time:nowStr()});
     saveLocal(); closeModal(); rerenderCurrent();
     await pushLead(l);
+    logActivity('editLead','KH',l.id,l.name,`Sửa thông tin KH`,'','');
     toast(`✅ Đã cập nhật: ${name}!`);
   } else {
     const newLead={id:Date.now(),name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,stage,score:parseInt(document.getElementById('f-score').value)||50,owner:document.getElementById('f-owner').value,note:document.getElementById('f-note').value,nextAction:(document.getElementById('f-next-action')||{}).value||'',nextDate:(document.getElementById('f-next-date')||{}).value||'',created:now,lastContact:now,inBothPipelines:false,history:[{t:`KH mới từ ${document.getElementById('f-source').value}`,time:nowStr()}]};
     leads.unshift(newLead); saveLocal(); closeModal(); rerenderCurrent();
     await pushLead(newLead);
+    logActivity('addLead','KH',newLead.id,newLead.name,`Nguồn: ${newLead.source} · Giai đoạn: ${newLead.stage}`,'',newLead.stage);
     toast(`✅ Đã thêm: ${name}!`);
   }
   updateBadges();
@@ -2360,6 +2511,7 @@ async function confirmDeleteLead(id){
     leads=leads.filter(l=>l.id!=id);
     saveLocal(); rerenderCurrent(); updateBadges();
     await removeLead(id);
+    logActivity('deleteLead','KH',id,l.name,'Xóa khách hàng','','');
     toast(`🗑️ Đã xóa: ${l.name}`);
   });
 }
