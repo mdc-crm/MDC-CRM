@@ -925,6 +925,160 @@ function daysSinceContact(l){
   if(isNaN(d)) return 999;
   return Math.floor((Date.now() - d.getTime()) / 86400000);
 }
+
+// ══════════════════════════════════════════════════════════════
+// STAGE CHECKLIST — Lộ trình công việc theo giai đoạn
+// ══════════════════════════════════════════════════════════════
+const STAGE_CHECKLIST = {
+  // ── PIPELINE THIẾT KẾ ─────────────────────────────────────
+  tk_new: [
+    {text:'Ghi nhận thông tin KH (tên, SĐT, email, địa chỉ CT)', type:'call', urgency:'red'},
+    {text:'Xác nhận nhu cầu sơ bộ (phong cách, diện tích, ngân sách)', type:'call', urgency:'red'},
+    {text:'Đặt lịch tư vấn trực tiếp hoặc online', type:'meet', urgency:'orange'},
+  ],
+  tk_consult: [
+    {text:'Gặp gỡ / gọi tư vấn — lắng nghe nhu cầu chi tiết', type:'meet', urgency:'red'},
+    {text:'Giới thiệu portfolio MDC phù hợp phong cách KH', type:'send', urgency:'orange'},
+    {text:'Ghi chú nhu cầu đặc biệt, nỗi lo của KH', type:'other', urgency:'orange'},
+    {text:'Follow-up sau tư vấn (hỏi cảm nhận, giải đáp thắc mắc)', type:'followup', urgency:'orange'},
+  ],
+  tk_survey: [
+    {text:'Xác nhận lịch khảo sát với KH', type:'call', urgency:'red'},
+    {text:'Khảo sát thực địa — đo đạc, chụp ảnh hiện trạng', type:'meet', urgency:'red'},
+    {text:'Ghi chú kết cấu đặc biệt, vị trí điện nước, hạn chế', type:'other', urgency:'orange'},
+    {text:'Tổng hợp biên bản khảo sát — gửi KH xác nhận', type:'send', urgency:'orange'},
+  ],
+  tk_quote_tk: [
+    {text:'Lập báo giá thiết kế chi tiết (concept + triển khai)', type:'design', urgency:'red'},
+    {text:'Gửi báo giá thiết kế cho KH', type:'send', urgency:'red'},
+    {text:'Giải thích cấu trúc báo giá — giá trị từng hạng mục', type:'call', urgency:'orange'},
+    {text:'Follow-up sau 2 ngày — hỏi phản hồi báo giá', type:'followup', urgency:'orange'},
+    {text:'Đàm phán / điều chỉnh nếu KH có ý kiến', type:'meet', urgency:'orange'},
+  ],
+  tk_sign_tk: [
+    {text:'Soạn hợp đồng thiết kế đầy đủ điều khoản', type:'design', urgency:'red'},
+    {text:'Gặp KH ký hợp đồng thiết kế', type:'meet', urgency:'red'},
+    {text:'Thu thanh toán đợt 1 theo hợp đồng', type:'payment', urgency:'red'},
+    {text:'Bàn giao hợp đồng + biên nhận thanh toán cho KH', type:'send', urgency:'orange'},
+    {text:'Kickoff nội bộ — brief KTS bắt đầu thiết kế', type:'design', urgency:'orange'},
+  ],
+  tk_design: [
+    {text:'Bàn giao brief thiết kế cho KTS phụ trách', type:'design', urgency:'red'},
+    {text:'Trình KH bản concept + moodboard (lần 1)', type:'meet', urgency:'red'},
+    {text:'Ghi nhận góp ý — chỉnh sửa theo phản hồi KH', type:'design', urgency:'orange'},
+    {text:'Trình bản triển khai thiết kế (mặt bằng, phối cảnh 3D)', type:'meet', urgency:'orange'},
+    {text:'Cập nhật bản vẽ theo góp ý lần cuối', type:'design', urgency:'orange'},
+    {text:'KH xác nhận thiết kế đã duyệt', type:'send', urgency:'red'},
+  ],
+  tk_handover: [
+    {text:'Hoàn thiện hồ sơ bản vẽ thi công đầy đủ', type:'design', urgency:'red'},
+    {text:'Kiểm tra chất lượng hồ sơ trước khi bàn giao', type:'other', urgency:'red'},
+    {text:'Bàn giao hồ sơ thiết kế cho KH (file + bản in)', type:'send', urgency:'red'},
+    {text:'Thu thanh toán đợt cuối hợp đồng thiết kế', type:'payment', urgency:'red'},
+    {text:'Biên bản bàn giao hồ sơ — KH ký xác nhận', type:'send', urgency:'orange'},
+  ],
+  tk_quote_tc: [
+    {text:'Lập dự toán thi công từ hồ sơ thiết kế', type:'construct', urgency:'red'},
+    {text:'Gửi báo giá thi công chi tiết cho KH', type:'send', urgency:'red'},
+    {text:'Tư vấn giải thích từng hạng mục thi công', type:'call', urgency:'orange'},
+    {text:'Follow-up phản hồi báo giá thi công', type:'followup', urgency:'orange'},
+  ],
+  tk_accept: [
+    {text:'Hoàn thành nghiệm thu hồ sơ thiết kế với KH', type:'meet', urgency:'red'},
+    {text:'Gửi bảng đánh giá chất lượng dịch vụ thiết kế', type:'send', urgency:'orange'},
+    {text:'Xin feedback + đề nghị giới thiệu khách hàng mới', type:'followup', urgency:'orange'},
+  ],
+
+  // ── PIPELINE THI CÔNG ─────────────────────────────────────
+  tc_new: [
+    {text:'Xác nhận thông tin dự án thi công (diện tích, địa điểm)', type:'call', urgency:'red'},
+    {text:'Xác nhận hồ sơ thiết kế đã đầy đủ chưa', type:'other', urgency:'red'},
+    {text:'Đặt lịch tư vấn thi công + khảo sát sơ bộ', type:'meet', urgency:'orange'},
+  ],
+  tc_consult: [
+    {text:'Gặp KH tư vấn quy trình thi công MDC', type:'meet', urgency:'red'},
+    {text:'Xem xét hồ sơ thiết kế — đánh giá khả thi thi công', type:'construct', urgency:'orange'},
+    {text:'Giải đáp thắc mắc về tiến độ, vật liệu, đội thi công', type:'call', urgency:'orange'},
+    {text:'Follow-up sau tư vấn thi công', type:'followup', urgency:'orange'},
+  ],
+  tc_survey: [
+    {text:'Khảo sát hiện trạng công trình thi công', type:'meet', urgency:'red'},
+    {text:'Đánh giá kết cấu, điện nước, cốt sàn', type:'construct', urgency:'red'},
+    {text:'Xác định hạng mục phát sinh tiềm ẩn', type:'other', urgency:'orange'},
+    {text:'Lập biên bản khảo sát thi công', type:'send', urgency:'orange'},
+  ],
+  tc_quote_tc: [
+    {text:'Lập dự toán thi công chi tiết từng hạng mục', type:'construct', urgency:'red'},
+    {text:'Gửi báo giá thi công đầy đủ cho KH', type:'send', urgency:'red'},
+    {text:'Thuyết trình báo giá — giải thích đơn giá vật tư + nhân công', type:'meet', urgency:'orange'},
+    {text:'Follow-up phản hồi sau 2 ngày', type:'followup', urgency:'orange'},
+    {text:'Điều chỉnh báo giá nếu KH yêu cầu', type:'other', urgency:'orange'},
+  ],
+  tc_sign_tc: [
+    {text:'Soạn hợp đồng thi công đầy đủ điều khoản tiến độ', type:'construct', urgency:'red'},
+    {text:'Gặp KH ký hợp đồng thi công', type:'meet', urgency:'red'},
+    {text:'Thu thanh toán đợt 1 theo hợp đồng thi công', type:'payment', urgency:'red'},
+    {text:'Bàn giao lịch thi công chi tiết cho KH', type:'send', urgency:'orange'},
+    {text:'Họp kickoff nội bộ — brief đội thi công', type:'construct', urgency:'orange'},
+  ],
+  tc_docs: [
+    {text:'Lập hồ sơ thi công: bản vẽ shop drawing', type:'construct', urgency:'red'},
+    {text:'Lập bảng tiến độ thi công chi tiết (Gantt)', type:'construct', urgency:'red'},
+    {text:'Lên danh sách vật tư + đặt hàng dài hạn', type:'construct', urgency:'orange'},
+    {text:'Phân công nhân sự và đội thi công cụ thể', type:'other', urgency:'orange'},
+    {text:'Gửi lịch thi công + thông tin đội ngũ cho KH', type:'send', urgency:'orange'},
+  ],
+  tc_construct: [
+    {text:'Nghiệm thu mặt bằng + bàn giao công trường cho đội TC', type:'construct', urgency:'red'},
+    {text:'Báo cáo tiến độ tuần cho KH (ảnh + % hoàn thành)', type:'send', urgency:'orange'},
+    {text:'Kiểm tra chất lượng định kỳ theo từng hạng mục', type:'construct', urgency:'orange'},
+    {text:'Xử lý phát sinh (nếu có) — thông báo KH ngay', type:'call', urgency:'orange'},
+    {text:'Thu thanh toán đợt 2 khi đạt mốc tiến độ', type:'payment', urgency:'orange'},
+    {text:'Nghiệm thu nội bộ trước khi bàn giao KH', type:'construct', urgency:'red'},
+  ],
+  tc_handover: [
+    {text:'Nghiệm thu công trình với KH — kiểm tra từng hạng mục', type:'meet', urgency:'red'},
+    {text:'Lập biên bản nghiệm thu + danh mục lỗi cần sửa (nếu có)', type:'send', urgency:'red'},
+    {text:'Hoàn thiện các lỗi nhỏ trước bàn giao chính thức', type:'construct', urgency:'red'},
+    {text:'Bàn giao công trình + hồ sơ bảo hành cho KH', type:'send', urgency:'red'},
+    {text:'Thu thanh toán đợt cuối — quyết toán hợp đồng', type:'payment', urgency:'red'},
+    {text:'Chụp ảnh công trình hoàn thiện (portfolio MDC)', type:'other', urgency:'green'},
+    {text:'Gửi phiếu khảo sát hài lòng + xin review Google', type:'send', urgency:'green'},
+    {text:'Nhắc lịch bảo hành định kỳ (3 tháng sau)', type:'followup', urgency:'green'},
+  ],
+};
+
+// Tạo tasks mẫu khi KH chuyển giai đoạn mới
+function createStageChecklistTasks(lead, newStage){
+  const templates = STAGE_CHECKLIST[newStage];
+  if(!templates || !templates.length) return [];
+  const today = new Date().toISOString().split('T')[0];
+  // Tính ngày deadline theo độ ưu tiên
+  const deadlineDays = {red:1, orange:3, green:7};
+  return templates.map((tpl, idx) => {
+    const dDays = deadlineDays[tpl.urgency]||3;
+    const dDate = new Date();
+    dDate.setDate(dDate.getDate() + dDays);
+    return {
+      id: Date.now() + idx,
+      text: tpl.text,
+      type: tpl.type,
+      urgency: tpl.urgency,
+      leadId: lead.id,
+      lead: lead.name,
+      date: dDate.toISOString().split('T')[0],
+      time: '09:00',
+      assignee: lead.owner || currentUser?.id || '',
+      note: '',
+      done: false,
+      created: new Date().toISOString(),
+      due: dDate.toISOString().split('T')[0],
+      isTemplate: true, // đánh dấu là task từ checklist mẫu
+      stage: newStage,
+    };
+  });
+}
+
 // Ngưỡng cảnh báo theo giai đoạn — giai đoạn nóng cần chăm sát hơn
 const STAGE_SLA = {
   // Pipeline TK
@@ -975,9 +1129,12 @@ function pipeProgress(l){
 
 
 function getPipelineOfStage(stageId){return getPipe(stageId);}
-const SBG={...SBG_TK,...SBG_TC};
-const SC={...SC_TK,...SC_TC};
 function getStageObj(stageId){return STAGES_TK.find(s=>s.id===stageId)||STAGES_TC.find(s=>s.id===stageId)||{label:stageId,color:'#555',badge:''};}
+
+// Aliases SBG/SC — dùng khắp nơi trong render functions
+// SBG_TK, SC_TK, SBG_TC, SC_TC được khai báo ở trên; merge thành SBG/SC để code gọn
+const SBG = {...SBG_TK, ...SBG_TC};
+const SC  = {...SC_TK,  ...SC_TC};
 
 // ══════════════════════════════════════════════════════════════
 // STATE
@@ -1537,6 +1694,8 @@ function renderTasksByKh(khList, selKh){
   const khTasks = selKh ? tasks.filter(t=>t.leadId==selKh.id) : [];
   const pending = khTasks.filter(t=>!t.done);
   const done    = khTasks.filter(t=>t.done);
+  const pipe    = selKh ? getPipe(selKh.stage) : 'tk';
+  const stages  = getStages(pipe);
 
   const grouped = {overdue:[], today:[], upcoming:[]};
   pending.forEach(t=>{
@@ -1548,13 +1707,21 @@ function renderTasksByKh(khList, selKh){
 
   function renderKhTaskGroup(title, arr, borderColor){
     if(!arr.length) return '';
-    return `<div class="task-group">
+    return `<div class="task-group" style="margin-bottom:10px">
       <div class="task-group-header"><div class="task-group-title" style="color:${borderColor}">${title} (${arr.length})</div></div>
       ${arr.map(t=>renderKhTaskRow(t)).join('')}
     </div>`;
   }
 
-  const stObj = getStageObj(selKh ? selKh.stage : 'tk_new');
+  const stObj = selKh ? getStageObj(selKh.stage) : {};
+  const pp    = selKh ? pipeProgress(selKh) : null;
+
+  // Tính checklist tổng cho từng giai đoạn
+  const stageChecklist = selKh ? STAGE_CHECKLIST[selKh.stage] || [] : [];
+  const stageDoneCount = stageChecklist.length
+    ? khTasks.filter(t=>t.done && t.stage===selKh.stage && t.isTemplate).length
+    : 0;
+  const stageTotalCount = stageChecklist.length;
 
   return `<div class="task-board">
     <!-- KH list sidebar -->
@@ -1565,12 +1732,13 @@ function renderTasksByKh(khList, selKh){
       <div style="max-height:520px;overflow-y:auto">
         ${khList.map(kh=>{
           const cnt = tasks.filter(t=>t.leadId==kh.id && !t.done).length;
-          const pipe = getPipe(kh.stage||'tk_new');
+          const khPipe = getPipe(kh.stage||'tk_new');
+          const stObjKh = getStageObj(kh.stage);
           return `<div class="task-kh-item ${activeKhId==kh.id?'active':''}" onclick="switchTaskView(${kh.id})">
-            <div class="task-kh-avatar" style="background:${SC[kh.stage]||'#555'}">${pipe==='tc'?'🔨':'🎨'}</div>
+            <div class="task-kh-avatar" style="background:${SC[kh.stage]||'#555'}">${khPipe==='tc'?'🔨':'🎨'}</div>
             <div style="flex:1;min-width:0">
               <div class="task-kh-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${kh.name}</div>
-              <div class="task-kh-meta">${stObj.label}</div>
+              <div class="task-kh-meta">${stObjKh.label}</div>
             </div>
             <span class="task-kh-count ${cnt===0?'zero':''}">${cnt}</span>
           </div>`;
@@ -1580,55 +1748,104 @@ function renderTasksByKh(khList, selKh){
 
     <!-- Task main panel -->
     <div class="task-main-panel">
-      ${selKh ? `<div class="task-kh-header">
-        <div class="task-kh-hav" style="background:${SC[selKh.stage]||'#555'}">${getPipe(selKh.stage)==='tc'?'🔨':'🎨'}</div>
-        <div style="flex:1">
-          <div class="task-kh-htitle">${selKh.name}</div>
-          <div class="task-kh-hmeta">${selKh.type||'–'} · ${selKh.area||'–'} · ${getStageObj(selKh.stage).label} · ${formatShort(Number(selKh.valueTc||selKh.valueTk)||0)}</div>
+      ${selKh ? `
+      <!-- KH Header + pipeline progress -->
+      <div class="task-kh-header" style="flex-direction:column;align-items:flex-start;gap:10px">
+        <div style="display:flex;align-items:center;gap:12px;width:100%">
+          <div class="task-kh-hav" style="background:${SC[selKh.stage]||'#555'}">${pipe==='tc'?'🔨':'🎨'}</div>
+          <div style="flex:1">
+            <div class="task-kh-htitle">${selKh.name}</div>
+            <div class="task-kh-hmeta">${selKh.type||'–'} · ${selKh.area||'–'} · ${stObj.label}</div>
+          </div>
+          <div style="display:flex;gap:7px">
+            <button class="btn btn-outline btn-sm" onclick="openPanel(${selKh.id})">Xem KH →</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddTask(${selKh.id})">+ Thêm việc</button>
+          </div>
         </div>
-        <div style="display:flex;gap:7px">
-          <button class="btn btn-outline btn-sm" onclick="openPanel(${selKh.id})">Xem KH →</button>
-          <button class="btn btn-primary btn-sm" onclick="openAddTask(${selKh.id})">+ Thêm việc</button>
+        <!-- Pipeline progress bar -->
+        ${pp ? `<div style="width:100%">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--mgray);margin-bottom:5px">
+            <span>${pipe==='tc'?'🔨 Thi công':'🎨 Thiết kế'} — Bước ${pp.idx+1}/${pp.total}</span>
+            <span style="font-weight:600;color:${SC[selKh.stage]||'#555'}">${stObj.label}</span>
+          </div>
+          <div style="display:flex;gap:3px;height:6px">
+            ${pp.stages.map((s,i)=>`<div style="flex:1;border-radius:3px;background:${i<pp.idx?'var(--emerald)':i===pp.idx?(SC[selKh.stage]||'var(--gold)'):'var(--lgray)'}"></div>`).join('')}
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--mgray);margin-top:4px">
+            <span>${pp.stages[0]?.label||''}</span>
+            <span>${pp.stages[pp.total-1]?.label||''}</span>
+          </div>
+        </div>` : ''}
+        <!-- Checklist progress cho giai đoạn hiện tại -->
+        ${stageTotalCount > 0 ? `<div style="width:100%;background:var(--lgray);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;font-weight:600;color:var(--charcoal)">📋 Checklist giai đoạn:</span>
+          <div style="flex:1;height:5px;background:#e0dbd3;border-radius:3px;overflow:hidden">
+            <div style="height:100%;background:var(--emerald);width:${Math.round(stageDoneCount/stageTotalCount*100)}%;border-radius:3px;transition:width .3s"></div>
+          </div>
+          <span style="font-size:11px;font-weight:600;color:var(--emerald);font-family:'DM Mono',monospace">${stageDoneCount}/${stageTotalCount}</span>
+          ${stageDoneCount<stageTotalCount ? `<button class="btn btn-sm" style="background:var(--goldbg);color:var(--amber);font-size:10px;padding:3px 9px" onclick="createMissingChecklistTasks(${selKh.id},'${selKh.stage}')">+ Tạo lại việc mẫu</button>` : '<span style="font-size:10px;color:var(--emerald)">✅ Hoàn thành</span>'}
+        </div>` : ''}
+      </div>
+
+      <!-- Lộ trình giai đoạn (sticky guide) -->
+      ${stageChecklist.length > 0 ? `
+      <div style="background:linear-gradient(135deg,${pipe==='tc'?'#E0F4F1,#EBF3FC':'#EBF3FC,#F0E8FB'});border:1px solid ${pipe==='tc'?'#a7d9d3':'#c3d9f0'};border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:${pipe==='tc'?'var(--tc-color)':'var(--tk-color)'};text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">
+          📋 Việc cần làm ở giai đoạn ${stObj.label}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+          ${stageChecklist.map((tpl,i)=>{
+            const done = khTasks.find(t=>t.isTemplate&&t.stage===selKh.stage&&t.text===tpl.text&&t.done);
+            const exists = khTasks.find(t=>t.isTemplate&&t.stage===selKh.stage&&t.text===tpl.text);
+            const tt = TASK_TYPES[tpl.type]||TASK_TYPES.other;
+            return `<div style="display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;background:${done?'var(--lgreen)':'var(--white)'}">
+              <span style="font-size:11px">${done?'✅':exists?'🔲':'⬜'}</span>
+              <span style="font-size:11px;color:${done?'var(--mgray)':'var(--charcoal)'};${done?'text-decoration:line-through':''};line-height:1.3">${tpl.text.length>45?tpl.text.slice(0,45)+'...':tpl.text}</span>
+            </div>`;
+          }).join('')}
         </div>
       </div>` : ''}
+      `:''}
 
       ${pending.length===0 && done.length===0 ? `<div style="background:var(--white);border:1px solid #e8e4de;border-radius:10px;padding:32px;text-align:center;color:var(--mgray)">
-        Chưa có công việc cho KH này.<br><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="openAddTask(${selKh?selKh.id:''})">+ Thêm công việc đầu tiên</button>
+        Chưa có công việc nào.<br>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+          ${selKh && STAGE_CHECKLIST[selKh.stage]?.length ? `<button class="btn btn-primary btn-sm" onclick="createMissingChecklistTasks(${selKh.id},'${selKh.stage}')">📋 Tạo checklist mẫu (${STAGE_CHECKLIST[selKh.stage].length} việc)</button>` : ''}
+          <button class="btn btn-outline btn-sm" onclick="openAddTask(${selKh?selKh.id:''})">+ Thêm việc thủ công</button>
+        </div>
       </div>` : `
         ${renderKhTaskGroup('⚠️ Quá hạn', grouped.overdue, 'var(--ruby)')}
         ${renderKhTaskGroup('📅 Hôm nay', grouped.today, 'var(--amber)')}
         ${renderKhTaskGroup('📌 Sắp tới', grouped.upcoming, 'var(--charcoal)')}
         ${done.length>0?`<div class="task-group">
           <div class="task-group-header"><div class="task-group-title">✅ Đã hoàn thành (${done.length})</div></div>
-          ${done.slice(0,10).map(t=>renderKhTaskRow(t)).join('')}
+          ${done.slice(0,15).map(t=>renderKhTaskRow(t)).join('')}
         </div>`:''}
       `}
     </div>
   </div>`;
 }
 
-function renderKhTaskRow(t){
-  const tt = TASK_TYPES[t.type]||TASK_TYPES.other;
-  const dateStatus = getTaskDateStatus(t);
-  const assignee = loadStaffList().find(s=>s.id===t.assignee);
-  return `<div class="task-row">
-    <div class="task-check2 ${t.done?'done':dateStatus==='overdue'?'overdue':''}" onclick="toggleTask('${t.id}',event)">${t.done?'✓':''}</div>
-    <div class="task-row-content">
-      <div class="task-row-text ${t.done?'done':''}">${t.text}</div>
-      <div class="task-row-meta">
-        <span class="task-type-tag" style="background:${tt.bg};color:${tt.color}">${tt.icon} ${tt.label}</span>
-        <span class="task-row-date ${t.done?'done-date':dateStatus}">📅 ${formatTaskDate(t)}</span>
-        ${t.urgency==='red'?'<span style="font-size:9px;background:var(--lred);color:var(--ruby);padding:1px 6px;border-radius:8px;font-weight:700">🔴 Khẩn</span>':''}
-        ${assignee?`<span style="font-size:10px;color:var(--mgray)">👤 ${assignee.name}</span>`:''}
-        ${t.note?`<span style="font-size:10.5px;color:var(--mgray);font-style:italic">${t.note}</span>`:''}
-      </div>
-    </div>
-    <div class="task-row-actions">
-      <button class="icon-btn" onclick="event.stopPropagation();openEditTask('${t.id}')">✏️</button>
-      <button class="icon-btn" onclick="event.stopPropagation();confirmDeleteTask('${t.id}')">🗑️</button>
-    </div>
-  </div>`;
+// Tạo lại checklist mẫu cho những task chưa có
+async function createMissingChecklistTasks(leadId, stage){
+  const l = leads.find(l=>l.id==leadId); if(!l) return;
+  const templates = STAGE_CHECKLIST[stage];
+  if(!templates) return;
+  const existingTexts = tasks.filter(t=>t.leadId==leadId&&t.stage===stage&&t.isTemplate).map(t=>t.text);
+  const missing = templates.filter(tpl=>!existingTexts.includes(tpl.text));
+  if(!missing.length){ toast('✅ Tất cả việc mẫu đã tồn tại!'); return; }
+  const deadlineDays={red:1,orange:3,green:7};
+  const newTasks = missing.map((tpl,idx)=>{
+    const dd=deadlineDays[tpl.urgency]||3;
+    const dDate=new Date(); dDate.setDate(dDate.getDate()+dd);
+    return {id:Date.now()+idx+Math.random()*1000|0,text:tpl.text,type:tpl.type,urgency:tpl.urgency,leadId:Number(leadId),lead:l.name,date:dDate.toISOString().split('T')[0],time:'09:00',assignee:l.owner||currentUser?.id||'',note:'',done:false,created:new Date().toISOString(),due:dDate.toISOString().split('T')[0],isTemplate:true,stage};
+  });
+  tasks.push(...newTasks);
+  saveLocal(); renderTasks(); updateBadges();
+  for(const t of newTasks) await pushTask(t);
+  toast(`📋 Đã tạo ${newTasks.length} công việc mẫu cho giai đoạn!`);
 }
+
 
 function switchTaskView(khId){
   activeKhId = khId;
@@ -1987,9 +2204,19 @@ async function updateStage(id,stage){
   if(!Array.isArray(l.history)) l.history=[];
   l.history.unshift({t:`Cập nhật: ${old} → ${nw}`,time:nowStr()});
   l.lastContact=new Date().toISOString().split('T')[0];
+  // Tự động tạo checklist tasks cho giai đoạn mới
+  const newChkTasks = createStageChecklistTasks(l, stage);
+  if(newChkTasks.length > 0){
+    tasks.push(...newChkTasks);
+    updateBadges();
+  }
   saveLocal(); openPanel(id); rerenderCurrent();
   await pushLead(l);
-  toast(`🔄 Chuyển sang: ${nw}`);
+  for(const t of newChkTasks) pushTask(t);
+  if(newChkTasks.length > 0)
+    toast(`🔄 → ${nw} · ✅ ${newChkTasks.length} việc mới`);
+  else
+    toast(`🔄 Chuyển sang: ${nw}`);
 }
 
 async function handleTransferAccept(id){
