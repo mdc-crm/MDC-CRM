@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v5.1 · Google Sheets</title>
+<title>MDC Interior — Sales CRM v6.1</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600;700&display=swap');
 :root{
@@ -14,6 +14,8 @@
   --amber:#7A3800;--lorange:#FFF0E0;--purple:#3D0D6E;--lpurple:#F0E8FB;
   --teal:#0A4D45;--lteal:#E0F4F1;--white:#FFFFFF;
   --sidebar-w:240px;--topbar-h:60px;
+  /* Pipeline colors */
+  --tk-color:#0F3460;--tc-color:#0A4D45;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--charcoal);display:flex;height:100vh;overflow:hidden}
@@ -50,32 +52,40 @@ body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--charcoa
 .btn-sm{padding:5px 10px;font-size:11.5px}
 .btn-danger{background:var(--ruby);color:#fff}.btn-success{background:var(--emerald);color:#fff}
 .btn-gold{background:var(--gold);color:var(--navy)}
+.btn-tk{background:var(--tk-color);color:#fff}
+.btn-tc{background:var(--tc-color);color:#fff}
 .search-bar{display:flex;align-items:center;background:var(--lgray);border:1.5px solid #e0dbd3;border-radius:7px;padding:6px 11px;gap:7px;width:210px}
 .search-bar input{border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:12.5px;color:var(--charcoal);width:100%;outline:none}
 .content{flex:1;overflow-y:auto;padding:20px 22px}
-/* SYNC BANNER */
 .sync-banner{padding:8px 20px;display:flex;align-items:center;justify-content:space-between;font-size:12px;font-family:'DM Mono',monospace;flex-shrink:0}
 .sync-banner.connected{background:#f0fdf4;border-bottom:1px solid #bbf7d0;color:var(--emerald)}
 .sync-banner.syncing{background:#fefce8;border-bottom:1px solid #fef08a;color:#713f12}
 .sync-banner.error{background:var(--lred);border-bottom:1px solid #fecaca;color:var(--ruby)}
 .sync-banner.setup{background:var(--goldbg);border-bottom:1px solid #e8d99a;color:var(--amber)}
 .sync-left{display:flex;align-items:center;gap:8px}
-/* SETUP SCREEN */
-.setup-screen{display:flex;align-items:center;justify-content:center;flex:1;padding:40px}
-.setup-card{background:var(--white);border:1px solid #e8e4de;border-radius:16px;padding:40px;max-width:580px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.06)}
-.setup-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:var(--navy);margin-bottom:4px}
-.setup-sub{font-size:13px;color:var(--mgray);margin-bottom:28px}
-.setup-step{display:flex;gap:14px;margin-bottom:20px;padding:16px;background:var(--lgray);border-radius:10px}
-.step-num{width:28px;height:28px;background:var(--navy);color:var(--gold2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace}
-.step-content h4{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:4px}
-.step-content p{font-size:12px;color:var(--mgray);line-height:1.6}
-.url-input-wrap{display:flex;gap:8px;margin-top:20px}
-.url-input{flex:1;border:1.5px solid #e0dbd3;border-radius:8px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;color:var(--charcoal);outline:none;transition:border-color .15s;background:var(--cream)}
-.url-input:focus{border-color:var(--gold);background:var(--white)}
-.url-input::placeholder{color:var(--mgray)}
+
+/* PIPELINE SWITCHER */
+.pipeline-switcher{display:flex;gap:0;border-radius:10px;overflow:hidden;border:1.5px solid #e0dbd3;margin-bottom:20px;background:var(--white)}
+.ps-btn{flex:1;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--mgray);background:var(--white)}
+.ps-btn:first-child{border-right:1px solid #e0dbd3}
+.ps-btn.active-tk{background:var(--tk-color);color:#fff}
+.ps-btn.active-tc{background:var(--tc-color);color:#fff}
+.ps-btn:not(.active-tk):not(.active-tc):hover{background:var(--lgray)}
+.ps-count{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 7px;font-size:10px;font-family:'DM Mono',monospace}
+.ps-btn:not(.active-tk):not(.active-tc) .ps-count{background:var(--lgray);color:var(--charcoal)}
+
+/* PIPELINE HEADER INDICATOR */
+.pipeline-type-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.5px;margin-bottom:12px}
+.pipeline-type-badge.tk{background:#EBF3FC;color:var(--tk-color);border:1px solid #c3d9f0}
+.pipeline-type-badge.tc{background:#E0F4F1;color:var(--tc-color);border:1px solid #a7d9d3}
+
+/* AUTO-TRANSFER NOTICE */
+.transfer-notice{background:linear-gradient(135deg,#E0F4F1,#EBF3FC);border:1px solid #a7d9d3;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--charcoal)}
+.transfer-notice .tn-icon{font-size:20px;flex-shrink:0}
+
 /* TABLES */
-.tabs{display:flex;border-bottom:2px solid #e0dbd3;margin-bottom:18px}
-.tab{padding:9px 16px;font-size:12.5px;font-weight:500;color:var(--mgray);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .18s}
+.tabs{display:flex;border-bottom:2px solid #e0dbd3;margin-bottom:18px;overflow-x:auto}
+.tab{padding:9px 16px;font-size:12.5px;font-weight:500;color:var(--mgray);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .18s;white-space:nowrap}
 .tab:hover{color:var(--charcoal)}.tab.active{color:var(--navy);border-bottom-color:var(--gold);font-weight:600}
 .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
 .stat-card{background:var(--white);border:1px solid #e8e4de;border-radius:10px;padding:14px;position:relative;overflow:hidden}
@@ -93,10 +103,30 @@ tbody tr:hover{background:#fbf8f3}tbody tr:last-child{border-bottom:none}
 td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:10.5px;font-weight:600;white-space:nowrap}
 .badge::before{content:'●';font-size:7px}
-.badge-new{background:#EEF3FB;color:#0F3460}.badge-contacted{background:#EBF3FC;color:#1A5C87}
-.badge-consult{background:#F0E8FB;color:#3D0D6E}.badge-survey{background:#E0F4F1;color:#0A4D45}
-.badge-quote{background:#FFF0E0;color:#7A3800}.badge-nego{background:#FDEEF1;color:#7B1A2B}
-.badge-won{background:#E6F4EC;color:#0F5132}.badge-lost{background:#F5F5F5;color:#666}
+
+/* TK Stages badges */
+.badge-tk-new{background:#EEF3FB;color:#0F3460}
+.badge-tk-consult{background:#F0E8FB;color:#3D0D6E}
+.badge-tk-survey{background:#E0F4F1;color:#0A4D45}
+.badge-tk-quote_tk{background:#FFF0E0;color:#7A3800}
+.badge-tk-sign_tk{background:#E6F4EC;color:#0F5132}
+.badge-tk-design{background:#EBF3FC;color:#0F3460}
+.badge-tk-handover{background:#F0E8FB;color:#3D0D6E}
+.badge-tk-quote_tc{background:#FFF0E0;color:#6B3400}
+.badge-tk-accept{background:#E6F4EC;color:#0F5132}
+.badge-tk-lost{background:#F5F5F5;color:#666}
+
+/* TC Stages badges */
+.badge-tc-new{background:#E0F4F1;color:#0A4D45}
+.badge-tc-consult{background:#EBF3FC;color:#1A5C87}
+.badge-tc-survey{background:#F0E8FB;color:#3D0D6E}
+.badge-tc-quote_tc{background:#FFF0E0;color:#7A3800}
+.badge-tc-sign_tc{background:#E6F4EC;color:#0F5132}
+.badge-tc-docs{background:#FFF0E0;color:#6B3400}
+.badge-tc-construct{background:#FDEEF1;color:#7B1A2B}
+.badge-tc-handover{background:#E6F4EC;color:#0F5132}
+.badge-tc-lost{background:#F5F5F5;color:#666}
+
 .score-bar{display:flex;align-items:center;gap:6px}
 .score-track{width:46px;height:4px;background:#e8e4de;border-radius:3px;overflow:hidden}
 .score-fill{height:100%;border-radius:3px}
@@ -104,10 +134,28 @@ td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .action-row{display:flex;gap:4px}
 .icon-btn{width:26px;height:26px;background:var(--lgray);border:none;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;color:var(--mgray)}
 .icon-btn:hover{background:var(--goldbg);color:var(--amber)}
+
+/* PIPELINE BOARD */
+.pipeline-board{display:flex;gap:9px;overflow-x:auto;padding-bottom:8px}
+.pipeline-col{min-width:145px;flex-shrink:0}
+.pipeline-header{padding:7px 9px;border-radius:7px 7px 0 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--white);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.pipeline-count{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 6px;font-family:'DM Mono',monospace;font-size:10px}
+.pipeline-card{background:var(--white);border:1px solid #e8e4de;border-radius:7px;padding:9px 10px;margin-bottom:7px;cursor:pointer;transition:all .18s;border-left:3px solid var(--sc,#ccc)}
+.pipeline-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);transform:translateY(-1px)}
+.pc-name{font-size:12px;font-weight:600;color:var(--charcoal);margin-bottom:3px}
+.pc-value{font-size:10.5px;color:var(--amber);font-weight:600;font-family:'DM Mono',monospace}
+.pc-meta{display:flex;align-items:center;justify-content:space-between;margin-top:5px}
+.pc-owner{width:18px;height:18px;border-radius:50%;font-size:8px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center}
+.pc-pipe-tag{font-size:8px;padding:1px 5px;border-radius:8px;font-weight:600}
+
+/* AUTO-TRANSFER highlight */
+.pipeline-col.auto-transfer .pipeline-header{position:relative}
+.pipeline-col.auto-transfer .pipeline-header::after{content:'⚡';position:absolute;right:26px;font-size:10px}
+
 /* PANEL */
 .panel-overlay{position:fixed;inset:0;background:rgba(10,22,40,.45);z-index:200;display:none;backdrop-filter:blur(2px)}
 .panel-overlay.open{display:block}
-.detail-panel{position:fixed;top:0;right:-520px;width:520px;height:100vh;background:var(--white);z-index:300;box-shadow:-8px 0 40px rgba(0,0,0,.12);display:flex;flex-direction:column;transition:right .3s cubic-bezier(.4,0,.2,1);overflow:hidden}
+.detail-panel{position:fixed;top:0;right:-540px;width:540px;height:100vh;background:var(--white);z-index:300;box-shadow:-8px 0 40px rgba(0,0,0,.12);display:flex;flex-direction:column;transition:right .3s cubic-bezier(.4,0,.2,1);overflow:hidden}
 .detail-panel.open{right:0}
 .panel-header{padding:18px 20px 14px;border-bottom:1px solid #e8e4de;background:var(--navy);position:relative}
 .panel-close{position:absolute;top:14px;right:14px;width:28px;height:28px;background:rgba(255,255,255,.12);border:none;border-radius:50%;cursor:pointer;color:rgba(255,255,255,.7);font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s}
@@ -126,13 +174,17 @@ td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .tl-item:last-child .tl-dot::after{display:none}
 .tl-text{font-size:12.5px;color:var(--charcoal);line-height:1.5}
 .tl-time{font-size:10.5px;color:var(--mgray);margin-top:2px;font-family:'DM Mono',monospace}
-.stage-selector{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:16px}
-.stage-btn{padding:6px 5px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;border:1.5px solid transparent;text-align:center;transition:all .15s;background:var(--lgray);color:var(--mgray)}
+
+/* STAGE SELECTOR in panel */
+.stage-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:16px}
+.stage-btn{padding:7px 5px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;border:1.5px solid transparent;text-align:center;transition:all .15s;background:var(--lgray);color:var(--mgray);line-height:1.3}
 .stage-btn.active{border-color:var(--stage-bc);background:var(--stage-bg);color:var(--stage-c)}
 .stage-btn:hover:not(.active){border-color:#ccc;color:var(--charcoal)}
-.note-input{display:flex;gap:7px;margin-top:8px}
-.note-input textarea{flex:1;border:1.5px solid #e0dbd3;border-radius:7px;padding:8px 11px;font-family:'Outfit',sans-serif;font-size:12.5px;color:var(--charcoal);resize:none;height:65px;outline:none;transition:border-color .15s}
-.note-input textarea:focus{border-color:var(--gold)}
+.stage-btn.highlight-auto{border:1.5px dashed var(--emerald)!important;background:var(--lgreen)!important;color:var(--emerald)!important}
+
+/* TRANSFER MODAL */
+.transfer-modal-content{background:linear-gradient(135deg,#E0F4F1,#EBF3FC);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px}
+
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.5);z-index:400;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
 .modal-overlay.open{display:flex}
@@ -151,24 +203,16 @@ td{padding:10px 13px;font-size:12.5px;vertical-align:middle}
 .form-input:focus{border-color:var(--gold);background:var(--white)}
 select.form-input{cursor:pointer}
 textarea.form-input{resize:vertical;height:65px}
+
 /* CONFIRM */
 .confirm-overlay{position:fixed;inset:0;background:rgba(10,22,40,.6);z-index:600;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .confirm-overlay.open{display:flex}
-.confirm-box{background:var(--white);border-radius:14px;padding:26px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.confirm-box{background:var(--white);border-radius:14px;padding:26px;width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25)}
 .confirm-icon{font-size:34px;margin-bottom:10px}
 .confirm-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px}
 .confirm-msg{font-size:12.5px;color:var(--mgray);margin-bottom:18px;line-height:1.6}
 .confirm-actions{display:flex;gap:9px;justify-content:center}
-/* PIPELINE */
-.pipeline{display:grid;grid-template-columns:repeat(8,1fr);gap:9px;overflow-x:auto;padding-bottom:4px}
-.pipeline-col{min-width:138px}
-.pipeline-header{padding:7px 9px;border-radius:7px 7px 0 0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--white);margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
-.pipeline-count{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 6px;font-family:'DM Mono',monospace;font-size:10px}
-.pipeline-card{background:var(--white);border:1px solid #e8e4de;border-radius:7px;padding:9px 10px;margin-bottom:7px;cursor:pointer;transition:all .18s;border-left:3px solid var(--sc,#ccc)}
-.pipeline-card:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);transform:translateY(-1px)}
-.pc-name{font-size:12px;font-weight:600;color:var(--charcoal);margin-bottom:3px}
-.pc-value{font-size:10.5px;color:var(--amber);font-weight:600;font-family:'DM Mono',monospace}
-.pc-owner{width:18px;height:18px;border-radius:50%;font-size:8px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;margin-top:5px}
+
 /* TASKS */
 .task-item{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:8px;background:var(--white);border:1px solid #e8e4de;margin-bottom:7px;cursor:pointer;transition:all .15s}
 .task-item:hover{border-color:var(--gold)}
@@ -178,12 +222,13 @@ textarea.form-input{resize:vertical;height:65px}
 .task-text.done{text-decoration:line-through;color:var(--mgray)}
 .task-meta{font-size:10.5px;color:var(--mgray);display:flex;align-items:center;gap:7px}
 .task-urgency{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
 /* CHARTS */
 .chart-row{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-bottom:18px}
 .chart-card{background:var(--white);border:1px solid #e8e4de;border-radius:12px;padding:16px}
 .chart-title{font-size:12.5px;font-weight:600;color:var(--charcoal);margin-bottom:14px}
 .funnel-row{display:flex;align-items:center;gap:9px;margin-bottom:5px}
-.funnel-label{font-size:10.5px;color:var(--mgray);width:88px;flex-shrink:0}
+.funnel-label{font-size:10.5px;color:var(--mgray);width:110px;flex-shrink:0}
 .funnel-bar-wrap{flex:1;height:18px;background:#f0ece6;border-radius:4px;overflow:hidden}
 .funnel-bar{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:7px;font-size:9.5px;font-weight:600;color:white}
 .funnel-num{font-size:11px;font-weight:700;color:var(--charcoal);width:28px;text-align:right;font-family:'DM Mono',monospace}
@@ -193,9 +238,11 @@ textarea.form-input{resize:vertical;height:65px}
 .bar-amount{font-size:11.5px;font-weight:600;color:var(--amber);font-family:'DM Mono',monospace}
 .bar-track{height:7px;background:#f0ece6;border-radius:4px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px}
+
 /* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:var(--gold2);padding:11px 16px;border-radius:9px;font-size:12.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);z-index:700;display:flex;align-items:center;gap:7px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--navy);color:var(--gold2);padding:11px 16px;border-radius:9px;font-size:12.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);z-index:700;display:flex;align-items:center;gap:7px;max-width:320px}
 .toast.show{transform:translateY(0);opacity:1}
+
 /* LOADING */
 .loading-overlay{position:fixed;inset:0;background:rgba(10,22,40,.6);z-index:800;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .loading-overlay.open{display:flex}
@@ -203,6 +250,12 @@ textarea.form-input{resize:vertical;height:65px}
 .spinner{width:32px;height:32px;border:3px solid var(--lgray);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:13px;color:var(--charcoal)}
+
+/* NOTE */
+.note-input{display:flex;gap:7px;margin-top:8px}
+.note-input textarea{flex:1;border:1.5px solid #e0dbd3;border-radius:7px;padding:8px 11px;font-family:'Outfit',sans-serif;font-size:12.5px;color:var(--charcoal);resize:none;height:65px;outline:none;transition:border-color .15s}
+.note-input textarea:focus{border-color:var(--gold)}
+
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#d4c9b8;border-radius:10px}
@@ -232,22 +285,186 @@ textarea.form-input{resize:vertical;height:65px}
   .content { padding: 12px; }
   .chart-row { grid-template-columns: 1fr !important; }
   .table-wrap { overflow-x: auto; }
-  table { min-width: 580px; }
-  .pipeline { grid-template-columns: repeat(8,140px) !important; overflow-x: auto; }
+  table { min-width: 620px; }
+  .pipeline-board { gap: 7px; }
   .modal, .modal-lg { width: 96% !important; max-height: 92vh; overflow-y: auto; }
   .topbar-actions .btn { padding: 5px 10px; font-size: 12px; }
   #sync-banner { font-size: 11px; padding: 5px 12px; }
+  .detail-panel { width: 100% !important; right: -100% !important; }
+  .detail-panel.open { right: 0 !important; }
+  .stage-selector { grid-template-columns: repeat(2,1fr) !important; }
 }
 .hamburger { display: none; }
+
+/* ── LOGIN SCREEN ── */
+.login-screen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-screen.hidden{display:none}
+.login-card{background:var(--white);border-radius:18px;padding:40px 44px;width:400px;box-shadow:0 24px 80px rgba(0,0,0,.4)}
+.login-logo{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.login-sub{font-size:11px;color:var(--mgray);letter-spacing:2px;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:28px}
+.login-form-group{margin-bottom:14px}
+.login-label{font-size:11px;font-weight:600;color:var(--charcoal);margin-bottom:5px;display:block}
+.login-input{width:100%;border:1.5px solid #e0dbd3;border-radius:8px;padding:10px 13px;font-family:'Outfit',sans-serif;font-size:13px;color:var(--charcoal);outline:none;transition:border-color .15s;background:var(--cream)}
+.login-input:focus{border-color:var(--gold);background:var(--white)}
+.login-btn{width:100%;padding:12px;border-radius:8px;background:var(--navy);color:var(--gold2);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;margin-top:8px;transition:all .18s}
+.login-btn:hover{background:var(--navy2)}
+.login-error{background:var(--lred);border:1px solid #fecaca;color:var(--ruby);border-radius:7px;padding:9px 13px;font-size:12px;margin-top:10px;display:none}
+.login-error.show{display:block}
+/* ── ROLE/PERMISSION ── */
+.role-admin{background:#FFF0E0;color:#7A3800;border:1px solid #f0c894}
+.role-manager{background:#EBF3FC;color:#0F3460;border:1px solid #b8d4f0}
+.role-staff{background:#E0F4F1;color:#0A4D45;border:1px solid #a7d9d3}
+.nav-item.hidden-nav{display:none}
+.permission-locked{display:flex;align-items:center;gap:8px;background:var(--lred);border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--ruby);margin-bottom:12px}
+.logout-btn{margin-top:8px;width:100%;padding:6px;border-radius:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);font-size:11px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center}
+.logout-btn:hover{background:rgba(255,255,255,.12);color:rgba(255,255,255,.8)}
+/* ── STAFF CARDS ── */
+.staff-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.staff-card{background:var(--white);border:1px solid #e8e4de;border-radius:12px;padding:18px;position:relative;transition:all .18s}
+.staff-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.staff-avatar-lg{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:white;margin-bottom:10px}
+.staff-name{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:3px}
+.staff-meta{font-size:11.5px;color:var(--mgray);margin-bottom:8px}
+.staff-card-actions{position:absolute;top:12px;right:12px;display:flex;gap:4px}
+@media(max-width:768px){.login-card{width:92%;padding:28px 22px}.staff-grid{grid-template-columns:1fr!important}}
+
+
+/* ── TASKS v2 ── */
+.task-board{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start}
+.task-sidebar-panel{background:var(--white);border:1px solid #e8e4de;border-radius:12px;overflow:hidden;position:sticky;top:0}
+.task-sp-header{background:var(--navy);padding:12px 14px;font-size:11px;font-weight:600;color:var(--gold2);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;justify-content:space-between}
+.task-kh-item{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;border-bottom:1px solid #f5f1eb;transition:background .12s}
+.task-kh-item:hover{background:#fbf8f3}
+.task-kh-item.active{background:var(--goldbg);border-left:3px solid var(--gold)}
+.task-kh-item:not(.active){border-left:3px solid transparent}
+.task-kh-avatar{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0}
+.task-kh-name{font-size:12.5px;font-weight:600;color:var(--charcoal);line-height:1.3}
+.task-kh-meta{font-size:10.5px;color:var(--mgray)}
+.task-kh-count{margin-left:auto;background:var(--ruby);color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;font-family:'DM Mono',monospace;flex-shrink:0}
+.task-kh-count.zero{background:var(--lgray);color:var(--mgray)}
+.task-main-panel{display:flex;flex-direction:column;gap:12px}
+.task-kh-header{background:var(--white);border:1px solid #e8e4de;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px}
+.task-kh-hav{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:white;flex-shrink:0}
+.task-kh-htitle{font-size:15px;font-weight:600;color:var(--navy)}
+.task-kh-hmeta{font-size:11.5px;color:var(--mgray);margin-top:2px}
+.task-group{background:var(--white);border:1px solid #e8e4de;border-radius:10px;overflow:hidden}
+.task-group-header{padding:9px 14px;background:var(--lgray);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e8e4de}
+.task-group-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--mgray);display:flex;align-items:center;gap:7px}
+.task-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f5f1eb;transition:background .12s}
+.task-row:last-child{border-bottom:none}
+.task-row:hover{background:#fbf8f3}
+.task-check2{width:18px;height:18px;border:2px solid #ccc;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;font-size:11px;color:white}
+.task-check2.done{background:var(--emerald);border-color:var(--emerald)}
+.task-check2.overdue{border-color:var(--ruby)}
+.task-row-content{flex:1;min-width:0}
+.task-row-text{font-size:12.5px;color:var(--charcoal);font-weight:500}
+.task-row-text.done{text-decoration:line-through;color:var(--mgray)}
+.task-row-meta{display:flex;align-items:center;gap:10px;margin-top:3px;flex-wrap:wrap}
+.task-row-date{font-size:10.5px;font-family:'DM Mono',monospace;display:flex;align-items:center;gap:4px}
+.task-row-date.overdue{color:var(--ruby);font-weight:600}
+.task-row-date.today{color:var(--amber);font-weight:600}
+.task-row-date.upcoming{color:var(--mgray)}
+.task-row-date.done-date{color:var(--mgray);text-decoration:line-through}
+.task-urgency-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.task-type-tag{font-size:9.5px;padding:1px 7px;border-radius:10px;font-weight:600}
+.task-row-actions{display:flex;gap:4px;flex-shrink:0;opacity:0;transition:opacity .15s}
+.task-row:hover .task-row-actions{opacity:1}
+/* Global task view */
+.task-global-row{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:8px;background:var(--white);border:1px solid #e8e4de;margin-bottom:6px;transition:all .15s}
+.task-global-row:hover{border-color:var(--gold);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.task-kh-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+/* Date input style */
+input[type="date"].form-input{font-family:'DM Mono',monospace;font-size:12px}
+input[type="time"].form-input{font-family:'DM Mono',monospace;font-size:12px}
+@media(max-width:768px){.task-board{grid-template-columns:1fr!important}.task-sidebar-panel{position:static}}
+
+/* ── CARE / ALERT SYSTEM ── */
+.alert-hub{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.alert-card{border-radius:12px;padding:14px 16px;color:white;position:relative;overflow:hidden;cursor:pointer;transition:transform .15s}
+.alert-card:hover{transform:translateY(-2px)}
+.alert-card.danger{background:linear-gradient(135deg,#7B1A2B,#9d2438)}
+.alert-card.warn{background:linear-gradient(135deg,#7A3800,#a04d0a)}
+.alert-card.info{background:linear-gradient(135deg,#0F3460,#1a5c87)}
+.alert-card .ac-num{font-size:30px;font-weight:700;font-family:'DM Mono',monospace;line-height:1}
+.alert-card .ac-label{font-size:11.5px;font-weight:600;margin-top:4px;opacity:.95}
+.alert-card .ac-sub{font-size:10px;opacity:.75;margin-top:2px}
+.alert-card .ac-icon{position:absolute;right:12px;top:12px;font-size:22px;opacity:.35}
+/* Care list */
+.care-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid #f5f1eb;cursor:pointer;transition:background .12s}
+.care-item:hover{background:#fbf8f3}
+.care-item:last-child{border-bottom:none}
+.care-avatar{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:white}
+.care-days{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;font-family:'DM Mono',monospace;white-space:nowrap}
+.care-days.hot{background:var(--lred);color:var(--ruby)}
+.care-days.warm{background:var(--lorange);color:var(--amber)}
+.care-days.cool{background:var(--lgray);color:var(--mgray)}
+/* Next action badge */
+.next-action-box{background:linear-gradient(135deg,#FFF9ED,#FFF0E0);border:1px solid #f0d9a8;border-radius:9px;padding:11px 13px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.next-action-box .na-icon{font-size:18px;flex-shrink:0}
+.next-action-box .na-text{flex:1;font-size:12.5px;color:var(--amber);font-weight:500;line-height:1.4}
+.next-action-empty{background:var(--lgray);border:1px dashed #d4c9b8;color:var(--mgray)}
+/* Health indicator dot */
+.health-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+.health-dot.green{background:#22c55e}
+.health-dot.yellow{background:#eab308}
+.health-dot.red{background:#ef4444}
+.health-dot.gray{background:#cbd5e1}
+/* Stage-stuck warning */
+.stuck-badge{font-size:9px;background:var(--lred);color:var(--ruby);padding:1px 6px;border-radius:8px;font-weight:700;white-space:nowrap}
+/* Quick-action bar in panel */
+.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px}
+.qa-btn{padding:9px 4px;border-radius:8px;border:1.5px solid #e0dbd3;background:var(--white);cursor:pointer;text-align:center;transition:all .15s;font-size:10px;font-weight:600;color:var(--charcoal);display:flex;flex-direction:column;align-items:center;gap:3px}
+.qa-btn:hover{border-color:var(--gold);background:var(--goldbg);color:var(--amber)}
+.qa-btn .qa-emoji{font-size:16px}
+/* Section card */
+.dash-section{background:var(--white);border:1px solid #e8e4de;border-radius:12px;overflow:hidden;margin-bottom:16px}
+.dash-section-head{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0ebe3}
+.dash-section-title{font-size:13px;font-weight:600;color:var(--navy);display:flex;align-items:center;gap:7px}
+.dash-section-body{padding:4px 0}
+.empty-state{text-align:center;padding:28px 20px;color:var(--mgray);font-size:12.5px}
+.empty-state .es-icon{font-size:28px;margin-bottom:8px;opacity:.5}
+/* Agenda timeline (today) */
+.agenda-item{display:flex;gap:12px;padding:10px 16px;border-bottom:1px solid #f5f1eb}
+.agenda-item:last-child{border-bottom:none}
+.agenda-time{font-size:11px;font-family:'DM Mono',monospace;font-weight:600;color:var(--navy);width:48px;flex-shrink:0;padding-top:1px}
+.agenda-line{width:2px;background:#e8e4de;border-radius:2px;flex-shrink:0;position:relative}
+.agenda-line::before{content:'';position:absolute;top:2px;left:-3px;width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.agenda-content{flex:1;padding-bottom:2px}
+.agenda-task{font-size:12.5px;font-weight:500;color:var(--charcoal)}
+.agenda-meta{font-size:10.5px;color:var(--mgray);margin-top:2px}
+/* Mini progress for pipeline */
+.pipe-progress{display:flex;gap:2px;margin-top:6px}
+.pipe-progress-seg{height:4px;flex:1;border-radius:2px;background:#e8e4de}
+.pipe-progress-seg.done{background:var(--emerald)}
+.pipe-progress-seg.current{background:var(--gold)}
+@media(max-width:768px){.alert-hub{grid-template-columns:1fr}.quick-actions{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 
+<!-- ══ LOGIN SCREEN ══════════════════════════════════════════ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">MDC Interior</div>
+    <div class="login-sub">Sales CRM v6.1</div>
+    <div class="login-form-group">
+      <label class="login-label">Tên đăng nhập</label>
+      <input class="login-input" id="login-username" placeholder="username" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-form-group">
+      <label class="login-label">Mật khẩu</label>
+      <input class="login-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Đăng nhập →</button>
+    <div class="login-error" id="login-error">Sai tên đăng nhập hoặc mật khẩu</div>
+  </div>
+</div>
+
 <!-- SIDEBAR -->
-<nav class="sidebar">
+<nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v5.1</div>
+    <div class="brand-sub">Sales CRM v6.1</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -256,29 +473,37 @@ textarea.form-input{resize:vertical;height:65px}
   <div class="sidebar-nav">
     <div class="nav-section">Tổng quan</div>
     <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
-    <div class="nav-section">Bán hàng</div>
-    <div class="nav-item" data-page="leads" onclick="showPage('leads',this)"><span class="icon">👥</span> Quản lý Lead<span class="nav-badge" id="lead-count">0</span></div>
-    <div class="nav-item" data-page="pipeline" onclick="showPage('pipeline',this)"><span class="icon">🔀</span> Pipeline</div>
+    <div class="nav-section">Pipeline</div>
+    <div class="nav-item" data-page="pipeline_tk" onclick="showPage('pipeline_tk',this)">
+      <span class="icon">🎨</span> Pipeline Thiết kế
+      <span class="nav-badge" id="count-tk">0</span>
+    </div>
+    <div class="nav-item" data-page="pipeline_tc" onclick="showPage('pipeline_tc',this)">
+      <span class="icon">🔨</span> Pipeline Thi công
+      <span class="nav-badge" id="count-tc">0</span>
+    </div>
+    <div class="nav-section">Quản lý</div>
+    <div class="nav-item" data-page="leads" onclick="showPage('leads',this)"><span class="icon">👥</span> Tất cả KH<span class="nav-badge" id="lead-count">0</span></div>
     <div class="nav-item" data-page="tasks" onclick="showPage('tasks',this)"><span class="icon">✅</span> Công việc<span class="nav-badge" id="task-count">0</span></div>
-    <div class="nav-section">Phân tích</div>
-    <div class="nav-item" data-page="reports" onclick="showPage('reports',this)"><span class="icon">📈</span> Báo cáo</div>
-    <div class="nav-section">Hệ thống</div>
-    <div class="nav-item" data-page="connect" onclick="showPage('connect',this)"><span class="icon">🔗</span> Kết nối Sheets</div>
-    <div class="nav-item" data-page="settings" onclick="showPage('settings',this)"><span class="icon">⚙️</span> Cài đặt</div>
+    <div class="nav-section admin-only">Phân tích</div>
+    <div class="nav-item admin-only" data-page="staff" onclick="showPage('staff',this)"><span class="icon">👤</span> Nhân sự & Phân quyền</div>
+    <div class="nav-section admin-only">Hệ thống</div>
+    <div class="nav-item admin-only" data-page="connect" onclick="showPage('connect',this)"><span class="icon">🔗</span> Kết nối Sheets</div>
+    <div class="nav-item admin-only" data-page="settings" onclick="showPage('settings',this)"><span class="icon">⚙️</span> Cài đặt</div>
   </div>
   <div class="sidebar-footer">
     <div class="user-info">
       <div class="user-avatar" id="sidebar-avatar">AN</div>
       <div>
         <div class="user-name" id="sidebar-name">Nguyễn Văn An</div>
-        <div class="user-role" id="sidebar-role">Sale Lead · MDC</div>
+        <div class="user-role-tag" id="sidebar-role-tag">–</div>
       </div>
     </div>
   </div>
 </nav>
 
 <!-- MAIN -->
-<main class="main">
+<main class="main" id="main-area" style="display:none">
   <div id="sync-banner" class="sync-banner setup">
     <div class="sync-left">
       <span id="sync-banner-icon">⚙️</span>
@@ -291,9 +516,9 @@ textarea.form-input{resize:vertical;height:65px}
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
     <div class="page-title" id="page-title">Dashboard</div>
     <div class="topbar-actions">
-      <button class="btn btn-outline btn-sm" id="sync-btn" onclick="syncNow()" title="Đồng bộ ngay">🔄 Sync</button>
-      <div class="search-bar"><span>🔍</span><input type="text" placeholder="Tìm kiếm lead..." id="global-search" oninput="handleSearch(this.value)"></div>
-      <button class="btn btn-primary btn-sm" onclick="openAddLead()">+ Thêm Lead</button>
+      <button class="btn btn-outline btn-sm" id="sync-btn" onclick="syncNow()">🔄 Sync</button>
+      <div class="search-bar"><span>🔍</span><input type="text" placeholder="Tìm kiếm khách hàng..." id="global-search" oninput="handleSearch(this.value)"></div>
+      <button class="btn btn-primary btn-sm" onclick="openAddLead()">+ Thêm KH</button>
     </div>
   </div>
   <div class="content" id="page-content"></div>
@@ -313,7 +538,7 @@ textarea.form-input{resize:vertical;height:65px}
 <!-- ADD/EDIT MODAL -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal modal-lg">
-    <div class="modal-header"><div class="modal-title" id="modal-title">✨ Thêm Lead mới</div><button class="icon-btn" onclick="closeModal()">✕</button></div>
+    <div class="modal-header"><div class="modal-title" id="modal-title">✨ Thêm Khách hàng mới</div><button class="icon-btn" onclick="closeModal()">✕</button></div>
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group"><label class="form-label">Họ và Tên *</label><input type="text" class="form-input" id="f-name" placeholder="Nguyễn Văn A"></div>
@@ -322,16 +547,80 @@ textarea.form-input{resize:vertical;height:65px}
         <div class="form-group"><label class="form-label">Loại công trình</label><select class="form-input" id="f-type"><option>Căn hộ</option><option>Nhà phố</option><option>Biệt thự</option><option>Văn phòng</option><option>Showroom</option></select></div>
         <div class="form-group"><label class="form-label">Nguồn lead</label><select class="form-input" id="f-source"><option>Facebook Ads</option><option>Instagram</option><option>Zalo OA</option><option>Giới thiệu KH cũ</option><option>Google Ads</option><option>Website</option><option>Telesale lạnh</option></select></div>
         <div class="form-group"><label class="form-label">Ngân sách</label><select class="form-input" id="f-budget"><option>Dưới 200 triệu</option><option>200–500 triệu</option><option>500 triệu – 1 tỷ</option><option>1–2 tỷ</option><option>Trên 2 tỷ</option></select></div>
-        <div class="form-group"><label class="form-label">Giá trị HĐ dự kiến (đ)</label><input type="number" class="form-input" id="f-value" placeholder="500000000"></div>
+        <div class="form-group"><label class="form-label">Giá trị HĐ Thiết kế (đ)</label><input type="number" class="form-input" id="f-value-tk" placeholder="50000000"></div>
+        <div class="form-group"><label class="form-label">Giá trị HĐ Thi công (đ)</label><input type="number" class="form-input" id="f-value-tc" placeholder="500000000"></div>
         <div class="form-group"><label class="form-label">Khu vực</label><input type="text" class="form-input" id="f-area" placeholder="Q2, TP.HCM"></div>
         <div class="form-group"><label class="form-label">Dự kiến nhận nhà</label><input type="text" class="form-input" id="f-timeline" placeholder="Tháng 6/2025"></div>
-        <div class="form-group"><label class="form-label">Owner</label><select class="form-input" id="f-owner"><option value="AN">Nguyễn Văn An</option><option value="BT">Trần Thị Bình</option><option value="EM">Hoàng Văn Em</option></select></div>
+        <div class="form-group"><label class="form-label">Người phụ trách</label><select class="form-input" id="f-owner"></select></div>
         <div class="form-group"><label class="form-label">Lead Score (0–100)</label><input type="number" class="form-input" id="f-score" min="0" max="100" placeholder="50"></div>
-        <div class="form-group"><label class="form-label">Giai đoạn</label><select class="form-input" id="f-stage"><option value="new">Mới</option><option value="contacted">Đã liên hệ</option><option value="consult">Tư vấn</option><option value="survey">Khảo sát</option><option value="quote">Báo giá</option><option value="nego">Đàm phán</option><option value="won">Chốt HĐ</option><option value="lost">Mất deal</option></select></div>
+        <div class="form-group"><label class="form-label">Pipeline</label><select class="form-input" id="f-pipeline" onchange="updateStageDropdown()"><option value="tk">🎨 Thiết kế</option><option value="tc">🔨 Thi công</option></select></div>
+        <div class="form-group"><label class="form-label">Giai đoạn</label><select class="form-input" id="f-stage"></select></div>
         <div class="form-group full"><label class="form-label">Ghi chú / Nhu cầu</label><textarea class="form-input" id="f-note" placeholder="Phong cách thiết kế, yêu cầu đặc biệt, nỗi lo của KH..."></textarea></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Hủy</button><button class="btn btn-primary" id="modal-save-btn" onclick="saveLead()">💾 Lưu Lead</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Hủy</button><button class="btn btn-primary" id="modal-save-btn" onclick="saveLead()">💾 Lưu</button></div>
+  </div>
+</div>
+
+<!-- TRANSFER CONFIRM MODAL -->
+<div class="modal-overlay" id="transfer-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚡ Chuyển sang Pipeline Thi công</div>
+      <button class="icon-btn" onclick="document.getElementById('transfer-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="transfer-modal-content">
+        <div style="font-size:32px;margin-bottom:8px">🎨 → 🔨</div>
+        <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:6px" id="transfer-kh-name">Khách hàng</div>
+        <div style="font-size:12px;color:var(--mgray)">Đã đồng ý báo giá thi công.<br>Bạn có muốn chuyển sang Pipeline Thi công?</div>
+      </div>
+      <div style="background:var(--lgray);border-radius:8px;padding:12px;font-size:12px;color:var(--charcoal);line-height:1.8">
+        <strong>Khi chuyển:</strong><br>
+        ✅ KH vẫn giữ nguyên trong Pipeline Thiết kế (giai đoạn: Nghiệm thu TK)<br>
+        ✅ Đồng thời xuất hiện trong Pipeline Thi công (giai đoạn: Mới)<br>
+        ✅ Dữ liệu và lịch sử được đồng bộ hoàn toàn
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="transfer-reject-btn">❌ Không đồng ý → Nghiệm thu TK</button>
+      <button class="btn btn-tc" id="transfer-accept-btn">✅ Chuyển sang Thi công</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STAFF MODAL ═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="staff-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="staff-modal-title">👤 Thêm nhân sự</div><button class="icon-btn" onclick="closeStaffModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Họ tên *</label><input type="text" class="form-input" id="sf-name"></div>
+        <div class="form-group"><label class="form-label">Username *</label><input type="text" class="form-input" id="sf-username" autocomplete="off"></div>
+        <div class="form-group"><label class="form-label">Mật khẩu *</label><input type="password" class="form-input" id="sf-password" autocomplete="new-password"></div>
+        <div class="form-group"><label class="form-label">Xác nhận MK</label><input type="password" class="form-input" id="sf-password2" autocomplete="new-password"></div>
+        <div class="form-group"><label class="form-label">Chức vụ</label><input type="text" class="form-input" id="sf-role-title" placeholder="Sale Executive"></div>
+        <div class="form-group"><label class="form-label">SĐT</label><input type="text" class="form-input" id="sf-phone"></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="sf-email"></div>
+        <div class="form-group"><label class="form-label">Phân quyền</label>
+          <select class="form-input" id="sf-perm">
+            <option value="admin">🔑 Admin — Toàn quyền</option>
+            <option value="manager">👁️ Manager — Xem tất cả, sửa KH mình</option>
+            <option value="staff" selected>👤 Staff — Chỉ KH được phân công</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Màu đại diện</label>
+          <select class="form-input" id="sf-color">
+            <option value="#0F3460">🔵 Navy</option><option value="#0F5132">🟢 Emerald</option>
+            <option value="#3D0D6E">🟣 Purple</option><option value="#7B1A2B">🔴 Ruby</option>
+            <option value="#7A3800">🟠 Amber</option><option value="#0A4D45">🩵 Teal</option>
+            <option value="#5C3317">🟤 Brown</option>
+          </select>
+        </div>
+      </div>
+      <div id="sf-edit-note" style="display:none;background:var(--goldbg);border-radius:7px;padding:9px 12px;font-size:12px;color:var(--amber);margin-top:12px">💡 Để trống mật khẩu nếu không muốn thay đổi</div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeStaffModal()">Hủy</button><button class="btn btn-primary" id="staff-save-btn" onclick="saveStaffMember()">💾 Lưu</button></div>
   </div>
 </div>
 
@@ -342,7 +631,7 @@ textarea.form-input{resize:vertical;height:65px}
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group full"><label class="form-label">Nội dung *</label><input type="text" class="form-input" id="t-text" placeholder="Gọi follow-up anh..."></div>
-        <div class="form-group"><label class="form-label">Lead liên quan</label><input type="text" class="form-input" id="t-lead" placeholder="Tên KH"></div>
+        <div class="form-group"><label class="form-label">KH liên quan</label><input type="text" class="form-input" id="t-lead" placeholder="Tên KH"></div>
         <div class="form-group"><label class="form-label">Thời hạn</label><input type="text" class="form-input" id="t-due" placeholder="Hôm nay 15:00"></div>
         <div class="form-group"><label class="form-label">Ưu tiên</label><select class="form-input" id="t-urgency"><option value="red">🔴 Khẩn cấp</option><option value="orange" selected>🟡 Quan trọng</option><option value="green">🟢 Bình thường</option></select></div>
       </div>
@@ -366,34 +655,327 @@ textarea.form-input{resize:vertical;height:65px}
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loading-overlay">
-  <div class="loading-box">
-    <div class="spinner"></div>
-    <div class="loading-text" id="loading-text">Đang xử lý...</div>
-  </div>
+  <div class="loading-box"><div class="spinner"></div><div class="loading-text" id="loading-text">Đang xử lý...</div></div>
 </div>
 
 <div class="toast" id="toast"><span id="t-icon">✅</span><span id="t-msg">OK</span></div>
 
 <script>
+
+// ══════════════════════════════════════════════════════════════
+// AUTH & PERMISSION SYSTEM
+// ══════════════════════════════════════════════════════════════
+const LS_STAFF   = 'mdc_crm_staff_v2';
+const LS_SESSION = 'mdc_crm_session_v2';
+
+let currentUser = null;
+
+function loadStaffList(){try{return JSON.parse(localStorage.getItem(LS_STAFF)||'[]')}catch(e){return[]}}
+function saveStaffList(arr){localStorage.setItem(LS_STAFF,JSON.stringify(arr))}
+
+function initDefaultStaff(){
+  const list=loadStaffList();
+  if(!list.length){
+    const def=[{id:'admin_001',name:'Quản lý MDC',username:'admin',password:'admin123',roleTitle:'Giám đốc',phone:'',email:'admin@mdc.vn',perm:'admin',color:'#7A3800',initials:'AD'}];
+    saveStaffList(def);return def;
+  }
+  return list;
+}
+
+function doLogin(){
+  const u=document.getElementById('login-username').value.trim().toLowerCase();
+  const p=document.getElementById('login-password').value;
+  const err=document.getElementById('login-error');
+  const found=loadStaffList().find(s=>s.username.toLowerCase()===u&&s.password===p);
+  if(!found){err.classList.add('show');return;}
+  err.classList.remove('show');
+  currentUser=found;
+  localStorage.setItem(LS_SESSION,JSON.stringify({id:found.id,at:Date.now()}));
+  startApp();
+}
+
+function doLogout(){
+  currentUser=null;
+  localStorage.removeItem(LS_SESSION);
+  document.getElementById('main-sidebar').style.display='none';
+  document.getElementById('main-area').style.display='none';
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-password').value='';
+}
+
+function restoreSession(){
+  try{
+    const sess=JSON.parse(localStorage.getItem(LS_SESSION)||'null');
+    if(!sess)return false;
+    if(Date.now()-sess.at>8*60*60*1000){localStorage.removeItem(LS_SESSION);return false;}
+    const found=loadStaffList().find(s=>s.id===sess.id);
+    if(!found)return false;
+    currentUser=found;return true;
+  }catch(e){return false;}
+}
+
+function isAdmin(){return currentUser&&currentUser.perm==='admin'}
+function isManager(){return currentUser&&(currentUser.perm==='admin'||currentUser.perm==='manager')}
+
+function visibleLeads(){
+  if(!currentUser)return[];
+  if(isAdmin())return leads;
+  return leads.filter(l=>l.owner===currentUser.id||l.owner===currentUser.username||l.owner===currentUser.initials);
+}
+function canEditLead(l){
+  if(isAdmin())return true;
+  return l.owner===currentUser.id||l.owner===currentUser.username||l.owner===currentUser.initials;
+}
+
+function startApp(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('main-sidebar').style.display='flex';
+  document.getElementById('main-area').style.display='flex';
+  applyPermissionUI();
+  loadLocal();migrateLeads();updateBadges();
+  showPage('dashboard',document.querySelector('[data-page=dashboard]'));
+  if(getApiUrl()){
+    showLoading('Đang tải dữ liệu...');
+    syncFromSheets().then(ok=>{hideLoading();if(ok)rerenderCurrent();});
+  }
+}
+
+function applyPermissionUI(){
+  const av=document.getElementById('sidebar-avatar');
+  const nm=document.getElementById('sidebar-name');
+  const rt=document.getElementById('sidebar-role-tag');
+  if(av){av.textContent=currentUser.initials||currentUser.name.slice(0,2).toUpperCase();av.style.background=currentUser.color||'var(--gold)';}
+  if(nm)nm.textContent=currentUser.name;
+  const pLbl={admin:'🔑 Admin',manager:'👁️ Manager',staff:'👤 Staff'}[currentUser.perm]||'Staff';
+  if(rt)rt.textContent=pLbl+' · MDC';
+  document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=isAdmin()?'':'none';});
+  const addBtn=document.getElementById('btn-add-lead');
+  if(addBtn)addBtn.style.display=isManager()?'':'none';
+}
+
+// Staff helpers
+function staffColor(ownerId){const s=loadStaffList().find(s=>s.id===ownerId||s.username===ownerId||s.initials===ownerId);return s?s.color||'#666':'#666';}
+function staffInitials(ownerId){const s=loadStaffList().find(s=>s.id===ownerId||s.username===ownerId||s.initials===ownerId);return s?(s.initials||s.name.slice(0,2).toUpperCase()):'??';}
+function staffName(ownerId){const s=loadStaffList().find(s=>s.id===ownerId||s.username===ownerId||s.initials===ownerId);return s?s.name:ownerId||'–';}
+
+function populateOwnerDropdown(){
+  const staffList=loadStaffList();
+  const sel=document.getElementById('f-owner');
+  if(!sel)return;
+  sel.innerHTML=staffList.map(s=>`<option value="${s.id}">${s.name} · ${({admin:'Admin',manager:'Manager',staff:'Staff'}[s.perm]||'–')}</option>`).join('');
+  if(!isAdmin()&&currentUser)sel.value=currentUser.id;
+  sel.disabled=!isAdmin();
+}
+
+// ── STAFF MANAGEMENT ──────────────────────────────────────────
+let editingStaffId=null;
+
+function renderStaff(){
+  const staffList=loadStaffList();
+  const permLabel={admin:'🔑 Admin',manager:'👁️ Manager',staff:'👤 Staff'};
+  const permClass={admin:'role-admin',manager:'role-manager',staff:'role-staff'};
+  document.getElementById('page-content').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div><div style="font-size:16px;font-weight:600;color:var(--navy)">👤 Quản lý Nhân sự & Phân quyền</div>
+      <div style="font-size:12px;color:var(--mgray);margin-top:3px">${staffList.length} tài khoản</div></div>
+      <button class="btn btn-primary" onclick="openAddStaff()">+ Thêm nhân sự</button>
+    </div>
+    <div style="background:var(--goldbg);border:1px solid #e8d99a;border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--amber);line-height:1.9">
+      <strong>Phân quyền:</strong><br>
+      🔑 <strong>Admin</strong> — Toàn quyền: xem tất cả KH, sửa/xóa, báo cáo, quản lý nhân sự, cài đặt<br>
+      👁️ <strong>Manager</strong> — Xem tất cả KH, chỉ sửa KH được phân công cho mình<br>
+      👤 <strong>Staff</strong> — Chỉ thấy & thao tác KH có owner = tài khoản của họ
+    </div>
+    <div class="staff-grid">
+      ${staffList.map(s=>{
+        const khCount=leads.filter(l=>l.owner===s.id||l.owner===s.username||l.owner===s.initials).length;
+        const isSelf=s.id===currentUser.id;
+        return`<div class="staff-card">
+          <div class="staff-card-actions">
+            <button class="icon-btn" onclick="openEditStaff('${s.id}')">✏️</button>
+            ${!isSelf?`<button class="icon-btn" onclick="confirmDeleteStaff('${s.id}')">🗑️</button>`:'<span style="font-size:10px;color:var(--mgray);padding:4px 6px">Bạn</span>'}
+          </div>
+          <div class="staff-avatar-lg" style="background:${s.color||'#0F3460'}">${s.initials||s.name.slice(0,2).toUpperCase()}</div>
+          <div class="staff-name">${s.name}</div>
+          <div class="staff-meta">@${s.username} · ${s.roleTitle||'–'}</div>
+          <span class="badge ${permClass[s.perm]||'role-staff'}" style="font-size:10px;padding:2px 9px;border-radius:12px">${permLabel[s.perm]||s.perm}</span>
+          <div style="margin-top:8px;font-size:11px;color:var(--mgray)">${khCount} KH phụ trách · ${s.phone||s.email||'–'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function openAddStaff(){
+  editingStaffId=null;
+  document.getElementById('staff-modal-title').textContent='👤 Thêm nhân sự mới';
+  document.getElementById('staff-save-btn').textContent='💾 Thêm';
+  ['sf-name','sf-username','sf-password','sf-password2','sf-role-title','sf-phone','sf-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('sf-perm').value='staff';
+  document.getElementById('sf-color').value='#0F3460';
+  document.getElementById('sf-edit-note').style.display='none';
+  document.getElementById('staff-modal').classList.add('open');
+}
+
+function openEditStaff(id){
+  const s=loadStaffList().find(s=>s.id===id);if(!s)return;
+  editingStaffId=id;
+  document.getElementById('staff-modal-title').textContent=`✏️ Sửa – ${s.name}`;
+  document.getElementById('staff-save-btn').textContent='💾 Cập nhật';
+  document.getElementById('sf-name').value=s.name;
+  document.getElementById('sf-username').value=s.username;
+  document.getElementById('sf-password').value='';
+  document.getElementById('sf-password2').value='';
+  document.getElementById('sf-role-title').value=s.roleTitle||'';
+  document.getElementById('sf-phone').value=s.phone||'';
+  document.getElementById('sf-email').value=s.email||'';
+  document.getElementById('sf-perm').value=s.perm||'staff';
+  document.getElementById('sf-color').value=s.color||'#0F3460';
+  document.getElementById('sf-edit-note').style.display='block';
+  document.getElementById('staff-modal').classList.add('open');
+}
+function closeStaffModal(){document.getElementById('staff-modal').classList.remove('open');editingStaffId=null;}
+
+function saveStaffMember(){
+  const name=document.getElementById('sf-name').value.trim();
+  const username=document.getElementById('sf-username').value.trim().toLowerCase();
+  const pw=document.getElementById('sf-password').value;
+  const pw2=document.getElementById('sf-password2').value;
+  if(!name||!username){toast('⚠️ Nhập Tên và Username','⚠️');return;}
+  if(!editingStaffId&&!pw){toast('⚠️ Nhập mật khẩu','⚠️');return;}
+  if(pw&&pw!==pw2){toast('⚠️ Mật khẩu không khớp','⚠️');return;}
+  const staffList=loadStaffList();
+  if(staffList.find(s=>s.username.toLowerCase()===username&&s.id!==editingStaffId)){toast('⚠️ Username đã tồn tại','⚠️');return;}
+  const color=document.getElementById('sf-color').value;
+  const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  if(editingStaffId){
+    const idx=staffList.findIndex(s=>s.id===editingStaffId);if(idx<0)return;
+    staffList[idx]={...staffList[idx],name,username,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,perm:document.getElementById('sf-perm').value,color,initials};
+    if(pw)staffList[idx].password=pw;
+    toast(`✅ Đã cập nhật: ${name}`);
+  }else{
+    staffList.push({id:'staff_'+Date.now(),name,username,password:pw,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,perm:document.getElementById('sf-perm').value,color,initials});
+    toast(`✅ Đã thêm: ${name}`);
+  }
+  saveStaffList(staffList);closeStaffModal();renderStaff();populateOwnerDropdown();
+}
+
+function confirmDeleteStaff(id){
+  const s=loadStaffList().find(s=>s.id===id);if(!s)return;
+  if(s.id===currentUser.id){toast('⚠️ Không thể xóa tài khoản đang dùng','⚠️');return;}
+  showConfirm('🗑️','Xóa nhân sự',`Xóa "${s.name}"?`,()=>{
+    saveStaffList(loadStaffList().filter(s=>s.id!==id));
+    renderStaff();populateOwnerDropdown();toast(`🗑️ Đã xóa: ${s.name}`);
+  });
+}
+
+
 // ══════════════════════════════════════════════════════════════
 // CONSTANTS
 // ══════════════════════════════════════════════════════════════
-const LS_KEY      = 'mdc_crm_v3';
-const LS_API_KEY  = 'mdc_crm_api_url';
-const LS_SET_KEY  = 'mdc_crm_settings';
+const LS_KEY     = 'mdc_crm_v6';
+const LS_API_KEY = 'mdc_crm_api_url';
+const LS_SET_KEY = 'mdc_crm_settings';
 
-const STAGES = [
-  {id:'new',      label:'Mới',        color:'#0F3460', badge:'badge-new'},
-  {id:'contacted',label:'Đã liên hệ', color:'#1A5C87', badge:'badge-contacted'},
-  {id:'consult',  label:'Tư vấn',     color:'#3D0D6E', badge:'badge-consult'},
-  {id:'survey',   label:'Khảo sát',   color:'#0A4D45', badge:'badge-survey'},
-  {id:'quote',    label:'Báo giá',    color:'#7A3800', badge:'badge-quote'},
-  {id:'nego',     label:'Đàm phán',   color:'#7B1A2B', badge:'badge-nego'},
-  {id:'won',      label:'Chốt HĐ',   color:'#0F5132', badge:'badge-won'},
-  {id:'lost',     label:'Mất deal',   color:'#555',    badge:'badge-lost'},
+// ── Pipeline Thiết kế ─────────────────────────────────────────
+const STAGES_TK = [
+  {id:'tk_new',      label:'Mới',               color:'#0F3460', badge:'badge-tk-new'},
+  {id:'tk_consult',  label:'Tư vấn',            color:'#3D0D6E', badge:'badge-tk-consult'},
+  {id:'tk_survey',   label:'Khảo sát',          color:'#0A4D45', badge:'badge-tk-survey'},
+  {id:'tk_quote_tk', label:'Báo giá TK',        color:'#7A3800', badge:'badge-tk-quote_tk'},
+  {id:'tk_sign_tk',  label:'Ký HĐ TK',          color:'#0F5132', badge:'badge-tk-sign_tk'},
+  {id:'tk_design',   label:'Triển khai TK',     color:'#1A5C87', badge:'badge-tk-design'},
+  {id:'tk_handover', label:'Bàn giao hồ sơ',   color:'#3D0D6E', badge:'badge-tk-handover'},
+  {id:'tk_quote_tc', label:'Báo giá TC',        color:'#6B3400', badge:'badge-tk-quote_tc', autoTransfer:true},
+  {id:'tk_accept',   label:'Nghiệm thu TK',     color:'#0F5132', badge:'badge-tk-accept'},
+  {id:'tk_lost',     label:'Mất deal',          color:'#555',    badge:'badge-tk-lost'},
 ];
-const SBG = {new:'#EEF3FB',contacted:'#EBF3FC',consult:'#F0E8FB',survey:'#E0F4F1',quote:'#FFF0E0',nego:'#FDEEF1',won:'#E6F4EC',lost:'#F5F5F5'};
-const SC  = {new:'#0F3460',contacted:'#1A5C87',consult:'#3D0D6E',survey:'#0A4D45',quote:'#7A3800',nego:'#7B1A2B',won:'#0F5132',lost:'#555'};
+
+// ── Pipeline Thi công ─────────────────────────────────────────
+const STAGES_TC = [
+  {id:'tc_new',      label:'Mới',               color:'#0A4D45', badge:'badge-tc-new'},
+  {id:'tc_consult',  label:'Tư vấn',            color:'#1A5C87', badge:'badge-tc-consult'},
+  {id:'tc_survey',   label:'Khảo sát',          color:'#3D0D6E', badge:'badge-tc-survey'},
+  {id:'tc_quote_tc', label:'Báo giá TC',        color:'#7A3800', badge:'badge-tc-quote_tc'},
+  {id:'tc_sign_tc',  label:'Ký HĐ TC',          color:'#0F5132', badge:'badge-tc-sign_tc'},
+  {id:'tc_docs',     label:'Triển khai hồ sơ', color:'#6B3400', badge:'badge-tc-docs'},
+  {id:'tc_construct',label:'Thi công',          color:'#7B1A2B', badge:'badge-tc-construct'},
+  {id:'tc_handover', label:'Bàn giao & NT',    color:'#0F5132', badge:'badge-tc-handover'},
+  {id:'tc_lost',     label:'Mất deal',          color:'#555',    badge:'badge-tc-lost'},
+];
+
+// Color maps
+const SBG_TK = {tk_new:'#EEF3FB',tk_consult:'#F0E8FB',tk_survey:'#E0F4F1',tk_quote_tk:'#FFF0E0',tk_sign_tk:'#E6F4EC',tk_design:'#EBF3FC',tk_handover:'#F0E8FB',tk_quote_tc:'#FFF0E0',tk_accept:'#E6F4EC',tk_lost:'#F5F5F5'};
+const SBG_TC = {tc_new:'#E0F4F1',tc_consult:'#EBF3FC',tc_survey:'#F0E8FB',tc_quote_tc:'#FFF0E0',tc_sign_tc:'#E6F4EC',tc_docs:'#FFF0E0',tc_construct:'#FDEEF1',tc_handover:'#E6F4EC',tc_lost:'#F5F5F5'};
+const SC_TK  = {tk_new:'#0F3460',tk_consult:'#3D0D6E',tk_survey:'#0A4D45',tk_quote_tk:'#7A3800',tk_sign_tk:'#0F5132',tk_design:'#1A5C87',tk_handover:'#3D0D6E',tk_quote_tc:'#6B3400',tk_accept:'#0F5132',tk_lost:'#555'};
+const SC_TC  = {tc_new:'#0A4D45',tc_consult:'#1A5C87',tc_survey:'#3D0D6E',tc_quote_tc:'#7A3800',tc_sign_tc:'#0F5132',tc_docs:'#6B3400',tc_construct:'#7B1A2B',tc_handover:'#0F5132',tc_lost:'#555'};
+
+function getStages(pipeline){ return pipeline==='tc'?STAGES_TC:STAGES_TK; }
+function getSBG(stage){ return SBG_TK[stage]||SBG_TC[stage]||'#F5F5F5'; }
+function getSC(stage){ return SC_TK[stage]||SC_TC[stage]||'#555'; }
+function getPipe(stageId){return(stageId||'tk_new').startsWith('tc_')?'tc':'tk'}
+
+// ══════════════════════════════════════════════════════════════
+// CUSTOMER HEALTH & CARE LOGIC — Bám sát KH, không bỏ lỡ cơ hội
+// ══════════════════════════════════════════════════════════════
+// Số ngày kể từ lần liên hệ cuối
+function daysSinceContact(l){
+  const ref = l.lastContact || l.created;
+  if(!ref) return 999;
+  const d = new Date(ref);
+  if(isNaN(d)) return 999;
+  return Math.floor((Date.now() - d.getTime()) / 86400000);
+}
+// Ngưỡng cảnh báo theo giai đoạn — giai đoạn nóng cần chăm sát hơn
+const STAGE_SLA = {
+  // Pipeline TK
+  tk_new:2, tk_consult:3, tk_survey:5, tk_quote_tk:3, tk_sign_tk:5,
+  tk_design:7, tk_handover:3, tk_quote_tc:2, tk_accept:14, tk_lost:999,
+  // Pipeline TC
+  tc_new:2, tc_consult:3, tc_survey:5, tc_quote_tc:3, tc_sign_tc:5,
+  tc_docs:7, tc_construct:7, tc_handover:5, tc_lost:999,
+};
+// "Sức khỏe" KH: green=ổn, yellow=cần chú ý, red=nguy cơ bỏ lỡ
+function leadHealth(l){
+  if(['tk_accept','tk_lost','tc_handover','tc_lost'].includes(l.stage)) return 'gray'; // đã đóng
+  const days = daysSinceContact(l);
+  const sla = STAGE_SLA[l.stage] || 5;
+  if(days > sla*2) return 'red';
+  if(days > sla) return 'yellow';
+  return 'green';
+}
+function healthLabel(h){return {green:'Đang bám tốt',yellow:'Cần chú ý',red:'Nguy cơ bỏ lỡ',gray:'Đã đóng'}[h]||''}
+// KH cần chăm sóc gấp (sắp/đã vượt SLA, chưa đóng)
+function leadsNeedingCare(){
+  return visibleLeads()
+    .filter(l=>!['tk_accept','tk_lost','tc_handover','tc_lost'].includes(l.stage))
+    .map(l=>({lead:l, days:daysSinceContact(l), health:leadHealth(l)}))
+    .filter(x=>x.health==='red'||x.health==='yellow')
+    .sort((a,b)=>b.days-a.days);
+}
+// Task của tôi hôm nay / quá hạn
+function myTasksToday(){
+  const mine = isAdmin()?tasks:tasks.filter(t=>t.assignee===currentUser.id||!t.assignee);
+  return mine.filter(t=>!t.done && getTaskDateStatus(t)==='today');
+}
+function myTasksOverdue(){
+  const mine = isAdmin()?tasks:tasks.filter(t=>t.assignee===currentUser.id||!t.assignee);
+  return mine.filter(t=>!t.done && getTaskDateStatus(t)==='overdue');
+}
+// Deal sắp chốt (giai đoạn cuối trước khi đóng)
+function hotDeals(){
+  return visibleLeads().filter(l=>['tk_quote_tk','tk_sign_tk','tk_quote_tc','tc_quote_tc','tc_sign_tc'].includes(l.stage));
+}
+// Tiến độ pipeline (vị trí hiện tại / tổng)
+function pipeProgress(l){
+  const pipe = getPipe(l.stage);
+  const stages = getStages(pipe).filter(s=>!['tk_lost','tc_lost'].includes(s.id));
+  const idx = stages.findIndex(s=>s.id===l.stage);
+  return {idx: idx<0?0:idx, total: stages.length, stages};
+}
+
+
+function getPipelineOfStage(stageId){return getPipe(stageId);}
+function getStageObj(stageId){return STAGES_TK.find(s=>s.id===stageId)||STAGES_TC.find(s=>s.id===stageId)||{label:stageId,color:'#555',badge:''};}
 
 // ══════════════════════════════════════════════════════════════
 // STATE
@@ -408,482 +990,843 @@ let editingLeadId = null;
 let activeFilter = 'all';
 let searchQuery = '';
 let confirmCb = null;
+let pendingTransferLeadId = null;
 
 // ══════════════════════════════════════════════════════════════
-// LOCAL STORAGE (offline cache)
+// LOCAL STORAGE
 // ══════════════════════════════════════════════════════════════
-function saveLocal() {
-  localStorage.setItem(LS_KEY, JSON.stringify({leads, tasks, at: Date.now()}));
+function saveLocal(){
+  localStorage.setItem(LS_KEY, JSON.stringify({leads,tasks,at:Date.now()}));
   updateBadges();
 }
-function loadLocal() {
-  try {
-    const d = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-    leads = d.leads || [];
-    tasks = d.tasks || [];
-  } catch(e) { leads=[]; tasks=[]; }
+
+// Migrate stage cũ (v5.1) sang hệ thống 2 pipeline mới
+const LEGACY_STAGE_MAP = {
+  'new':'tk_new', 'contacted':'tk_consult', 'consult':'tk_consult',
+  'survey':'tk_survey', 'quote':'tk_quote_tk', 'nego':'tk_sign_tk',
+  'won':'tk_accept', 'lost':'tk_lost'
+};
+function migrateLeads(){
+  let changed=false;
+  leads.forEach(l=>{
+    if(l.stage && LEGACY_STAGE_MAP[l.stage]){ l.stage=LEGACY_STAGE_MAP[l.stage]; changed=true; }
+    if(!l.stage){ l.stage='tk_new'; changed=true; }
+    // map field value cũ -> valueTk nếu chưa có
+    if(l.value && !l.valueTk && !l.valueTc){ l.valueTk=l.value; changed=true; }
+    // owner cũ (AN/BT/EM) giữ nguyên - staffName sẽ fallback hiển thị
+  });
+  if(changed) saveLocal();
 }
-function loadSettings() {
-  try { return {...{name:'Nguyễn Văn An',role:'Sale Lead',email:'an.nguyen@mdc.vn'},...JSON.parse(localStorage.getItem(LS_SET_KEY)||'{}')}; }
-  catch(e) { return {name:'Nguyễn Văn An',role:'Sale Lead',email:'an.nguyen@mdc.vn'}; }
+
+function loadLocal(){
+  try{const d=JSON.parse(localStorage.getItem(LS_KEY)||'{}');leads=d.leads||[];tasks=d.tasks||[];}
+  catch(e){leads=[];tasks=[];}
 }
-function persistSettings(s) {
-  localStorage.setItem(LS_SET_KEY, JSON.stringify(s));
-  applySettingsUI(s);
+function loadSettings(){
+  try{return{...{name:'Nguyễn Văn An',role:'Sale Lead',email:'an.nguyen@mdc.vn'},...JSON.parse(localStorage.getItem(LS_SET_KEY)||'{}')}}
+  catch(e){return{name:'Nguyễn Văn An',role:'Sale Lead',email:'an.nguyen@mdc.vn'}}
 }
-function applySettingsUI(s) {
-  const av = document.getElementById('sidebar-avatar');
-  const nm = document.getElementById('sidebar-name');
-  const rl = document.getElementById('sidebar-role');
-  if(av) av.textContent = (s.name||'?').split(' ').pop().slice(0,2).toUpperCase();
-  if(nm) nm.textContent = s.name||'';
-  if(rl) rl.textContent = (s.role||'Sales') + ' · MDC';
+function persistSettings(s){localStorage.setItem(LS_SET_KEY,JSON.stringify(s));applySettingsUI(s);}
+function applySettingsUI(s){
+  const av=document.getElementById('sidebar-avatar');
+  const nm=document.getElementById('sidebar-name');
+  const rl=document.getElementById('sidebar-role');
+  if(av) av.textContent=(s.name||'?').split(' ').pop().slice(0,2).toUpperCase();
+  if(nm) nm.textContent=s.name||'';
+  if(rl) rl.textContent=(s.role||'Sales')+' · MDC';
 }
 
 // ══════════════════════════════════════════════════════════════
-// GOOGLE SHEETS API
+// API
 // ══════════════════════════════════════════════════════════════
-function getApiUrl() {
-  const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbyayW_999PF1xGjFNq_6maRBzNiP7HYf4xodOKwHLw5HKT-svpRFLJCe1kP7XufvX7j/exec';
-  return localStorage.getItem(LS_API_KEY) || DEFAULT_URL;
+function getApiUrl(){
+  const DEFAULT='https://script.google.com/macros/s/AKfycbyayW_999PF1xGjFNq_6maRBzNiP7HYf4xodOKwHLw5HKT-svpRFLJCe1kP7XufvX7j/exec';
+  return localStorage.getItem(LS_API_KEY)||DEFAULT;
 }
-function setApiUrl(url) { apiUrl=url; localStorage.setItem(LS_API_KEY, url); }
+function setApiUrl(url){apiUrl=url;localStorage.setItem(LS_API_KEY,url);}
 
-async function apiFetch(params) {
-  const url = getApiUrl();
-  if(!url) throw new Error('API URL chưa được cài đặt');
-  const full = url + '?' + new URLSearchParams(params).toString();
-  try {
-    // Apps Script redirects to script.googleusercontent.com which causes CORS issues
-    // Solution: use 'no-cors' with a workaround OR follow redirect manually
-    // Best approach: simple GET with redirect:follow and no custom headers
-    const res = await fetch(full, {
-      method: 'GET',
-      redirect: 'follow'
-    });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    if(!json.ok) throw new Error(json.error || 'API error');
-    return json;
-  } catch(e) {
-    console.error('apiFetch error:', e);
-    if(e.message === 'Failed to fetch' || e.name === 'TypeError') {
-      throw new Error('CORS blocked. Vui lòng dùng Chrome/Edge mới nhất, hoặc kiểm tra ad-blocker/extension.');
-    }
-    throw e;
-  }
+async function apiFetch(params){
+  const url=getApiUrl();
+  if(!url) throw new Error('API URL chưa cài đặt');
+  const res=await fetch(url+'?'+new URLSearchParams(params).toString(),{method:'GET',redirect:'follow'});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const json=await res.json();
+  if(!json.ok) throw new Error(json.error||'API error');
+  return json;
 }
 
-async function apiPost(body) {
-  // Use GET with payload in URL to avoid CORS preflight (works with file:// protocol)
-  const url = getApiUrl();
-  if(!url) throw new Error('API URL chưa được cài đặt');
-  try {
-    const params = new URLSearchParams({
-      action: body.action,
-      payload: JSON.stringify(body)
-    });
-    const full = url + '?' + params.toString();
-    const res = await fetch(full, {
-      method: 'GET',
-      redirect: 'follow'
-    });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-    if(!json.ok) throw new Error(json.error || 'API error');
-    return json;
-  } catch(e) {
-    console.error('apiPost error:', e);
-    if(e.message === 'Failed to fetch' || e.name === 'TypeError') {
-      throw new Error('Không kết nối được. Vui lòng tạo deployment MỚI và thử lại.');
-    }
-    throw e;
-  }
+async function apiPost(body){
+  const url=getApiUrl();
+  if(!url) throw new Error('API URL chưa cài đặt');
+  const res=await fetch(url+'?'+new URLSearchParams({action:body.action,payload:JSON.stringify(body)}).toString(),{method:'GET',redirect:'follow'});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const json=await res.json();
+  if(!json.ok) throw new Error(json.error||'API error');
+  return json;
 }
 
-// ── Sync ALL data from Sheets ─────────────────────────────────
-async function syncFromSheets() {
-  setSyncState('syncing', '🔄 Đang đồng bộ từ Google Sheets...');
-  try {
-    const data = await apiFetch({action:'getAll'});
-    if(data.leads)    leads = data.leads;
-    if(data.tasks)    tasks = data.tasks;
+async function syncFromSheets(){
+  setSyncState('syncing','🔄 Đang đồng bộ...');
+  try{
+    const data=await apiFetch({action:'getAll'});
+    if(data.leads) leads=data.leads;
+    if(data.tasks) tasks=data.tasks;
     saveLocal();
-    setSyncState('connected', `✅ Đồng bộ lúc ${nowStr()}`);
-    isConnected = true;
+    setSyncState('connected',`✅ Đồng bộ lúc ${nowStr()}`);
+    isConnected=true;
     updateBadges();
-    console.log('[MDC CRM] Sync OK:', leads.length, 'leads,', tasks.length, 'tasks');
     return true;
-  } catch(e) {
-    console.error('[MDC CRM] Sync failed:', e);
-    setSyncState('error', '❌ ' + e.message);
-    isConnected = false;
+  }catch(e){
+    setSyncState('error','❌ '+e.message);
+    isConnected=false;
     return false;
   }
 }
 
-// ── Push one lead to Sheets ───────────────────────────────────
-async function pushLead(lead) {
-  if(!getApiUrl()) return;
-  try { await apiPost({action:'saveLead', lead}); }
-  catch(e) { toast('⚠️ Lưu Sheets lỗi: ' + e.message, '⚠️'); }
-}
+async function pushLead(lead){if(!getApiUrl()) return;try{await apiPost({action:'saveLead',lead});}catch(e){toast('⚠️ Lưu Sheets lỗi: '+e.message,'⚠️');}}
+async function removeLead(id){if(!getApiUrl()) return;try{await apiPost({action:'deleteLead',id});}catch(e){}}
+async function pushTask(task){if(!getApiUrl()) return;try{await apiPost({action:'saveTask',task});}catch(e){}}
+async function removeTask(id){if(!getApiUrl()) return;try{await apiPost({action:'deleteTask',id});}catch(e){}}
 
-async function removeLead(id) {
-  if(!getApiUrl()) return;
-  try { await apiPost({action:'deleteLead', id}); }
-  catch(e) { toast('⚠️ Xóa Sheets lỗi: ' + e.message, '⚠️'); }
-}
-
-async function pushTask(task) {
-  if(!getApiUrl()) return;
-  try { await apiPost({action:'saveTask', task}); }
-  catch(e) {}
-}
-
-async function removeTask(id) {
-  if(!getApiUrl()) return;
-  try { await apiPost({action:'deleteTask', id}); }
-  catch(e) {}
-}
-
-// ── Sync button ───────────────────────────────────────────────
-async function syncNow() {
+async function syncNow(){
   if(isSyncing) return;
-  isSyncing = true;
-  document.getElementById('sync-btn').textContent = '⏳ Syncing...';
-  const ok = await syncFromSheets();
-  isSyncing = false;
-  document.getElementById('sync-btn').textContent = '🔄 Sync';
-  if(ok) {
-    const renders = {dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,tasks:renderTasks,reports:renderReports};
-    if(renders[currentPage]) renders[currentPage]();
+  isSyncing=true;
+  document.getElementById('sync-btn').textContent='⏳ Syncing...';
+  const ok=await syncFromSheets();
+  isSyncing=false;
+  document.getElementById('sync-btn').textContent='🔄 Sync';
+  if(ok){
+    rerenderCurrent();
     toast('✅ Đồng bộ thành công!');
   }
 }
 
-function setSyncState(state, text) {
-  const dot = document.getElementById('sync-dot');
-  const label = document.getElementById('sync-label');
-  const banner = document.getElementById('sync-banner');
-  const btext = document.getElementById('sync-banner-text');
-  const bicon = document.getElementById('sync-banner-icon');
-
-  dot.className = 'sync-dot ' + (state==='connected'?'green':state==='syncing'?'yellow':state==='error'?'red':'gray');
-  label.style.color = state==='connected'?'#4ade80':state==='syncing'?'#facc15':state==='error'?'#f87171':'rgba(212,175,106,.4)';
-  label.textContent = state==='connected'?'Đã kết nối':state==='syncing'?'Đang sync...':state==='error'?'Lỗi kết nối':'Chưa kết nối';
-
-  banner.className = 'sync-banner ' + (state==='connected'?'connected':state==='syncing'?'syncing':state==='error'?'error':'setup');
-  bicon.textContent = state==='connected'?'✅':state==='syncing'?'🔄':state==='error'?'❌':'⚙️';
-  btext.textContent = text;
-
-  if(state==='connected') {
-    banner.querySelector('button').style.display='none';
-  } else {
-    banner.querySelector('button').style.display='';
-  }
+function rerenderCurrent(){
+  const r={dashboard:renderDashboard,pipeline_tk:()=>renderPipelineBoard('tk'),pipeline_tc:()=>renderPipelineBoard('tc'),leads:renderLeads,tasks:renderTasks,reports:renderReports,staff:renderStaff};
+  if(r[currentPage]) r[currentPage]();
 }
 
-// ══════════════════════════════════════════════════════════════
-// CONNECT PAGE
-// ══════════════════════════════════════════════════════════════
-function renderConnect() {
-  const saved = getApiUrl();
-  document.getElementById('page-content').innerHTML = `
-    <div style="max-width:640px">
-      <div class="table-wrap" style="padding:28px;margin-bottom:16px">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);margin-bottom:6px">🔗 Kết nối Google Sheets</div>
-        <div style="font-size:13px;color:var(--mgray);margin-bottom:22px;line-height:1.7">Dữ liệu CRM sẽ được lưu vào Google Sheets và đồng bộ theo thời gian thực. Nhiều người có thể dùng cùng lúc trên nhiều máy.</div>
-
-        <div style="background:var(--lgray);border-radius:10px;padding:16px;margin-bottom:20px">
-          <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px">📋 Thực hiện 4 bước sau:</div>
-          ${[
-            ['1','Tạo Google Sheet mới','Vào sheets.google.com → Tạo Sheet → Đặt tên "MDC CRM Database"'],
-            ['2','Mở Apps Script','Trong Sheet → Extensions → Apps Script → Xóa code cũ → Dán code từ file .gs đã cung cấp → Lưu'],
-            ['3','Nhập Sheet ID vào code','Trong file .gs tìm dòng <code style="background:#e8e4de;padding:1px 5px;border-radius:3px;font-size:11px">SHEET_ID = \'PASTE_YOUR_SHEET_ID_HERE\'</code> → Thay bằng ID Sheet của bạn'],
-            ['4','Deploy Web App','Apps Script → Deploy → New deployment → Web App → Execute as: Me → Who has access: Anyone → Deploy → Copy URL'],
-          ].map(([n,title,desc])=>`
-            <div style="display:flex;gap:12px;margin-bottom:10px">
-              <div style="width:24px;height:24px;background:var(--navy);color:var(--gold2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'DM Mono',monospace">${n}</div>
-              <div><div style="font-size:12.5px;font-weight:600;color:var(--charcoal);margin-bottom:2px">${title}</div><div style="font-size:12px;color:var(--mgray);line-height:1.6">${desc}</div></div>
-            </div>`).join('')}
-        </div>
-
-        <div style="font-size:12px;font-weight:600;color:var(--charcoal);margin-bottom:8px">Dán Web App URL vào đây:</div>
-        <div style="display:flex;gap:9px;margin-bottom:14px">
-          <input type="text" id="api-url-input" class="form-input" style="flex:1;font-family:'DM Mono',monospace;font-size:11.5px"
-            value="${saved}" placeholder="https://script.google.com/macros/s/ABC.../exec">
-          <button class="btn btn-primary" onclick="testAndSaveUrl()">🔌 Kết nối & Test</button>
-        </div>
-
-        ${saved ? `<div style="background:var(--lgreen);border:1px solid #bbf7d0;border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--emerald);display:flex;align-items:center;gap:8px"><span>✅</span> Đã có URL được lưu. Nhấn "Kết nối & Test" để kiểm tra lại.</div>` : ''}
-      </div>
-
-      <div class="table-wrap" style="padding:20px">
-        <div style="font-size:13px;font-weight:600;color:var(--charcoal);margin-bottom:12px">📂 Nhập dữ liệu từ máy cũ (nếu có)</div>
-        <p style="font-size:12.5px;color:var(--mgray);margin-bottom:12px">Nếu bạn đã dùng CRM v2 và có file backup JSON, hãy nhập vào đây để đẩy lên Sheets:</p>
-        <label class="btn btn-outline" style="cursor:pointer">
-          📂 Chọn file JSON backup
-          <input type="file" accept=".json" style="display:none" onchange="importAndPush(this)">
-        </label>
-      </div>
-    </div>`;
-}
-
-async function testAndSaveUrl() {
-  const url = document.getElementById('api-url-input').value.trim();
-  if(!url || !url.includes('script.google.com')) {
-    toast('⚠️ URL không hợp lệ. Phải là URL từ Google Apps Script.','⚠️'); return;
-  }
-  setApiUrl(url);
-  showLoading('Đang kiểm tra kết nối...');
-  try {
-    const d = await apiFetch({action:'ping'});
-    hideLoading();
-    toast('✅ Kết nối thành công! Đang tải dữ liệu...');
-    setSyncState('syncing','🔄 Đang tải dữ liệu lần đầu...');
-    await syncFromSheets();
-    showPage('dashboard', document.querySelector('[data-page=dashboard]'));
-  } catch(e) {
-    hideLoading();
-    setSyncState('error','❌ Không kết nối được: ' + e.message);
-    toast('❌ Lỗi: ' + e.message, '❌');
-    document.getElementById('page-content').innerHTML += `
-      <div style="background:var(--lred);border:1px solid #fecaca;border-radius:8px;padding:14px;margin-top:12px;font-size:12.5px;color:var(--ruby)">
-        <strong>❌ Lỗi kết nối:</strong> ${e.message}<br><br>
-        <strong>Kiểm tra lại:</strong><br>
-        • URL đã đúng dạng <code>https://script.google.com/macros/s/...</code>?<br>
-        • Đã deploy với "Who has access: Anyone"?<br>
-        • Đã nhập đúng SHEET_ID trong code Apps Script?<br>
-        • Thử chạy hàm <code>testSetup()</code> trong Apps Script editor để xem log.
-      </div>`;
-  }
-}
-
-async function importAndPush(input) {
-  const file = input.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = async e => {
-    try {
-      const data = JSON.parse(e.target.result);
-      if(!data.leads && !data.tasks) { toast('⚠️ File JSON không hợp lệ','⚠️'); return; }
-      if(data.leads) leads = data.leads;
-      if(data.tasks) tasks = data.tasks;
-      saveLocal();
-      if(getApiUrl()) {
-        showLoading('Đang đẩy dữ liệu lên Google Sheets...');
-        try {
-          await apiPost({action:'bulkSaveLeads', leads});
-          await apiPost({action:'bulkSaveTasks', tasks});
-          hideLoading();
-          toast(`✅ Đã đẩy ${leads.length} leads lên Sheets!`);
-          updateBadges();
-        } catch(err) {
-          hideLoading();
-          toast('⚠️ Lỗi đẩy dữ liệu: ' + err.message,'⚠️');
-        }
-      } else {
-        saveLocal(); toast(`✅ Đã nhập ${leads.length} leads (chưa có Sheets URL)`);
-      }
-    } catch(err) { toast('⚠️ File JSON bị lỗi','⚠️'); }
-  };
-  reader.readAsText(file);
-  input.value='';
+function setSyncState(state,text){
+  const dot=document.getElementById('sync-dot');
+  const label=document.getElementById('sync-label');
+  const banner=document.getElementById('sync-banner');
+  const btext=document.getElementById('sync-banner-text');
+  const bicon=document.getElementById('sync-banner-icon');
+  dot.className='sync-dot '+(state==='connected'?'green':state==='syncing'?'yellow':state==='error'?'red':'gray');
+  label.style.color=state==='connected'?'#4ade80':state==='syncing'?'#facc15':state==='error'?'#f87171':'rgba(212,175,106,.4)';
+  label.textContent=state==='connected'?'Đã kết nối':state==='syncing'?'Đang sync...':state==='error'?'Lỗi kết nối':'Chưa kết nối';
+  banner.className='sync-banner '+(state==='connected'?'connected':state==='syncing'?'syncing':state==='error'?'error':'setup');
+  bicon.textContent=state==='connected'?'✅':state==='syncing'?'🔄':state==='error'?'❌':'⚙️';
+  btext.textContent=text;
+  banner.querySelector('button').style.display=state==='connected'?'none':'';
 }
 
 // ══════════════════════════════════════════════════════════════
 // PAGES
 // ══════════════════════════════════════════════════════════════
-function showPage(page, el) {
-  currentPage = page;
+function showPage(page,el){
+  currentPage=page;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  const titles={dashboard:'Dashboard',leads:'Quản lý Lead',pipeline:'Pipeline',tasks:'Công việc',reports:'Báo cáo',connect:'Kết nối Google Sheets',settings:'Cài đặt'};
-  document.getElementById('page-title').textContent = titles[page]||page;
-  const renders={dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,tasks:renderTasks,reports:renderReports,connect:renderConnect,settings:renderSettings};
+  const titles={dashboard:'Dashboard',pipeline_tk:'Pipeline Thiết kế',pipeline_tc:'Pipeline Thi công',leads:'Tất cả Khách hàng',tasks:'Công việc',reports:'Báo cáo',staff:'Nhân sự & Phân quyền',connect:'Kết nối Google Sheets',settings:'Cài đặt'};
+  document.getElementById('page-title').textContent=titles[page]||page;
+  const renders={
+    dashboard:renderDashboard,
+    pipeline_tk:()=>renderPipelineBoard('tk'),
+    pipeline_tc:()=>renderPipelineBoard('tc'),
+    leads:renderLeads,tasks:renderTasks,
+    reports:renderReports,connect:renderConnect,settings:renderSettings
+  };
   (renders[page]||(() => {}))();
 }
 
-// ── DASHBOARD ─────────────────────────────────────────────────
-function renderDashboard() {
-  const won=leads.filter(l=>l.stage==='won');
-  const active=leads.filter(l=>!['won','lost'].includes(l.stage));
-  const totalPV=active.reduce((s,l)=>s+(Number(l.value)||0),0);
-  const wonV=won.reduce((s,l)=>s+(Number(l.value)||0),0);
-  const hot=leads.filter(l=>l.score>=80&&!['won','lost'].includes(l.stage));
-  document.getElementById('page-content').innerHTML=`
-    <div class="stats-row">
-      <div class="stat-card" style="--accent:#0F3460"><div class="stat-label">Tổng Lead</div><div class="stat-value">${leads.length}</div><div class="stat-sub">Trong hệ thống CRM</div></div>
-      <div class="stat-card" style="--accent:#7A3800"><div class="stat-label">Pipeline</div><div class="stat-value">${formatB(totalPV)}</div><div class="stat-sub"><span class="up">${active.length}</span> đang hoạt động</div></div>
-      <div class="stat-card" style="--accent:#0F5132"><div class="stat-label">Đã Chốt HĐ</div><div class="stat-value">${won.length}</div><div class="stat-sub">Doanh thu: <span class="up">${formatB(wonV)}</span></div></div>
-      <div class="stat-card" style="--accent:#7B1A2B"><div class="stat-label">Hot Leads</div><div class="stat-value">${hot.length}</div><div class="stat-sub">Score <span class="up">≥ 80</span></div></div>
-      <div class="stat-card" style="--accent:#3D0D6E"><div class="stat-label">Win Rate</div><div class="stat-value">${leads.filter(l=>l.stage!=='new').length?Math.round(won.length/leads.filter(l=>l.stage!=='new').length*100):0}%</div><div class="stat-sub">Target: <span class="up">≥70%</span></div></div>
+// ── DASHBOARD — Bàn làm việc / Trung tâm chỉ huy ─────────────
+function renderDashboard(){
+  const vl = visibleLeads();
+  const tkL = vl.filter(l=>getPipe(l.stage)==='tk');
+  const tcL = vl.filter(l=>getPipe(l.stage)==='tc');
+  const tkA = tkL.filter(l=>!['tk_accept','tk_lost'].includes(l.stage));
+  const tcA = tcL.filter(l=>!['tc_handover','tc_lost'].includes(l.stage));
+
+  const care = leadsNeedingCare();
+  const careRed = care.filter(c=>c.health==='red');
+  const todayTasks = myTasksToday();
+  const overdueTasks = myTasksOverdue();
+  const hot = hotDeals();
+
+  const hour = new Date().getHours();
+  const greeting = hour<11?'Chào buổi sáng':hour<14?'Chào buổi trưa':hour<18?'Chào buổi chiều':'Chào buổi tối';
+  const firstName = currentUser.name.split(' ').pop();
+
+  document.getElementById('page-content').innerHTML = `
+    <div style="margin-bottom:18px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--navy)">${greeting}, ${firstName} 👋</div>
+      <div style="font-size:13px;color:var(--mgray);margin-top:2px">${new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} · ${todayTasks.length} việc hôm nay${overdueTasks.length?` · <span style="color:var(--ruby);font-weight:600">${overdueTasks.length} việc quá hạn</span>`:''}</div>
     </div>
-    <div class="chart-row">
+
+    <!-- TRUNG TÂM CẢNH BÁO -->
+    <div class="alert-hub">
+      <div class="alert-card danger" onclick="showPage('tasks',document.querySelector('[data-page=tasks]'))">
+        <span class="ac-icon">⚠️</span>
+        <div class="ac-num">${overdueTasks.length}</div>
+        <div class="ac-label">Việc quá hạn</div>
+        <div class="ac-sub">Cần xử lý ngay hôm nay</div>
+      </div>
+      <div class="alert-card warn" onclick="scrollToCare()">
+        <span class="ac-icon">🔥</span>
+        <div class="ac-num">${careRed.length}</div>
+        <div class="ac-label">KH nguy cơ bỏ lỡ</div>
+        <div class="ac-sub">Lâu chưa được liên hệ</div>
+      </div>
+      <div class="alert-card info" onclick="scrollToHot()">
+        <span class="ac-icon">💎</span>
+        <div class="ac-num">${hot.length}</div>
+        <div class="ac-label">Deal sắp chốt</div>
+        <div class="ac-sub">Đang ở giai đoạn quyết định</div>
+      </div>
+    </div>
+
+    <!-- LỊCH HÔM NAY -->
+    <div class="dash-section">
+      <div class="dash-section-head">
+        <div class="dash-section-title">📅 Lịch làm việc hôm nay</div>
+        <button class="btn btn-outline btn-sm" onclick="openAddTask()">+ Thêm việc</button>
+      </div>
+      <div class="dash-section-body">
+        ${(()=>{
+          const all=[...overdueTasks.map(t=>({t,od:true})),...todayTasks.map(t=>({t,od:false}))]
+            .sort((a,b)=>(a.t.time||'99')<(b.t.time||'99')?-1:1);
+          if(!all.length) return `<div class="empty-state"><div class="es-icon">☕</div>Không có việc nào hôm nay. Thư giãn hoặc chủ động liên hệ KH nhé!</div>`;
+          return all.map(({t,od})=>{
+            const kh=t.leadId?leads.find(l=>l.id==t.leadId):null;
+            const tt=TASK_TYPES[t.type]||TASK_TYPES.other;
+            return `<div class="agenda-item">
+              <div class="agenda-time">${od?'<span style="color:var(--ruby)">QUÁ</span>':(t.time||'--:--')}</div>
+              <div class="agenda-line"></div>
+              <div class="agenda-content">
+                <div class="agenda-task">${tt.icon} ${t.text}</div>
+                <div class="agenda-meta">${kh?`👤 ${kh.name} · `:''}${od?'<span style="color:var(--ruby);font-weight:600">Quá hạn</span>':'Hôm nay'}</div>
+              </div>
+              <div class="task-check2 ${od?'overdue':''}" style="margin-top:2px" onclick="toggleTask('${t.id}',event)"></div>
+            </div>`;
+          }).join('');
+        })()}
+      </div>
+    </div>
+
+    <!-- KH CẦN CHĂM SÓC -->
+    <div class="dash-section" id="care-section">
+      <div class="dash-section-head">
+        <div class="dash-section-title">🔥 Khách hàng cần chăm sóc gấp</div>
+        <span style="font-size:11px;color:var(--mgray)">${care.length} KH</span>
+      </div>
+      <div class="dash-section-body">
+        ${care.length===0?`<div class="empty-state"><div class="es-icon">✅</div>Tuyệt vời! Mọi KH đều đang được bám sát tốt.</div>`
+        :care.slice(0,6).map(({lead:l,days,health})=>{
+          const pipe=getPipe(l.stage);const st=getStageObj(l.stage);
+          return `<div class="care-item" onclick="openPanel(${l.id})">
+            <div class="care-avatar" style="background:${SC[l.stage]||'#555'}">${pipe==='tc'?'🔨':'🎨'}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;font-weight:600;color:var(--charcoal)">${l.name}</div>
+              <div style="font-size:11px;color:var(--mgray)">${st.label} · ${l.area||'–'}${l.nextAction?` · 👉 ${l.nextAction}`:''}</div>
+            </div>
+            <span class="care-days ${health==='red'?'hot':'warm'}">${days} ngày</span>
+            <button class="btn btn-sm ${pipe==='tc'?'btn-tc':'btn-tk'}" style="font-size:10px" onclick="event.stopPropagation();quickLogContact(${l.id})">✓ Đã LH</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- DEAL SẮP CHỐT -->
+    <div class="dash-section" id="hot-section">
+      <div class="dash-section-head">
+        <div class="dash-section-title">💎 Deal sắp chốt — Đẩy mạnh!</div>
+        <span style="font-size:11px;color:var(--mgray)">${hot.length} deal</span>
+      </div>
+      <div class="dash-section-body">
+        ${hot.length===0?`<div class="empty-state"><div class="es-icon">📊</div>Chưa có deal nào ở giai đoạn chốt.</div>`
+        :hot.slice(0,6).map(l=>{
+          const pipe=getPipe(l.stage);const st=getStageObj(l.stage);const pp=pipeProgress(l);
+          return `<div class="care-item" onclick="openPanel(${l.id})">
+            <div class="care-avatar" style="background:${SC[l.stage]||'#555'}">${pipe==='tc'?'🔨':'🎨'}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12.5px;font-weight:600;color:var(--charcoal)">${l.name}</div>
+              <div style="font-size:11px;color:var(--mgray)">${st.label} · <span style="color:var(--amber);font-weight:600">${formatShort(Number(pipe==='tk'?l.valueTk:l.valueTc)||0)}</span></div>
+              <div class="pipe-progress">${pp.stages.map((s,i)=>`<div class="pipe-progress-seg ${i<pp.idx?'done':i===pp.idx?'current':''}"></div>`).join('')}</div>
+            </div>
+            <span class="health-dot ${leadHealth(l)}" title="${healthLabel(leadHealth(l))}"></span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- TỔNG QUAN PIPELINE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="chart-card">
-        <div class="chart-title">🔀 Phân bổ theo Giai đoạn</div>
-        <div class="funnel">${STAGES.filter(s=>s.id!=='lost').map(s=>{const n=leads.filter(l=>l.stage===s.id).length;const pct=leads.length?Math.round(n/leads.length*100):0;return`<div class="funnel-row"><div class="funnel-label">${s.label}</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${pct}%;background:${s.color}">${pct>8?n+' KH':''}</div></div><div class="funnel-num">${n}</div></div>`;}).join('')}</div>
+        <div class="chart-title" style="display:flex;align-items:center;gap:8px"><span style="background:#EBF3FC;color:#0F3460;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700">🎨 THIẾT KẾ</span>${tkA.length} active · ${formatShort(tkA.reduce((s,l)=>s+(Number(l.valueTk)||0),0))}</div>
+        ${STAGES_TK.filter(s=>!['tk_lost'].includes(s.id)).map(s=>{const n=vl.filter(l=>l.stage===s.id).length;const pct=tkL.length?Math.round(n/tkL.length*100):0;return n?`<div class="funnel-row"><div class="funnel-label">${s.label}</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${Math.max(pct,3)}%;background:${s.color}"></div></div><div class="funnel-num">${n}</div></div>`:'';}).join('')||'<div class="empty-state" style="padding:16px">Chưa có KH</div>'}
       </div>
       <div class="chart-card">
-        <div class="chart-title">🎯 KPI Overview</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          ${[['🎯 Lead tổng',''+leads.length,'–'],['✅ Đã chốt',''+won.length,'Target: 4'],['💰 Pipeline',formatB(totalPV),'–'],['⭐ Score TB',''+( leads.length?Math.round(leads.reduce((s,l)=>s+(Number(l.score)||0),0)/leads.length):0),'Target: ≥65']].map(([l,v,t])=>`<div style="background:var(--lgray);border-radius:8px;padding:11px"><div style="font-size:10.5px;color:var(--mgray)">${l}</div><div style="font-size:20px;font-weight:700;color:var(--navy);font-family:'DM Mono',monospace">${v}</div><div style="font-size:10px;color:var(--mgray)">${t}</div></div>`).join('')}
-        </div>
+        <div class="chart-title" style="display:flex;align-items:center;gap:8px"><span style="background:#E0F4F1;color:#0A4D45;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:700">🔨 THI CÔNG</span>${tcA.length} active · ${formatShort(tcA.reduce((s,l)=>s+(Number(l.valueTc)||0),0))}</div>
+        ${STAGES_TC.filter(s=>!['tc_lost'].includes(s.id)).map(s=>{const n=vl.filter(l=>l.stage===s.id).length;const pct=tcL.length?Math.round(n/tcL.length*100):0;return n?`<div class="funnel-row"><div class="funnel-label">${s.label}</div><div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${Math.max(pct,3)}%;background:${s.color}"></div></div><div class="funnel-num">${n}</div></div>`:'';}).join('')||'<div class="empty-state" style="padding:16px">Chưa có KH</div>'}
       </div>
-    </div>
-    <div style="background:var(--white);border:1px solid #e8e4de;border-radius:12px;padding:16px">
-      <div class="section-title">⚡ Leads gần đây</div>
-      ${leads.length===0?'<div style="text-align:center;padding:20px;color:var(--mgray)">Chưa có lead. <a href="#" onclick="openAddLead();return false" style="color:var(--gold)">Thêm mới →</a></div>'
-      :leads.slice(0,6).map(l=>{const st=STAGES.find(s=>s.id===l.stage);return`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f5f1eb">
-        <div style="width:30px;height:30px;border-radius:8px;background:${SBG[l.stage]};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">${l.stage==='won'?'🏆':l.stage==='nego'?'🤝':'👤'}</div>
-        <div style="flex:1"><div style="font-size:12.5px;font-weight:600">${l.name}</div><div style="font-size:11px;color:var(--mgray)">${l.type||''} · ${l.area||''}</div></div>
-        <span class="badge ${st.badge}">${st.label}</span>
-        <span style="font-size:11.5px;color:var(--amber);font-weight:600;font-family:'DM Mono',monospace">${formatShort(Number(l.value)||0)}</span>
-        <button class="btn btn-outline btn-sm" onclick="openPanel(${l.id})">→</button>
-      </div>`;}).join('')}
     </div>`;
 }
 
-// ── LEADS ─────────────────────────────────────────────────────
-function renderLeads() {
-  const filtered=leads.filter(l=>{
-    const ms=activeFilter==='all'||l.stage===activeFilter;
+function scrollToCare(){document.getElementById('care-section')?.scrollIntoView({behavior:'smooth',block:'center'});}
+function scrollToHot(){document.getElementById('hot-section')?.scrollIntoView({behavior:'smooth',block:'center'});}
+
+// Ghi nhanh "đã liên hệ" — cập nhật lastContact + lịch sử
+async function quickLogContact(id){
+  const l=leads.find(l=>l.id==id);if(!l)return;
+  if(!canEditLead(l)){toast('⛔ Không có quyền','⛔');return;}
+  l.lastContact=new Date().toISOString().split('T')[0];
+  if(!Array.isArray(l.history))l.history=[];
+  l.history.unshift({t:'✓ Đã liên hệ KH (ghi nhanh từ Dashboard)',time:nowStr()});
+  saveLocal();rerenderCurrent();
+  await pushLead(l);
+  toast(`✓ Đã ghi nhận liên hệ: ${l.name}`);
+}
+
+// ── PIPELINE BOARD// ── PIPELINE BOARD ────────────────────────────────────────────
+function renderPipelineBoard(pipe){
+  const vl=visibleLeads();
+  const stages=getStages(pipe);
+  const pipeLeads=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')===pipe);
+  const active=pipeLeads.filter(l=>!['tk_accept','tk_lost','tc_handover','tc_lost'].includes(l.stage));
+  const done=pipeLeads.filter(l=>['tk_accept','tc_handover'].includes(l.stage));
+  const pv=active.reduce((s,l)=>s+(Number(pipe==='tk'?l.valueTk:l.valueTc)||0),0);
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="${pipe==='tk'?'pipeline-type-badge tk':'pipeline-type-badge tc'}">
+      ${pipe==='tk'?'🎨 Pipeline Thiết kế':'🔨 Pipeline Thi công'}
+    </div>
+    ${pipe==='tk'?`<div class="transfer-notice">
+      <span class="tn-icon">⚡</span>
+      <div><strong>Logic tự động:</strong> Khi KH được chuyển sang giai đoạn <strong>"Báo giá TC"</strong>, hệ thống sẽ hỏi có muốn chuyển KH sang Pipeline Thi công không. Nếu từ chối → KH chuyển sang <strong>"Nghiệm thu TK"</strong>.</div>
+    </div>`:''}
+    <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card" style="--accent:${pipe==='tk'?'var(--tk-color)':'var(--tc-color)'}"><div class="stat-label">Active</div><div class="stat-value">${active.length}</div><div class="stat-sub">Đang trong pipeline</div></div>
+      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">${pipe==='tk'?'Nghiệm thu TK':'Bàn giao'}</div><div class="stat-value">${done.length}</div></div>
+      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Pipeline value</div><div class="stat-value">${formatB(pv)}</div></div>
+      <div class="stat-card" style="--accent:var(--ruby)"><div class="stat-label">Mất deal</div><div class="stat-value">${pipeLeads.filter(l=>l.stage===(pipe==='tk'?'tk_lost':'tc_lost')).length}</div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:12px;color:var(--mgray)">${pipeLeads.length} khách hàng trong pipeline</div>
+      <button class="btn btn-sm ${pipe==='tk'?'btn-tk':'btn-tc'}" onclick="openAddLead('${pipe}')">+ Thêm KH vào ${pipe==='tk'?'Thiết kế':'Thi công'}</button>
+    </div>
+    <div class="pipeline-board">
+      ${stages.filter(s=>!['tk_lost','tc_lost'].includes(s.id)).map(s=>{
+        const cols=vl.filter(l=>l.stage===s.id);
+        const isAutoTransfer=s.autoTransfer;
+        return`<div class="pipeline-col${isAutoTransfer?' auto-transfer':''}">
+          <div class="pipeline-header" style="background:${s.color}">
+            <span>${s.label}</span>
+            <span class="pipeline-count">${cols.length}</span>
+          </div>
+          ${cols.map(l=>`<div class="pipeline-card" style="--sc:${s.color}" onclick="openPanel(${l.id})">
+            <div class="pc-name">${l.name}</div>
+            <div class="pc-value">${formatShort(Number(pipe==='tk'?l.valueTk:l.valueTc)||0)}</div>
+            ${l.nextAction?`<div style="font-size:9.5px;color:var(--amber);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👉 ${l.nextAction}</div>`:''}
+            <div class="pc-meta">
+              <div style="display:flex;align-items:center;gap:5px">
+                <span class="health-dot ${leadHealth(l)}" title="${healthLabel(leadHealth(l))}"></span>
+                <div class="pc-owner" style="background:${staffColor(l.owner)}">${staffInitials(l.owner)}</div>
+              </div>
+              ${leadHealth(l)==='red'?`<span class="stuck-badge">${daysSinceContact(l)}d</span>`:l.inBothPipelines?`<span style="font-size:8px;background:#FFF0E0;color:#7A3800;padding:1px 5px;border-radius:8px;font-weight:600">TK+TC</span>`:''}
+            </div>
+          </div>`).join('')}
+          <div style="padding:7px;border:1.5px dashed #e0dbd3;border-radius:7px;text-align:center;font-size:10.5px;color:var(--mgray);cursor:pointer" onclick="openAddLead('${pipe}','${s.id}')">+ Thêm</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── ALL LEADS ─────────────────────────────────────────────────
+function renderLeads(){
+  const vl=visibleLeads();
+  const filtered=vl.filter(l=>{
+    const pipe=getPipelineOfStage(l.stage||'tk_new');
+    const ms=activeFilter==='all'||(activeFilter==='tk'&&pipe==='tk')||(activeFilter==='tc'&&pipe==='tc')||l.stage===activeFilter;
     const q=searchQuery.toLowerCase();
     const mq=!q||l.name.toLowerCase().includes(q)||l.phone.includes(q)||(l.area||'').toLowerCase().includes(q);
     return ms&&mq;
   });
+
   document.getElementById('page-content').innerHTML=`
-    <div class="tabs">${[['all','Tất cả'],['new','Mới'],['contacted','Liên hệ'],['consult','Tư vấn'],['survey','Khảo sát'],['quote','Báo giá'],['nego','Đàm phán'],['won','Chốt'],['lost','Mất']].map(([id,label])=>`<div class="tab ${activeFilter===id?'active':''}" onclick="setFilter('${id}')">${label} <span style="font-size:10px;color:var(--mgray)">(${id==='all'?leads.length:leads.filter(l=>l.stage===id).length})</span></div>`).join('')}</div>
+    <div class="tabs">
+      ${[['all','Tất cả'],['tk','🎨 Thiết kế'],['tc','🔨 Thi công']].map(([id,label])=>`
+        <div class="tab ${activeFilter===id?'active':''}" onclick="setFilter('${id}')">
+          ${label} <span style="font-size:10px;color:var(--mgray)">(${id==='all'?leads.length:id==='tk'?leads.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tk').length:leads.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tc').length})</span>
+        </div>`).join('')}
+    </div>
     <div class="table-wrap">
       <div class="table-toolbar">
-        <span style="font-size:12px;color:var(--mgray)">${filtered.length} lead</span>
+        <span style="font-size:12px;color:var(--mgray)">${filtered.length} khách hàng</span>
         <div style="margin-left:auto;display:flex;gap:8px">
           <button class="btn btn-outline btn-sm" onclick="exportCSV()">📊 Xuất CSV</button>
-          <button class="btn btn-primary btn-sm" onclick="openAddLead()">+ Thêm Lead</button>
+          <button class="btn btn-primary btn-sm" onclick="openAddLead()">+ Thêm KH</button>
         </div>
       </div>
       <table>
-        <thead><tr><th>#</th><th>👤 Khách hàng</th><th>📱 SĐT</th><th>🏠 Loại CT</th><th>📣 Nguồn</th><th>💰 Giá trị</th><th>📊 Score</th><th>🏷️ Giai đoạn</th><th>👤 Owner</th><th>⚡</th></tr></thead>
-        <tbody>${filtered.length===0?`<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--mgray)">Không có lead nào</td></tr>`:filtered.map((l,i)=>{
-          const st=STAGES.find(s=>s.id===l.stage);
+        <thead><tr><th>#</th><th>👤 Khách hàng</th><th>📱 SĐT</th><th>🏠 Loại CT</th><th>Pipeline</th><th>🏷️ Giai đoạn</th><th>💰 Giá trị</th><th>📊 Score</th><th>👤 Owner</th><th>⚡</th></tr></thead>
+        <tbody>${filtered.length===0?`<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--mgray)">Không có KH nào</td></tr>`
+        :filtered.map((l,i)=>{
+          const st=getStageObj(l.stage);
+          const pipe=getPipelineOfStage(l.stage||'tk_new');
           const sc=l.score>=80?'#0F5132':l.score>=60?'#7A3800':'#7B1A2B';
           return`<tr onclick="openPanel(${l.id})">
             <td style="color:var(--mgray);font-family:'DM Mono',monospace;font-size:10.5px">${i+1}</td>
-            <td><div style="font-weight:600;font-size:12.5px">${l.name}</div><div style="font-size:10.5px;color:var(--mgray)">${l.area||'–'}</div></td>
+            <td><div style="display:flex;align-items:center;gap:6px"><span class="health-dot ${leadHealth(l)}" title="${healthLabel(leadHealth(l))}"></span><div><div style="font-weight:600;font-size:12.5px">${l.name}</div><div style="font-size:10.5px;color:var(--mgray)">${l.nextAction?'👉 '+l.nextAction:(l.area||'–')}</div></div></div></td>
             <td style="font-family:'DM Mono',monospace;font-size:11.5px">${l.phone}</td>
             <td style="font-size:12px">${l.type||'–'}</td>
-            <td style="font-size:12px">${l.source||'–'}</td>
-            <td style="font-weight:600;color:var(--amber);font-family:'DM Mono',monospace;font-size:11.5px">${formatShort(Number(l.value)||0)}</td>
-            <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${l.score}%;background:${sc}"></div></div><div class="score-num">${l.score}</div></div></td>
+            <td><span style="font-size:9.5px;padding:3px 8px;border-radius:10px;font-weight:600;background:${pipe==='tc'?'#E0F4F1':'#EBF3FC'};color:${pipe==='tc'?'#0A4D45':'#0F3460'}">${pipe==='tc'?'🔨 TC':'🎨 TK'}</span>${l.inBothPipelines?` <span style="font-size:9px;padding:2px 5px;border-radius:8px;background:#FFF0E0;color:#7A3800">+TC</span>`:''}</td>
             <td><span class="badge ${st.badge}">${st.label}</span></td>
-            <td><div class="pc-owner" style="background:${ownerColor(l.owner)}">${l.owner||'?'}</div></td>
+            <td style="font-weight:600;color:var(--amber);font-family:'DM Mono',monospace;font-size:11.5px">${formatShort(Number(l.valueTc||l.valueTk)||0)}</td>
+            <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${l.score||0}%;background:${sc}"></div></div><div class="score-num">${l.score||0}</div></div></td>
+            <td><div style="display:flex;align-items:center;gap:5px"><div style="width:22px;height:22px;border-radius:50%;background:${staffColor(l.owner)};color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">${staffInitials(l.owner)}</div><span style="font-size:11px;color:var(--mgray)">${staffName(l.owner)}</span></div></td>
             <td onclick="event.stopPropagation()"><div class="action-row">
               <button class="icon-btn" title="Sửa" onclick="openEditLead(${l.id})">✏️</button>
               <button class="icon-btn" title="Xóa" onclick="confirmDeleteLead(${l.id})">🗑️</button>
             </div></td>
-          </tr>`;}).join('')}</tbody>
+          </tr>`;
+        }).join('')}</tbody>
       </table>
     </div>`;
 }
 
-// ── PIPELINE ──────────────────────────────────────────────────
-function renderPipeline() {
-  const won=leads.filter(l=>l.stage==='won');
-  const active=leads.filter(l=>!['won','lost'].includes(l.stage));
-  document.getElementById('page-content').innerHTML=`
-    <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
-      <div class="stat-card" style="--accent:var(--sapphire)"><div class="stat-label">Pipeline</div><div class="stat-value">${formatB(active.reduce((s,l)=>s+(Number(l.value)||0),0))}</div></div>
-      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Đã Chốt</div><div class="stat-value">${formatB(won.reduce((s,l)=>s+(Number(l.value)||0),0))}</div></div>
-      <div class="stat-card" style="--accent:var(--ruby)"><div class="stat-label">Mất deal</div><div class="stat-value">${leads.filter(l=>l.stage==='lost').length}</div></div>
-      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Win Rate</div><div class="stat-value">${leads.filter(l=>!['new'].includes(l.stage)).length?Math.round(won.length/leads.filter(l=>!['new'].includes(l.stage)).length*100):0}%</div></div>
-    </div>
-    <div class="pipeline">${STAGES.filter(s=>s.id!=='lost').map(s=>{const cols=leads.filter(l=>l.stage===s.id);return`<div class="pipeline-col">
-      <div class="pipeline-header" style="background:${s.color}"><span>${s.label}</span><span class="pipeline-count">${cols.length}</span></div>
-      ${cols.map(l=>`<div class="pipeline-card" style="--sc:${s.color}" onclick="openPanel(${l.id})"><div class="pc-name">${l.name}</div><div class="pc-value">${formatShort(Number(l.value)||0)}</div><div class="pc-owner" style="background:${ownerColor(l.owner)}">${l.owner||'?'}</div></div>`).join('')}
-      <div style="padding:7px;border:1.5px dashed #e0dbd3;border-radius:7px;text-align:center;font-size:10.5px;color:var(--mgray);cursor:pointer" onclick="openAddLead()">+ Thêm</div>
-    </div>`;}).join('')}</div>`;
+// ── TASKS v2 ──────────────────────────────────────────────────
+let activeKhId = null;   // ID của KH đang chọn trong task view
+let editingTaskId = null;
+
+const TASK_TYPES = {
+  call:     {label:'Gọi điện',    icon:'📞', bg:'#EBF3FC', color:'#0F3460'},
+  meet:     {label:'Gặp mặt',     icon:'🤝', bg:'#E0F4F1', color:'#0A4D45'},
+  send:     {label:'Gửi tài liệu',icon:'📤', bg:'#F0E8FB', color:'#3D0D6E'},
+  design:   {label:'Công việc TK',icon:'🎨', bg:'#EBF3FC', color:'#0F3460'},
+  construct:{label:'Công việc TC',icon:'🔨', bg:'#E0F4F1', color:'#0A4D45'},
+  payment:  {label:'Thu tiền/HĐ', icon:'💰', bg:'#FFF0E0', color:'#7A3800'},
+  followup: {label:'Follow-up',   icon:'🔔', bg:'#F0E8FB', color:'#3D0D6E'},
+  other:    {label:'Khác',        icon:'📌', bg:'#F5F5F5', color:'#666'},
+};
+
+function getTaskDateStatus(task){
+  if(task.done) return 'done-date';
+  if(!task.date) return 'upcoming';
+  const now = new Date();
+  const d = new Date(task.date + (task.time ? 'T'+task.time : 'T23:59'));
+  const diff = d - now;
+  if(diff < 0) return 'overdue';
+  if(diff < 86400000) return 'today';
+  return 'upcoming';
 }
 
-// ── TASKS ─────────────────────────────────────────────────────
-function renderTasks() {
-  const pending=tasks.filter(t=>!t.done);
-  document.getElementById('page-content').innerHTML=`
-    <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
-      <div class="stat-card" style="--accent:var(--ruby)"><div class="stat-label">Còn lại</div><div class="stat-value">${pending.length}</div></div>
-      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Đã xong</div><div class="stat-value">${tasks.filter(t=>t.done).length}</div></div>
-      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Tỷ lệ</div><div class="stat-value">${tasks.length?Math.round(tasks.filter(t=>t.done).length/tasks.length*100):0}%</div></div>
-      <div class="stat-card" style="--accent:var(--sapphire)"><div class="stat-label">Tổng</div><div class="stat-value">${tasks.length}</div></div>
+function formatTaskDate(task){
+  if(!task.date) return '–';
+  const d = new Date(task.date);
+  const day = d.toLocaleDateString('vi-VN',{weekday:'short',day:'2-digit',month:'2-digit'});
+  const time = task.time ? ' ' + task.time : '';
+  return day + time;
+}
+
+function renderTasks(){
+  const vl = visibleLeads();
+  // Tính số task pending cho mỗi KH
+  const taskCountByKh = {};
+  tasks.forEach(t => {
+    if(t.leadId) taskCountByKh[t.leadId] = (taskCountByKh[t.leadId]||0) + (t.done?0:1);
+  });
+
+  // KH list: chỉ KH visible, sắp xếp theo số task pending desc
+  const khList = [...vl].sort((a,b)=>(taskCountByKh[b.id]||0)-(taskCountByKh[a.id]||0));
+
+  // Set default selected KH
+  if(!activeKhId && khList.length) activeKhId = khList[0].id;
+  const selKh = khList.find(k=>k.id==activeKhId) || khList[0];
+
+  // My tasks (not linked to any KH)
+  const globalTasks = tasks.filter(t => !t.leadId || !leads.find(l=>l.id==t.leadId));
+
+  // Stat counts
+  const myTasks = isAdmin() ? tasks : tasks.filter(t => t.assignee===currentUser.id || !t.assignee);
+  const overdue = myTasks.filter(t=>!t.done && getTaskDateStatus(t)==='overdue').length;
+  const today   = myTasks.filter(t=>!t.done && getTaskDateStatus(t)==='today').length;
+  const pending = myTasks.filter(t=>!t.done).length;
+
+  document.getElementById('page-content').innerHTML = `
+    <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+      <div class="stat-card" style="--accent:var(--ruby)"><div class="stat-label">⚠️ Quá hạn</div><div class="stat-value" style="color:var(--ruby)">${overdue}</div></div>
+      <div class="stat-card" style="--accent:var(--amber)"><div class="stat-label">📅 Hôm nay</div><div class="stat-value" style="color:var(--amber)">${today}</div></div>
+      <div class="stat-card" style="--accent:var(--sapphire)"><div class="stat-label">📋 Còn lại</div><div class="stat-value">${pending}</div></div>
+      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">✅ Hoàn thành</div><div class="stat-value">${myTasks.filter(t=>t.done).length}</div></div>
     </div>
+
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:13.5px;font-weight:600;color:var(--navy)">📋 Danh sách công việc</div>
-      <button class="btn btn-primary btn-sm" onclick="document.getElementById('task-modal').classList.add('open')">+ Thêm việc</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm ${!activeKhId || activeKhId==='__global'?'btn-primary':'btn-outline'}" onclick="switchTaskView('__global')">📋 Tất cả</button>
+        <button class="btn btn-sm ${activeKhId && activeKhId!=='__global'?'btn-primary':'btn-outline'}" onclick="switchTaskView(${khList[0]?khList[0].id:'null'})">👤 Theo KH</button>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Thêm công việc</button>
     </div>
-    <div>${tasks.length===0?'<div style="text-align:center;padding:30px;color:var(--mgray)">Không có công việc</div>':tasks.map(t=>`
-      <div class="task-item">
-        <div class="task-urgency" style="background:${t.urgency==='red'?'#7B1A2B':t.urgency==='orange'?'#7A3800':'#0F5132'}"></div>
-        <div class="task-check ${t.done?'done':''}" onclick="toggleTask('${t.id}',event)">${t.done?'✓':''}</div>
-        <div style="flex:1"><div class="task-text ${t.done?'done':''}">${t.text}</div><div class="task-meta"><span>👤 ${t.lead}</span><span>⏰ ${t.due}</span></div></div>
-        <button class="icon-btn" onclick="event.stopPropagation();confirmDeleteTask('${t.id}')">🗑️</button>
-      </div>`).join('')}</div>`;
+
+    ${activeKhId === '__global' ? renderTasksGlobal(myTasks) : renderTasksByKh(khList, selKh)}
+  `;
 }
 
-async function toggleTask(id, e) {
-  if(e) e.stopPropagation();
-  const t=tasks.find(t=>String(t.id)===String(id));
+function renderTasksGlobal(myTasks){
+  const grouped = {overdue:[], today:[], upcoming:[], done:[]};
+  myTasks.forEach(t => {
+    const s = getTaskDateStatus(t);
+    if(t.done) grouped.done.push(t);
+    else if(s==='overdue') grouped.overdue.push(t);
+    else if(s==='today') grouped.today.push(t);
+    else grouped.upcoming.push(t);
+  });
+
+  function renderGroup(title, arr, color){
+    if(!arr.length) return '';
+    return `<div class="task-group" style="margin-bottom:10px">
+      <div class="task-group-header">
+        <div class="task-group-title" style="color:${color}">${title} <span style="font-family:'DM Mono',monospace">(${arr.length})</span></div>
+      </div>
+      ${arr.map(t => renderTaskGlobalRow(t)).join('')}
+    </div>`;
+  }
+
+  return `<div>
+    ${renderGroup('⚠️ Quá hạn', grouped.overdue, 'var(--ruby)')}
+    ${renderGroup('📅 Hôm nay', grouped.today, 'var(--amber)')}
+    ${renderGroup('📌 Sắp tới', grouped.upcoming, 'var(--charcoal)')}
+    ${renderGroup('✅ Đã hoàn thành', grouped.done.slice(0,20), 'var(--mgray)')}
+    ${!myTasks.length ? '<div style="text-align:center;padding:40px;color:var(--mgray)">Chưa có công việc nào. Nhấn "+ Thêm công việc" để bắt đầu.</div>' : ''}
+  </div>`;
+}
+
+function renderTaskGlobalRow(t){
+  const tt = TASK_TYPES[t.type]||TASK_TYPES.other;
+  const dateStatus = getTaskDateStatus(t);
+  const kh = t.leadId ? leads.find(l=>l.id==t.leadId) : null;
+  const assignee = loadStaffList().find(s=>s.id===t.assignee);
+  return `<div class="task-global-row">
+    <div class="task-check2 ${t.done?'done':dateStatus==='overdue'?'overdue':''}" onclick="toggleTask('${t.id}',event)">${t.done?'✓':''}</div>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+        <span style="font-size:12.5px;font-weight:${t.done?'400':'600'};color:${t.done?'var(--mgray)':'var(--charcoal)'};${t.done?'text-decoration:line-through':''}">${t.text}</span>
+        <span class="task-type-tag" style="background:${tt.bg};color:${tt.color}">${tt.icon} ${tt.label}</span>
+        ${t.urgency==='red'?'<span style="font-size:9px;background:var(--lred);color:var(--ruby);padding:1px 6px;border-radius:8px;font-weight:700">🔴 Khẩn</span>':''}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap">
+        ${kh?`<span class="task-kh-pill" style="background:${SBG[kh.stage]||'#eee'};color:${SC[kh.stage]||'#555'}">${getPipe(kh.stage)==='tc'?'🔨':'🎨'} ${kh.name}</span>`:''}
+        <span class="task-row-date ${dateStatus}">📅 ${formatTaskDate(t)}</span>
+        ${assignee?`<span style="font-size:10px;color:var(--mgray)">👤 ${assignee.name}</span>`:''}
+        ${t.note?`<span style="font-size:10.5px;color:var(--mgray);font-style:italic">${t.note}</span>`:''}
+      </div>
+    </div>
+    <div class="task-row-actions">
+      <button class="icon-btn" onclick="event.stopPropagation();openEditTask('${t.id}')">✏️</button>
+      <button class="icon-btn" onclick="event.stopPropagation();confirmDeleteTask('${t.id}')">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function renderTasksByKh(khList, selKh){
+  if(!khList.length) return '<div style="text-align:center;padding:40px;color:var(--mgray)">Không có KH nào được phân công</div>';
+
+  const khTasks = selKh ? tasks.filter(t=>t.leadId==selKh.id) : [];
+  const pending = khTasks.filter(t=>!t.done);
+  const done    = khTasks.filter(t=>t.done);
+
+  const grouped = {overdue:[], today:[], upcoming:[]};
+  pending.forEach(t=>{
+    const s=getTaskDateStatus(t);
+    if(s==='overdue') grouped.overdue.push(t);
+    else if(s==='today') grouped.today.push(t);
+    else grouped.upcoming.push(t);
+  });
+
+  function renderKhTaskGroup(title, arr, borderColor){
+    if(!arr.length) return '';
+    return `<div class="task-group">
+      <div class="task-group-header"><div class="task-group-title" style="color:${borderColor}">${title} (${arr.length})</div></div>
+      ${arr.map(t=>renderKhTaskRow(t)).join('')}
+    </div>`;
+  }
+
+  const stObj = getStageObj(selKh ? selKh.stage : 'tk_new');
+
+  return `<div class="task-board">
+    <!-- KH list sidebar -->
+    <div class="task-sidebar-panel">
+      <div class="task-sp-header">
+        <span>👥 Khách hàng (${khList.length})</span>
+      </div>
+      <div style="max-height:520px;overflow-y:auto">
+        ${khList.map(kh=>{
+          const cnt = tasks.filter(t=>t.leadId==kh.id && !t.done).length;
+          const pipe = getPipe(kh.stage||'tk_new');
+          return `<div class="task-kh-item ${activeKhId==kh.id?'active':''}" onclick="switchTaskView(${kh.id})">
+            <div class="task-kh-avatar" style="background:${SC[kh.stage]||'#555'}">${pipe==='tc'?'🔨':'🎨'}</div>
+            <div style="flex:1;min-width:0">
+              <div class="task-kh-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${kh.name}</div>
+              <div class="task-kh-meta">${stObj.label}</div>
+            </div>
+            <span class="task-kh-count ${cnt===0?'zero':''}">${cnt}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- Task main panel -->
+    <div class="task-main-panel">
+      ${selKh ? `<div class="task-kh-header">
+        <div class="task-kh-hav" style="background:${SC[selKh.stage]||'#555'}">${getPipe(selKh.stage)==='tc'?'🔨':'🎨'}</div>
+        <div style="flex:1">
+          <div class="task-kh-htitle">${selKh.name}</div>
+          <div class="task-kh-hmeta">${selKh.type||'–'} · ${selKh.area||'–'} · ${getStageObj(selKh.stage).label} · ${formatShort(Number(selKh.valueTc||selKh.valueTk)||0)}</div>
+        </div>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-outline btn-sm" onclick="openPanel(${selKh.id})">Xem KH →</button>
+          <button class="btn btn-primary btn-sm" onclick="openAddTask(${selKh.id})">+ Thêm việc</button>
+        </div>
+      </div>` : ''}
+
+      ${pending.length===0 && done.length===0 ? `<div style="background:var(--white);border:1px solid #e8e4de;border-radius:10px;padding:32px;text-align:center;color:var(--mgray)">
+        Chưa có công việc cho KH này.<br><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="openAddTask(${selKh?selKh.id:''})">+ Thêm công việc đầu tiên</button>
+      </div>` : `
+        ${renderKhTaskGroup('⚠️ Quá hạn', grouped.overdue, 'var(--ruby)')}
+        ${renderKhTaskGroup('📅 Hôm nay', grouped.today, 'var(--amber)')}
+        ${renderKhTaskGroup('📌 Sắp tới', grouped.upcoming, 'var(--charcoal)')}
+        ${done.length>0?`<div class="task-group">
+          <div class="task-group-header"><div class="task-group-title">✅ Đã hoàn thành (${done.length})</div></div>
+          ${done.slice(0,10).map(t=>renderKhTaskRow(t)).join('')}
+        </div>`:''}
+      `}
+    </div>
+  </div>`;
+}
+
+function renderKhTaskRow(t){
+  const tt = TASK_TYPES[t.type]||TASK_TYPES.other;
+  const dateStatus = getTaskDateStatus(t);
+  const assignee = loadStaffList().find(s=>s.id===t.assignee);
+  return `<div class="task-row">
+    <div class="task-check2 ${t.done?'done':dateStatus==='overdue'?'overdue':''}" onclick="toggleTask('${t.id}',event)">${t.done?'✓':''}</div>
+    <div class="task-row-content">
+      <div class="task-row-text ${t.done?'done':''}">${t.text}</div>
+      <div class="task-row-meta">
+        <span class="task-type-tag" style="background:${tt.bg};color:${tt.color}">${tt.icon} ${tt.label}</span>
+        <span class="task-row-date ${t.done?'done-date':dateStatus}">📅 ${formatTaskDate(t)}</span>
+        ${t.urgency==='red'?'<span style="font-size:9px;background:var(--lred);color:var(--ruby);padding:1px 6px;border-radius:8px;font-weight:700">🔴 Khẩn</span>':''}
+        ${assignee?`<span style="font-size:10px;color:var(--mgray)">👤 ${assignee.name}</span>`:''}
+        ${t.note?`<span style="font-size:10.5px;color:var(--mgray);font-style:italic">${t.note}</span>`:''}
+      </div>
+    </div>
+    <div class="task-row-actions">
+      <button class="icon-btn" onclick="event.stopPropagation();openEditTask('${t.id}')">✏️</button>
+      <button class="icon-btn" onclick="event.stopPropagation();confirmDeleteTask('${t.id}')">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function switchTaskView(khId){
+  activeKhId = khId;
+  renderTasks();
+}
+
+function openAddTask(leadId=''){
+  editingTaskId = null;
+  document.getElementById('task-modal-title').textContent = '📝 Thêm Công việc';
+  document.getElementById('task-save-btn').textContent = '💾 Lưu công việc';
+  document.getElementById('t-text').value = '';
+  document.getElementById('t-type').value = 'call';
+  document.getElementById('t-urgency').value = 'orange';
+  document.getElementById('t-note').value = '';
+  document.getElementById('t-time').value = '09:00';
+  // Set today as default date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('t-date').value = today;
+  // Populate KH dropdown
+  populateTaskKhDropdown(leadId);
+  // Populate assignee
+  populateTaskAssigneeDropdown();
+  document.getElementById('task-modal').classList.add('open');
+}
+
+function openEditTask(id){
+  const t = tasks.find(t=>String(t.id)===String(id));
   if(!t) return;
-  t.done=!t.done;
+  editingTaskId = id;
+  document.getElementById('task-modal-title').textContent = '✏️ Sửa Công việc';
+  document.getElementById('task-save-btn').textContent = '💾 Cập nhật';
+  document.getElementById('t-text').value = t.text||'';
+  document.getElementById('t-type').value = t.type||'other';
+  document.getElementById('t-urgency').value = t.urgency||'orange';
+  document.getElementById('t-note').value = t.note||'';
+  document.getElementById('t-date').value = t.date||'';
+  document.getElementById('t-time').value = t.time||'09:00';
+  populateTaskKhDropdown(t.leadId||'');
+  populateTaskAssigneeDropdown(t.assignee||'');
+  document.getElementById('task-modal').classList.add('open');
+}
+
+function closeTaskModal(){
+  document.getElementById('task-modal').classList.remove('open');
+  editingTaskId = null;
+}
+
+function populateTaskKhDropdown(selectedLeadId=''){
+  const vl = visibleLeads();
+  const sel = document.getElementById('t-lead-id');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Không gắn KH —</option>' +
+    vl.map(kh=>`<option value="${kh.id}" ${String(kh.id)===String(selectedLeadId)?'selected':''}>${kh.name} · ${getStageObj(kh.stage).label}</option>`).join('');
+}
+
+function populateTaskAssigneeDropdown(selectedId=''){
+  const staffList = loadStaffList();
+  const sel = document.getElementById('t-assignee');
+  if(!sel) return;
+  sel.innerHTML = staffList.map(s=>`<option value="${s.id}" ${s.id===selectedId||(selectedId===''&&s.id===currentUser.id)?'selected':''}>${s.name}</option>`).join('');
+}
+
+async function saveTask(){
+  const text = document.getElementById('t-text').value.trim();
+  if(!text){toast('⚠️ Nhập nội dung công việc!','⚠️');return;}
+  const date = document.getElementById('t-date').value;
+  if(!date){toast('⚠️ Chọn ngày thực hiện!','⚠️');return;}
+
+  const leadIdRaw = document.getElementById('t-lead-id').value;
+  const leadId = leadIdRaw ? Number(leadIdRaw) : null;
+
+  if(editingTaskId){
+    const t = tasks.find(t=>String(t.id)===String(editingTaskId));
+    if(!t) return;
+    Object.assign(t,{text, type:document.getElementById('t-type').value, urgency:document.getElementById('t-urgency').value, leadId, date, time:document.getElementById('t-time').value, assignee:document.getElementById('t-assignee').value, note:document.getElementById('t-note').value});
+    toast('✅ Đã cập nhật công việc!');
+  } else {
+    const task = {
+      id: Date.now(),
+      text,
+      type: document.getElementById('t-type').value,
+      urgency: document.getElementById('t-urgency').value,
+      leadId,
+      date,
+      time: document.getElementById('t-time').value,
+      assignee: document.getElementById('t-assignee').value || currentUser.id,
+      note: document.getElementById('t-note').value,
+      done: false,
+      created: new Date().toISOString(),
+      // keep lead field for backward compat
+      lead: leadId ? (leads.find(l=>l.id==leadId)||{}).name||'' : 'Chung',
+      due: date + (document.getElementById('t-time').value ? ' ' + document.getElementById('t-time').value : ''),
+    };
+    tasks.push(task);
+    // Set active KH to this lead after adding
+    if(leadId) activeKhId = leadId;
+    toast('📝 Đã thêm công việc!');
+  }
+
   saveLocal();
+  closeTaskModal();
   renderTasks();
   updateBadges();
+  await pushTask(tasks.find(t=>String(t.id)===String(editingTaskId||tasks[tasks.length-1].id)));
+}
+
+async function toggleTask(id,e){
+  if(e)e.stopPropagation();
+  const t=tasks.find(t=>String(t.id)===String(id));
+  if(!t)return;
+  t.done=!t.done;
+  t.doneAt=t.done?new Date().toISOString():null;
+  // Hoàn thành task gắn KH → tự ghi nhận đã tương tác với KH
+  if(t.done && t.leadId){
+    const l=leads.find(l=>l.id==t.leadId);
+    if(l){
+      l.lastContact=new Date().toISOString().split('T')[0];
+      if(!Array.isArray(l.history))l.history=[];
+      l.history.unshift({t:'✓ Hoàn thành: '+t.text,time:nowStr()});
+      pushLead(l);
+    }
+  }
+  saveLocal();renderTasks();updateBadges();
   await pushTask(t);
   toast(t.done?'✅ Hoàn thành!':'↩️ Chưa xong');
 }
 
-async function saveTask() {
-  const text=document.getElementById('t-text').value.trim();
-  if(!text){toast('⚠️ Nhập nội dung!','⚠️');return;}
-  const task={id:Date.now(),text,lead:document.getElementById('t-lead').value||'Chung',due:document.getElementById('t-due').value||'–',urgency:document.getElementById('t-urgency').value,done:false};
-  tasks.push(task);
-  saveLocal();
-  document.getElementById('task-modal').classList.remove('open');
-  renderTasks();
-  await pushTask(task);
-  toast('📝 Đã thêm công việc!');
-}
-
-async function confirmDeleteTask(id) {
-  showConfirm('🗑️','Xóa task','Xóa công việc này?',async()=>{
+async function confirmDeleteTask(id){
+  showConfirm('🗑️','Xóa công việc','Xóa công việc này?',async()=>{
     tasks=tasks.filter(t=>String(t.id)!==String(id));
-    saveLocal(); renderTasks();
+    saveLocal();renderTasks();updateBadges();
     await removeTask(id);
-    toast('🗑️ Đã xóa task!');
+    toast('🗑️ Đã xóa!');
   });
 }
 
-// ── REPORTS ───────────────────────────────────────────────────
-function renderReports() {
-  const won=leads.filter(l=>l.stage==='won');
-  const wonV=won.reduce((s,l)=>s+(Number(l.value)||0),0);
+// ── REPORTS// ── REPORTS ───────────────────────────────────────────────────
+function renderReports(){
+  const tkLeads=leads.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tk');
+  const tcLeads=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tc');
+  const tkV=tkLeads.filter(l=>!['tk_accept','tk_lost'].includes(l.stage)).reduce((s,l)=>s+(Number(l.valueTk)||0),0);
+  const tcV=tcLeads.filter(l=>!['tc_handover','tc_lost'].includes(l.stage)).reduce((s,l)=>s+(Number(l.valueTc)||0),0);
   const srcMap={};leads.forEach(l=>{const s=l.source||'Khác';srcMap[s]=(srcMap[s]||0)+1;});
   const srcArr=Object.entries(srcMap).sort((a,b)=>b[1]-a[1]);
   const maxS=srcArr[0]?srcArr[0][1]:1;
+
   document.getElementById('page-content').innerHTML=`
     <div class="stats-row">
-      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Doanh thu chốt</div><div class="stat-value">${formatB(wonV)}</div></div>
-      <div class="stat-card" style="--accent:var(--sapphire)"><div class="stat-label">Win Rate</div><div class="stat-value">${leads.filter(l=>l.stage!=='new').length?Math.round(won.length/leads.filter(l=>l.stage!=='new').length*100):0}%</div></div>
-      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Giá trị TB</div><div class="stat-value">${won.length?formatShort(Math.round(wonV/won.length)):0}</div></div>
-      <div class="stat-card" style="--accent:var(--purple)"><div class="stat-label">Kênh Lead</div><div class="stat-value">${srcArr.length}</div></div>
-      <div class="stat-card" style="--accent:var(--teal)"><div class="stat-label">Score TB</div><div class="stat-value">${leads.length?Math.round(leads.reduce((s,l)=>s+(Number(l.score)||0),0)/leads.length):0}</div></div>
+      <div class="stat-card" style="--accent:var(--tk-color)"><div class="stat-label">🎨 Pipeline TK</div><div class="stat-value">${formatB(tkV)}</div><div class="stat-sub">${tkLeads.length} KH</div></div>
+      <div class="stat-card" style="--accent:var(--tc-color)"><div class="stat-label">🔨 Pipeline TC</div><div class="stat-value">${formatB(tcV)}</div><div class="stat-sub">${tcLeads.length} KH</div></div>
+      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Tổng Pipeline</div><div class="stat-value">${formatB(tkV+tcV)}</div></div>
+      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Score TB</div><div class="stat-value">${leads.length?Math.round(leads.reduce((s,l)=>s+(Number(l.score)||0),0)/leads.length):0}</div></div>
+      <div class="stat-card" style="--accent:var(--purple)"><div class="stat-label">Chuyển TK→TC</div><div class="stat-value">${leads.filter(l=>l.inBothPipelines).length}</div><div class="stat-sub">KH cả 2 pipeline</div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div class="chart-card"><div class="chart-title">📣 Lead theo nguồn</div><div class="bar-chart">${srcArr.map(([s,n])=>`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s}</span><span class="bar-amount">${n} lead</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/maxS*100)}%;background:var(--navy)"></div></div></div>`).join('')||'<div style="color:var(--mgray);text-align:center;padding:20px">Chưa có dữ liệu</div>'}</div></div>
-      <div class="chart-card"><div class="chart-title">🏷️ Phân bổ theo Giai đoạn</div><div class="bar-chart">${STAGES.map(s=>{const n=leads.filter(l=>l.stage===s.id).length;return`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s.label}</span><span class="bar-amount">${n} lead</span></div><div class="bar-track"><div class="bar-fill" style="width:${leads.length?Math.round(n/leads.length*100):0}%;background:${s.color}"></div></div></div>`;}).join('')}</div></div>
+      <div class="chart-card"><div class="chart-title">📣 Lead theo nguồn</div>
+        ${srcArr.map(([s,n])=>`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s}</span><span class="bar-amount">${n} KH</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/maxS*100)}%;background:var(--navy)"></div></div></div>`).join('')||'<div style="color:var(--mgray);text-align:center;padding:20px">Chưa có dữ liệu</div>'}
+      </div>
+      <div class="chart-card"><div class="chart-title">🎨 Giai đoạn Thiết kế</div>
+        ${STAGES_TK.map(s=>{const n=leads.filter(l=>l.stage===s.id).length;return`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s.label}</span><span class="bar-amount">${n} KH</span></div><div class="bar-track"><div class="bar-fill" style="width:${tkLeads.length?Math.round(n/tkLeads.length*100):0}%;background:${s.color}"></div></div></div>`;}).join('')}
+      </div>
     </div>`;
 }
 
+// ── CONNECT ───────────────────────────────────────────────────
+function renderConnect(){
+  const saved=getApiUrl();
+  document.getElementById('page-content').innerHTML=`
+    <div style="max-width:640px">
+      <div class="table-wrap" style="padding:28px;margin-bottom:16px">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);margin-bottom:6px">🔗 Kết nối Google Sheets</div>
+        <div style="font-size:13px;color:var(--mgray);margin-bottom:22px;line-height:1.7">Dữ liệu CRM sẽ được lưu vào Google Sheets và đồng bộ theo thời gian thực.</div>
+        <div style="font-size:12px;font-weight:600;color:var(--charcoal);margin-bottom:8px">Web App URL:</div>
+        <div style="display:flex;gap:9px;margin-bottom:14px">
+          <input type="text" id="api-url-input" class="form-input" style="flex:1;font-family:'DM Mono',monospace;font-size:11.5px" value="${saved}" placeholder="https://script.google.com/macros/s/ABC.../exec">
+          <button class="btn btn-primary" onclick="testAndSaveUrl()">🔌 Kết nối & Test</button>
+        </div>
+        ${saved?`<div style="background:var(--lgreen);border:1px solid #bbf7d0;border-radius:8px;padding:11px 14px;font-size:12.5px;color:var(--emerald);display:flex;align-items:center;gap:8px"><span>✅</span> Đã có URL. Nhấn "Kết nối & Test" để kiểm tra lại.</div>`:''}
+      </div>
+    </div>`;
+}
+
+async function testAndSaveUrl(){
+  const url=document.getElementById('api-url-input').value.trim();
+  if(!url||!url.includes('script.google.com')){toast('⚠️ URL không hợp lệ','⚠️');return;}
+  setApiUrl(url); showLoading('Đang kiểm tra kết nối...');
+  try{
+    await apiFetch({action:'ping'}); hideLoading();
+    toast('✅ Kết nối thành công!');
+    await syncFromSheets();
+    showPage('dashboard',document.querySelector('[data-page=dashboard]'));
+  }catch(e){
+    hideLoading();
+    setSyncState('error','❌ Không kết nối: '+e.message);
+    toast('❌ Lỗi: '+e.message,'❌');
+  }
+}
+
 // ── SETTINGS ──────────────────────────────────────────────────
-function renderSettings() {
+function renderSettings(){
   const s=loadSettings();
   document.getElementById('page-content').innerHTML=`
     <div style="max-width:560px">
@@ -900,14 +1843,14 @@ function renderSettings() {
         </div>
       </div>
       <div class="table-wrap" style="padding:22px">
-        <div class="section-title">🔗 Trạng thái kết nối</div>
+        <div class="section-title">🔗 Trạng thái</div>
         <div style="background:var(--lgray);border-radius:8px;padding:12px;font-size:12px;font-family:'DM Mono',monospace;line-height:1.9">
-          API URL: ${getApiUrl()||'Chưa cài đặt'}<br>
           Trạng thái: ${isConnected?'✅ Đã kết nối':'❌ Chưa kết nối'}<br>
-          Leads trong cache: ${leads.length}<br>
-          Tasks trong cache: ${tasks.length}
+          KH Thiết kế: ${leads.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tk').length}<br>
+          KH Thi công: ${leads.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tc').length}<br>
+          Tổng KH: ${leads.length}
         </div>
-        <div style="margin-top:10px;display:flex;gap:9px">
+        <div style="margin-top:10px;display:flex;gap:9px;flex-wrap:wrap">
           <button class="btn btn-outline btn-sm" onclick="showPage('connect',document.querySelector('[data-page=connect]'))">⚙️ Cài đặt kết nối</button>
           <button class="btn btn-outline btn-sm" onclick="syncNow()">🔄 Sync ngay</button>
           <button class="btn btn-outline btn-sm" onclick="exportCSV()">📊 Xuất CSV</button>
@@ -916,71 +1859,179 @@ function renderSettings() {
     </div>`;
 }
 
-function saveSettingsForm() {
+function saveSettingsForm(){
   persistSettings({name:document.getElementById('s-name').value,role:document.getElementById('s-role').value,email:document.getElementById('s-email').value,phone:document.getElementById('s-phone').value||''});
+  toast('✅ Đã lưu cài đặt!');
 }
 
 // ══════════════════════════════════════════════════════════════
 // PANEL
 // ══════════════════════════════════════════════════════════════
-function openPanel(id) {
-  selectedLead=leads.find(l=>l.id==id);
-  if(!selectedLead) return;
+function openPanel(id){
+  selectedLead=visibleLeads().find(l=>l.id==id); if(!selectedLead) return;
   const l=selectedLead;
-  const st=STAGES.find(s=>s.id===l.stage);
+  const st=getStageObj(l.stage);
+  const pipe=getPipelineOfStage(l.stage||'tk_new');
+  const stages=getStages(pipe);
+
   document.getElementById('panel-name').textContent=l.name;
-  document.getElementById('panel-sub').textContent=`${l.type||''} · ${l.area||''} · Score: ${l.score}`;
+  document.getElementById('panel-sub').textContent=`${pipe==='tc'?'🔨 Thi công':'🎨 Thiết kế'} · ${l.type||''} · ${l.area||''} · Score: ${l.score||0}`;
   document.getElementById('panel-overlay').classList.add('open');
   document.getElementById('detail-panel').classList.add('open');
+
   document.getElementById('panel-body').innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;background:${pipe==='tc'?'#E0F4F1':'#EBF3FC'};color:${pipe==='tc'?'#0A4D45':'#0F3460'}">${pipe==='tc'?'🔨 Pipeline Thi công':'🎨 Pipeline Thiết kế'}</span>
+      ${l.inBothPipelines?`<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;background:#FFF0E0;color:#7A3800">⚡ Có trong cả 2 Pipeline</span>`:''}
+    </div>
+    ${canEdit?`<div class="quick-actions">
+      <div class="qa-btn" onclick="quickLogContact(${l.id})"><span class="qa-emoji">📞</span>Đã liên hệ</div>
+      <div class="qa-btn" onclick="openAddTask(${l.id});closePanel()"><span class="qa-emoji">📅</span>Đặt lịch</div>
+      <div class="qa-btn" onclick="openEditLead(${l.id})"><span class="qa-emoji">✏️</span>Sửa TT</div>
+      <div class="qa-btn" onclick="document.getElementById('qn-${l.id}')?.focus()"><span class="qa-emoji">📝</span>Ghi chú</div>
+    </div>`:''}
+    <div class="next-action-box ${l.nextAction?'':'next-action-empty'}">
+      <span class="na-icon">${l.nextAction?'👉':'💡'}</span>
+      <div class="na-text">${l.nextAction?l.nextAction+(l.nextDate?` <span style="font-family:'DM Mono',monospace;font-size:11px">(${new Date(l.nextDate).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'})})</span>`:''):'Chưa đặt hành động tiếp theo — hãy lên kế hoạch để không bỏ lỡ KH'}</div>
+      ${canEdit?`<button class="btn btn-outline btn-sm" style="font-size:10px" onclick="openEditLead(${l.id})">Đặt</button>`:''}
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:9px 12px;background:var(--lgray);border-radius:8px">
+      <span class="health-dot ${leadHealth(l)}"></span>
+      <span style="font-size:12px;font-weight:600;color:var(--charcoal)">${healthLabel(leadHealth(l))}</span>
+      <span style="font-size:11px;color:var(--mgray);margin-left:auto">Liên hệ cuối: ${daysSinceContact(l)} ngày trước</span>
+    </div>
     <div class="section-title">Thông tin</div>
     <div class="info-grid">
-      <div class="info-item"><div class="info-label">Điện thoại</div><div class="info-value">📱 ${l.phone}</div></div>
-      <div class="info-item"><div class="info-label">Email</div><div class="info-value">✉️ ${l.email||'–'}</div></div>
-      <div class="info-item"><div class="info-label">Loại CT</div><div class="info-value">🏠 ${l.type||'–'}</div></div>
-      <div class="info-item"><div class="info-label">Khu vực</div><div class="info-value">📍 ${l.area||'–'}</div></div>
-      <div class="info-item"><div class="info-label">Ngân sách</div><div class="info-value">💰 ${l.budget||'–'}</div></div>
-      <div class="info-item"><div class="info-label">Giá trị HĐ</div><div class="info-value" style="color:var(--amber);font-weight:700">${formatShort(Number(l.value)||0)}</div></div>
-      <div class="info-item"><div class="info-label">Nguồn</div><div class="info-value">📣 ${l.source||'–'}</div></div>
-      <div class="info-item"><div class="info-label">Score</div><div class="info-value"><div class="score-bar"><div class="score-track" style="width:70px"><div class="score-fill" style="width:${l.score}%;background:${l.score>=80?'#0F5132':l.score>=60?'#7A3800':'#7B1A2B'}"></div></div><div class="score-num">${l.score}/100</div></div></div></div>
+      <div><div class="info-label">Điện thoại</div><div class="info-value">📱 ${l.phone}</div></div>
+      <div><div class="info-label">Email</div><div class="info-value">✉️ ${l.email||'–'}</div></div>
+      <div><div class="info-label">Loại CT</div><div class="info-value">🏠 ${l.type||'–'}</div></div>
+      <div><div class="info-label">Khu vực</div><div class="info-value">📍 ${l.area||'–'}</div></div>
+      <div><div class="info-label">Ngân sách</div><div class="info-value">💰 ${l.budget||'–'}</div></div>
+      <div><div class="info-label">HĐ Thiết kế</div><div class="info-value" style="color:var(--tk-color);font-weight:700">${formatShort(Number(l.valueTk)||0)}</div></div>
+      <div><div class="info-label">HĐ Thi công</div><div class="info-value" style="color:var(--tc-color);font-weight:700">${formatShort(Number(l.valueTc)||0)}</div></div>
+      <div><div class="info-label">Nguồn</div><div class="info-value">📣 ${l.source||'–'}</div></div>
+      <div><div class="info-label">Score</div><div class="info-value">
+        <div class="score-bar"><div class="score-track" style="width:70px"><div class="score-fill" style="width:${l.score||0}%;background:${(l.score||0)>=80?'#0F5132':(l.score||0)>=60?'#7A3800':'#7B1A2B'}"></div></div><div class="score-num">${l.score||0}/100</div></div>
+      </div></div>
     </div>
     <div class="section-title">📝 Ghi chú</div>
     <div style="background:var(--lgray);border-radius:8px;padding:11px;font-size:12.5px;color:var(--charcoal);margin-bottom:16px;line-height:1.6">${l.note||'Chưa có ghi chú'}</div>
-    <div class="section-title">🏷️ Cập nhật Giai đoạn</div>
-    <div class="stage-selector">${STAGES.map(s=>`<div class="stage-btn ${l.stage===s.id?'active':''}" style="--stage-bg:${SBG[s.id]};--stage-c:${SC[s.id]};--stage-bc:${SC[s.id]}" onclick="updateStage(${l.id},'${s.id}')">${s.label}</div>`).join('')}</div>
-    <div class="section-title">📜 Lịch sử <button class="btn btn-outline btn-sm" style="font-size:10px" onclick="openEditLead(${l.id})">✏️ Sửa thông tin</button></div>
+    <div class="section-title">🏷️ Cập nhật Giai đoạn (${pipe==='tc'?'Thi công':'Thiết kế'})</div>
+    <div class="stage-selector">
+      ${stages.map(s=>`<div class="stage-btn ${l.stage===s.id?'active':''} ${s.autoTransfer?'highlight-auto':''}" 
+        style="--stage-bg:${getSBG(s.id)};--stage-c:${getSC(s.id)};--stage-bc:${getSC(s.id)}" 
+        onclick="updateStage(${l.id},'${s.id}')" 
+        title="${s.autoTransfer?'⚡ Giai đoạn này sẽ hỏi chuyển sang Pipeline Thi công':''}">${s.label}${s.autoTransfer?' ⚡':''}</div>`).join('')}
+    </div>
+    ${l.inBothPipelines?`<div style="margin-bottom:16px">
+      <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mgray);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e1">⚡ Giai đoạn Thi công</div>
+      <div style="font-size:12px;color:var(--charcoal);background:var(--lgray);padding:8px 12px;border-radius:7px">
+        ${getStageObj(l.stageTc||'tc_new').label} 
+        <button class="btn btn-sm btn-tc" style="margin-left:8px;font-size:10px" onclick="switchPanelToTC(${l.id})">Xem TC →</button>
+      </div>
+    </div>`:''}
+    <div class="section-title">📜 Lịch sử <button class="btn btn-outline btn-sm" style="font-size:10px" onclick="openEditLead(${l.id})">✏️ Sửa</button></div>
     <div class="timeline">${(Array.isArray(l.history)?l.history:[]).map(h=>`<div class="tl-item"><div class="tl-dot"></div><div><div class="tl-text">${h.t}</div><div class="tl-time">${h.time}</div></div></div>`).join('')||'<div style="color:var(--mgray);font-size:12px">Chưa có lịch sử</div>'}</div>
     <div class="note-input">
       <textarea id="qn-${l.id}" placeholder="Ghi chú nhanh..."></textarea>
       <button class="btn btn-primary" style="height:65px;white-space:nowrap;font-size:12px" onclick="saveNote(${l.id})">💾 Lưu</button>
+    </div>
+    <button class="btn btn-outline btn-sm" style="width:100%;margin-top:7px;font-size:11.5px" onclick="openAddTask(${l.id});closePanel()">📝 Thêm công việc cho KH này</button>
     </div>`;
 }
-function closePanel(){ document.getElementById('panel-overlay').classList.remove('open');document.getElementById('detail-panel').classList.remove('open');selectedLead=null; }
 
-async function updateStage(id,stage) {
+function closePanel(){document.getElementById('panel-overlay').classList.remove('open');document.getElementById('detail-panel').classList.remove('open');selectedLead=null;}
+
+function switchPanelToTC(id){
+  // Tạo view TC trong panel cho KH có cả 2 pipeline
+  const l=leads.find(l=>l.id==id); if(!l||!l.stageTc) return;
+  // Swap stage tạm thời để hiện TC
+  const origStage=l.stage;
+  l.stage=l.stageTc;
+  openPanel(id);
+  l.stage=origStage;
+}
+
+// ── UPDATE STAGE (logic tự động chuyển TC) ───────────────────
+async function updateStage(id,stage){
   const l=leads.find(l=>l.id==id); if(!l) return;
-  const old=STAGES.find(s=>s.id===l.stage).label;
+  if(!canEditLead(l)){toast('⛔ Bạn không có quyền cập nhật KH này','⛔');return;}
+  const old=getStageObj(l.stage).label;
+
+  // ⚡ AUTO-TRANSFER TRIGGER: Báo giá TC trong pipeline TK
+  if(stage==='tk_quote_tc'){
+    pendingTransferLeadId=id;
+    document.getElementById('transfer-kh-name').textContent=l.name;
+
+    // Thay nút
+    document.getElementById('transfer-accept-btn').onclick=()=>handleTransferAccept(id);
+    document.getElementById('transfer-reject-btn').onclick=()=>handleTransferReject(id);
+
+    // Cập nhật stage TK trước
+    l.stage='tk_quote_tc';
+    if(!Array.isArray(l.history)) l.history=[];
+    l.history.unshift({t:`Cập nhật: ${old} → Báo giá TC`,time:nowStr()});
+    saveLocal(); openPanel(id);
+    rerenderCurrent();
+
+    // Hiện modal chuyển
+    document.getElementById('transfer-modal').classList.add('open');
+    return;
+  }
+
+  // Normal stage update
   l.stage=stage;
-  const nw=STAGES.find(s=>s.id===stage).label;
+  const nw=getStageObj(stage).label;
   if(!Array.isArray(l.history)) l.history=[];
   l.history.unshift({t:`Cập nhật: ${old} → ${nw}`,time:nowStr()});
   l.lastContact=new Date().toISOString().split('T')[0];
-  saveLocal(); openPanel(id);
-  if(currentPage==='leads') renderLeads();
-  if(currentPage==='pipeline') renderPipeline();
+  saveLocal(); openPanel(id); rerenderCurrent();
   await pushLead(l);
   toast(`🔄 Chuyển sang: ${nw}`);
 }
 
-async function saveNote(id) {
+async function handleTransferAccept(id){
+  document.getElementById('transfer-modal').classList.remove('open');
+  const l=leads.find(l=>l.id==id); if(!l) return;
+
+  // KH trong TK → chuyển sang Nghiệm thu TK
+  l.stage='tk_accept';
+  l.inBothPipelines=true;
+  l.stageTc='tc_new'; // đồng thời mở đầu TC
+
+  if(!Array.isArray(l.history)) l.history=[];
+  l.history.unshift({t:'⚡ Chuyển sang Pipeline Thi công (giai đoạn: Mới)',time:nowStr()});
+  l.history.unshift({t:'TK → Nghiệm thu TK (đã nghiệm thu thiết kế)',time:nowStr()});
+  l.lastContact=new Date().toISOString().split('T')[0];
+  saveLocal(); closePanel(); rerenderCurrent();
+  await pushLead(l);
+  toast(`⚡ ${l.name} đã chuyển sang Pipeline Thi công!`);
+
+  // Chuyển sang trang TC để thấy ngay
+  setTimeout(()=>showPage('pipeline_tc',document.querySelector('[data-page=pipeline_tc]')),500);
+}
+
+async function handleTransferReject(id){
+  document.getElementById('transfer-modal').classList.remove('open');
+  const l=leads.find(l=>l.id==id); if(!l) return;
+  const old='Báo giá TC';
+  l.stage='tk_accept'; // Không đồng ý → nghiệm thu TK
+  if(!Array.isArray(l.history)) l.history=[];
+  l.history.unshift({t:`KH không đồng ý báo giá TC → Nghiệm thu TK`,time:nowStr()});
+  l.lastContact=new Date().toISOString().split('T')[0];
+  saveLocal(); closePanel(); rerenderCurrent();
+  await pushLead(l);
+  toast(`KH chuyển sang Nghiệm thu TK`);
+}
+
+async function saveNote(id){
   const ta=document.getElementById('qn-'+id); if(!ta) return;
   const txt=ta.value.trim(); if(!txt) return;
   const l=leads.find(l=>l.id==id); if(!l) return;
   if(!Array.isArray(l.history)) l.history=[];
   l.history.unshift({t:txt,time:nowStr()});
   l.lastContact=new Date().toISOString().split('T')[0];
-  ta.value='';
-  saveLocal(); openPanel(id);
+  ta.value=''; saveLocal(); openPanel(id);
   await pushLead(l);
   toast('💾 Đã lưu ghi chú!');
 }
@@ -988,69 +2039,90 @@ async function saveNote(id) {
 // ══════════════════════════════════════════════════════════════
 // ADD / EDIT LEAD
 // ══════════════════════════════════════════════════════════════
-function openAddLead() {
+function updateStageDropdown(){
+  const pipe=document.getElementById('f-pipeline').value;
+  const sel=document.getElementById('f-stage');
+  const stages=getStages(pipe);
+  sel.innerHTML=stages.map(s=>`<option value="${s.id}">${s.label}</option>`).join('');
+}
+
+function openAddLead(pipe='tk', defaultStage=null){
+  if(!isManager()){toast('⛔ Bạn không có quyền thêm KH','⛔');return;}
   editingLeadId=null;
-  document.getElementById('modal-title').textContent='✨ Thêm Lead mới';
-  document.getElementById('modal-save-btn').textContent='💾 Lưu Lead';
-  ['f-name','f-phone','f-email','f-value','f-area','f-timeline','f-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('modal-title').textContent='✨ Thêm Khách hàng mới';
+  document.getElementById('modal-save-btn').textContent='💾 Lưu';
+  ['f-name','f-phone','f-email','f-area','f-timeline','f-note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-value-tk').value='';
+  document.getElementById('f-value-tc').value='';
   document.getElementById('f-score').value='50';
-  document.getElementById('f-stage').value='new';
+  document.getElementById('f-pipeline').value=pipe;
+  updateStageDropdown();
+  if(defaultStage) document.getElementById('f-stage').value=defaultStage;
+  populateOwnerDropdown();
+  const ownerSel=document.getElementById('f-owner');
+  if(ownerSel&&!isAdmin()){ownerSel.value=currentUser.id;ownerSel.disabled=true;}
+  else if(ownerSel){ownerSel.disabled=false;}
   document.getElementById('modal-overlay').classList.add('open');
 }
 
-function openEditLead(id) {
+function openEditLead(id){
   const l=leads.find(l=>l.id==id); if(!l) return;
+  if(!canEditLead(l)){toast('⛔ Bạn không có quyền sửa KH này','⛔');return;}
   editingLeadId=id;
   document.getElementById('modal-title').textContent=`✏️ Sửa – ${l.name}`;
   document.getElementById('modal-save-btn').textContent='💾 Cập nhật';
-  document.getElementById('f-name').value=l.name;document.getElementById('f-phone').value=l.phone;
-  document.getElementById('f-email').value=l.email||'';document.getElementById('f-type').value=l.type||'Căn hộ';
-  document.getElementById('f-source').value=l.source||'Facebook Ads';document.getElementById('f-budget').value=l.budget||'200–500 triệu';
-  document.getElementById('f-value').value=l.value||'';document.getElementById('f-area').value=l.area||'';
-  document.getElementById('f-timeline').value=l.timeline||'';document.getElementById('f-owner').value=l.owner||'AN';
-  document.getElementById('f-score').value=l.score||50;document.getElementById('f-stage').value=l.stage||'new';
+  document.getElementById('f-name').value=l.name;
+  document.getElementById('f-phone').value=l.phone;
+  document.getElementById('f-email').value=l.email||'';
+  document.getElementById('f-type').value=l.type||'Căn hộ';
+  document.getElementById('f-source').value=l.source||'Facebook Ads';
+  document.getElementById('f-budget').value=l.budget||'200–500 triệu';
+  document.getElementById('f-value-tk').value=l.valueTk||'';
+  document.getElementById('f-value-tc').value=l.valueTc||'';
+  document.getElementById('f-area').value=l.area||'';
+  document.getElementById('f-timeline').value=l.timeline||'';
+  document.getElementById('f-owner').value=l.owner||'AN';
+  document.getElementById('f-score').value=l.score||50;
+  document.getElementById('f-pipeline').value=getPipelineOfStage(l.stage||'tk_new');
+  updateStageDropdown();
+  document.getElementById('f-stage').value=l.stage||'tk_new';
   document.getElementById('f-note').value=l.note||'';
   document.getElementById('modal-overlay').classList.add('open');
   closePanel();
 }
 
-function closeModal(){ document.getElementById('modal-overlay').classList.remove('open');editingLeadId=null; }
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');editingLeadId=null;}
 
-async function saveLead() {
+async function saveLead(){
   const name=document.getElementById('f-name').value.trim();
   const phone=document.getElementById('f-phone').value.trim();
   if(!name||!phone){toast('⚠️ Nhập Tên và SĐT!','⚠️');return;}
   const now=new Date().toISOString().split('T')[0];
-  if(editingLeadId) {
+  const stage=document.getElementById('f-stage').value;
+
+  if(editingLeadId){
     const l=leads.find(l=>l.id==editingLeadId); if(!l) return;
-    Object.assign(l,{name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,value:parseInt(document.getElementById('f-value').value)||l.value||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,owner:document.getElementById('f-owner').value,score:parseInt(document.getElementById('f-score').value)||50,stage:document.getElementById('f-stage').value,note:document.getElementById('f-note').value,lastContact:now});
+    Object.assign(l,{name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||l.valueTk||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||l.valueTc||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,owner:document.getElementById('f-owner').value,score:parseInt(document.getElementById('f-score').value)||50,stage,note:document.getElementById('f-note').value,nextAction:document.getElementById('f-next-action').value,nextDate:document.getElementById('f-next-date').value,lastContact:now});
     if(!Array.isArray(l.history)) l.history=[];
-    l.history.unshift({t:'Cập nhật thông tin lead',time:nowStr()});
-    saveLocal(); closeModal();
-    if(currentPage==='leads') renderLeads();
-    if(currentPage==='pipeline') renderPipeline();
+    l.history.unshift({t:'Cập nhật thông tin KH',time:nowStr()});
+    saveLocal(); closeModal(); rerenderCurrent();
     await pushLead(l);
     toast(`✅ Đã cập nhật: ${name}!`);
   } else {
-    const newLead={id:Date.now(),name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,value:parseInt(document.getElementById('f-value').value)||500000000,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,stage:document.getElementById('f-stage').value,score:parseInt(document.getElementById('f-score').value)||50,owner:document.getElementById('f-owner').value,note:document.getElementById('f-note').value,created:now,lastContact:now,history:[{t:`Lead mới từ ${document.getElementById('f-source').value}`,time:nowStr()}]};
-    leads.unshift(newLead);
-    saveLocal(); closeModal();
-    if(currentPage==='leads') renderLeads();
-    if(currentPage==='pipeline') renderPipeline();
+    const newLead={id:Date.now(),name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,stage,score:parseInt(document.getElementById('f-score').value)||50,owner:document.getElementById('f-owner').value,note:document.getElementById('f-note').value,nextAction:document.getElementById('f-next-action').value,nextDate:document.getElementById('f-next-date').value,created:now,lastContact:now,inBothPipelines:false,history:[{t:`KH mới từ ${document.getElementById('f-source').value}`,time:nowStr()}]};
+    leads.unshift(newLead); saveLocal(); closeModal(); rerenderCurrent();
     await pushLead(newLead);
     toast(`✅ Đã thêm: ${name}!`);
   }
   updateBadges();
 }
 
-async function confirmDeleteLead(id) {
+async function confirmDeleteLead(id){
+  if(!isAdmin()){toast('⛔ Chỉ Admin mới xóa được KH','⛔');return;}
   const l=leads.find(l=>l.id==id); if(!l) return;
-  showConfirm('🗑️','Xóa Lead',`Xóa lead "${l.name}"? Không thể hoàn tác.`,async()=>{
+  showConfirm('🗑️','Xóa KH',`Xóa "${l.name}"? Không thể hoàn tác.`,async()=>{
     leads=leads.filter(l=>l.id!=id);
-    saveLocal();
-    if(currentPage==='leads') renderLeads();
-    if(currentPage==='pipeline') renderPipeline();
-    updateBadges();
+    saveLocal(); rerenderCurrent(); updateBadges();
     await removeLead(id);
     toast(`🗑️ Đã xóa: ${l.name}`);
   });
@@ -1059,13 +2131,14 @@ async function confirmDeleteLead(id) {
 // ══════════════════════════════════════════════════════════════
 // EXPORT
 // ══════════════════════════════════════════════════════════════
-function exportCSV() {
-  const h=['ID','Tên','SĐT','Email','Loại CT','Nguồn','Ngân sách','Giá trị','Khu vực','Timeline','Giai đoạn','Score','Owner','Ghi chú'];
-  const rows=leads.map(l=>[l.id,l.name,l.phone,l.email||'',l.type,l.source,l.budget,l.value||0,l.area||'',l.timeline||'',l.stage,l.score,l.owner,`"${(l.note||'').replace(/"/g,'""')}"`].join(','));
+function exportCSV(){
+  if(!isAdmin()){toast('⛔ Chỉ Admin mới xuất CSV','⛔');return;}
+  const h=['ID','Tên','SĐT','Email','Loại CT','Nguồn','Ngân sách','Pipeline','Giai đoạn','GT TK','GT TC','Khu vực','Score','Owner','Ghi chú'];
+  const rows=leads.map(l=>[l.id,l.name,l.phone,l.email||'',l.type,l.source,l.budget,getPipelineOfStage(l.stage||'tk_new').toUpperCase(),l.stage,l.valueTk||0,l.valueTc||0,l.area||'',l.score||0,l.owner,`"${(l.note||'').replace(/"/g,'""')}"`].join(','));
   const csv=[h.join(','),...rows].join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
-  a.download=`MDC_Leads_${new Date().toISOString().slice(0,10)}.csv`;
+  a.download=`MDC_KhachHang_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   toast('📊 Đã xuất CSV!');
 }
@@ -1073,26 +2146,18 @@ function exportCSV() {
 // ══════════════════════════════════════════════════════════════
 // CONFIRM / LOADING / TOAST
 // ══════════════════════════════════════════════════════════════
-function showConfirm(icon,title,msg,cb) {
-  confirmCb=cb;
-  document.getElementById('c-icon').textContent=icon;
-  document.getElementById('c-title').textContent=title;
-  document.getElementById('c-msg').textContent=msg;
-  document.getElementById('confirm-overlay').classList.add('open');
-}
-function closeConfirm(){ document.getElementById('confirm-overlay').classList.remove('open');confirmCb=null; }
-function doConfirm(){ if(confirmCb) confirmCb(); closeConfirm(); }
-
-function showLoading(t){ document.getElementById('loading-text').textContent=t||'Đang xử lý...';document.getElementById('loading-overlay').classList.add('open'); }
-function hideLoading(){ document.getElementById('loading-overlay').classList.remove('open'); }
-
+function showConfirm(icon,title,msg,cb){confirmCb=cb;document.getElementById('c-icon').textContent=icon;document.getElementById('c-title').textContent=title;document.getElementById('c-msg').textContent=msg;document.getElementById('confirm-overlay').classList.add('open');}
+function closeConfirm(){document.getElementById('confirm-overlay').classList.remove('open');confirmCb=null;}
+function doConfirm(){if(confirmCb)confirmCb();closeConfirm();}
+function showLoading(t){document.getElementById('loading-text').textContent=t||'Đang xử lý...';document.getElementById('loading-overlay').classList.add('open');}
+function hideLoading(){document.getElementById('loading-overlay').classList.remove('open');}
 let tTimer;
 function toast(msg,icon='✅'){
   document.getElementById('t-msg').textContent=msg;
   document.getElementById('t-icon').textContent=icon;
   const el=document.getElementById('toast');
   el.classList.add('show');clearTimeout(tTimer);
-  tTimer=setTimeout(()=>el.classList.remove('show'),2600);
+  tTimer=setTimeout(()=>el.classList.remove('show'),2800);
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1104,91 +2169,39 @@ function ownerColor(o){return o==='AN'?'#0F3460':o==='BT'?'#0F5132':o==='EM'?'#3
 function nowStr(){const d=new Date();return d.toLocaleDateString('vi-VN')+' '+d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}
 function setFilter(f){activeFilter=f;renderLeads()}
 function handleSearch(q){searchQuery=q;if(currentPage==='leads')renderLeads()}
-function updateBadges(){document.getElementById('lead-count').textContent=leads.length;document.getElementById('task-count').textContent=tasks.filter(t=>!t.done).length}
+function updateBadges(){
+  const vl=visibleLeads();
+  const tkN=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tk').length;
+  const tcN=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tc').length;
+  if(document.getElementById('count-tk'))document.getElementById('count-tk').textContent=tkN;
+  if(document.getElementById('count-tc'))document.getElementById('count-tc').textContent=tcN;
+  if(document.getElementById('lead-count'))document.getElementById('lead-count').textContent=vl.length;
+  document.getElementById('task-count').textContent=tasks.filter(t=>!t.done).length;
+}
 
 // ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
-loadLocal();
-const s0=loadSettings();
-applySettingsUI(s0);
-updateBadges();
-showPage('dashboard', document.querySelector('[data-page=dashboard]'));
+document.getElementById('f-pipeline').addEventListener('change', updateStageDropdown);
+updateStageDropdown();
 
-// ALWAYS sync from Sheets on load (not just when localStorage has data)
-// This ensures GitHub Pages users always get fresh data
-if(getApiUrl()) {
-  showLoading('Đang tải dữ liệu từ Google Sheets...');
-  syncFromSheets().then(ok => {
-    hideLoading();
-    if(ok) {
-      renderDashboard();
-    } else {
-      // No sheets connection - show connect page
-      if(!leads.length) {
-        showPage('connect', document.querySelector('[data-page=connect]'));
-      }
-    }
-  });
-} else {
-  // No API URL configured - go straight to connect page
-  showPage('connect', document.querySelector('[data-page=connect]'));
+// Khởi tạo staff mặc định
+initDefaultStaff();
+
+// Restore session (nếu đã đăng nhập trước đó, < 8 tiếng)
+if(restoreSession()){
+  startApp();
 }
+// Else: login screen đã hiển thị sẵn
 
-// Auto-sync every 30 seconds (was 5 min)
-setInterval(()=>{ if(getApiUrl() && !isSyncing) syncFromSheets(); }, 30*1000);
-
-// Sync immediately when tab becomes visible (user switches back to tab)
-document.addEventListener('visibilitychange', () => {
-  if(document.visibilityState === 'visible' && getApiUrl() && !isSyncing) {
-    syncFromSheets();
-  }
-});
-
-// Sync when window gains focus (mobile users coming back to app)
-window.addEventListener('focus', () => {
-  if(getApiUrl() && !isSyncing) syncFromSheets();
-});
-
-// Sync after every save action (write-then-pull pattern)
-const _origPushLead = pushLead;
-pushLead = async function(lead) {
-  await _origPushLead(lead);
-  // Pull latest data from Sheets after saving — ensures data is real Sheets data
-  setTimeout(async () => {
-    if(!isSyncing) {
-      await syncFromSheets();
-      // Re-render current page with fresh data
-      const renders = {dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports};
-      if(renders[currentPage]) renders[currentPage]();
-    }
-  }, 800);
-};
-const _origRemoveLead = removeLead;
-removeLead = async function(id) {
-  await _origRemoveLead(id);
-  setTimeout(async () => {
-    if(!isSyncing) {
-      await syncFromSheets();
-      const renders = {dashboard:renderDashboard,leads:renderLeads,pipeline:renderPipeline,reports:renderReports};
-      if(renders[currentPage]) renders[currentPage]();
-    }
-  }, 800);
-};
+// Auto-sync mỗi 30s
+setInterval(()=>{if(currentUser&&getApiUrl()&&!isSyncing)syncFromSheets().then(()=>{if(currentUser)rerenderCurrent();});},30*1000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&currentUser&&getApiUrl()&&!isSyncing)syncFromSheets();});
 
 // Mobile sidebar
-function toggleSidebar(){
-  document.querySelector('.sidebar').classList.toggle('open');
-  document.getElementById('sidebar-overlay').classList.toggle('open');
-}
-function closeSidebar(){
-  document.querySelector('.sidebar').classList.remove('open');
-  document.getElementById('sidebar-overlay').classList.remove('open');
-}
-document.querySelectorAll('.nav-item').forEach(el=>{
-  el.addEventListener('click',()=>{ if(window.innerWidth<=768) closeSidebar(); });
-});
-
+function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open');}
+function closeSidebar(){document.querySelector('.sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');}
+document.querySelectorAll('.nav-item').forEach(el=>{el.addEventListener('click',()=>{if(window.innerWidth<=768)closeSidebar();});});
 </script>
 </body>
 </html>
