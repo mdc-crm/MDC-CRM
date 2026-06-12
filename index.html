@@ -1412,6 +1412,7 @@ function showPage(page,el){
     pipeline_tc:()=>renderPipelineBoard('tc'),
     leads:renderLeads,tasks:renderTasks,
     reports:renderReports,connect:renderConnect,settings:renderSettings,
+    staff:renderStaff,
     actlog:renderActivityLog
   };
   (renders[page]||(() => {}))();
@@ -2155,7 +2156,7 @@ let actLogPage = 1;
 const ACT_PER_PAGE = 50;
 
 async function renderActivityLog(){
-  const el = document.getElementById('content-area');
+  const el = document.getElementById('page-content');
   el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--mgray)">
     <div class="spinner" style="margin:0 auto 12px"></div>Đang tải nhật ký...</div>`;
   try {
@@ -2171,7 +2172,7 @@ async function renderActivityLog(){
 }
 
 function renderLogTable(){
-  const el = document.getElementById('content-area');
+  const el = document.getElementById('page-content');
   const filtered = actLogFilter
     ? actLogs.filter(l =>
         l.staffName?.toLowerCase().includes(actLogFilter) ||
