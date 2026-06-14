@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v6.8</title>
+<title>MDC Interior — Sales CRM v6.9</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,7 +460,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v6.8</div>
+    <div class="login-sub">Sales CRM v6.9</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
       <input class="login-input" id="login-username" placeholder="Email hoặc số điện thoại" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -478,7 +478,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v6.8</div>
+    <div class="brand-sub">Sales CRM v6.9</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -2322,10 +2322,28 @@ async function renderActivityLog(){
 
 function renderLogTable(){
   const el = document.getElementById('page-content');
+  const actionMeta = {
+    addLead:        {label:'Thêm khách hàng mới', icon:'🟢'},
+    editLead:       {label:'Sửa thông tin KH',    icon:'✏️'},
+    deleteLead:     {label:'Xóa khách hàng',       icon:'🔴'},
+    changeStage:    {label:'Chuyển giai đoạn',     icon:'🔄'},
+    addTask:        {label:'Thêm công việc',       icon:'📝'},
+    editTask:       {label:'Sửa công việc',        icon:'✏️'},
+    deleteTask:     {label:'Xóa công việc',        icon:'🗑️'},
+    doneTask:       {label:'Hoàn thành công việc', icon:'✅'},
+    addNote:        {label:'Thêm ghi chú',         icon:'💬'},
+    logContact:     {label:'Ghi nhận liên hệ',     icon:'📞'},
+    transferPipeline:{label:'Chuyển sang pipeline TC', icon:'⚡'},
+    login:          {label:'Đăng nhập',            icon:'🔐'},
+  };
+  const actionLabel = a => (actionMeta[a]&&actionMeta[a].label) || a || '–';
+  const actionIcon  = a => (actionMeta[a]&&actionMeta[a].icon) || '📌';
+
   const filtered = actLogFilter
     ? actLogs.filter(l =>
         l.staffName?.toLowerCase().includes(actLogFilter) ||
         l.action?.toLowerCase().includes(actLogFilter) ||
+        actionLabel(l.action).toLowerCase().includes(actLogFilter) ||
         l.targetName?.toLowerCase().includes(actLogFilter) ||
         l.detail?.toLowerCase().includes(actLogFilter))
     : actLogs;
@@ -2343,14 +2361,6 @@ function renderLogTable(){
     if(!byStaff[l.staffName].last) byStaff[l.staffName].last=l.time;
   });
   const staffStats = Object.values(byStaff).sort((a,b)=>b.count-a.count);
-
-  const actionIcons = {
-    'Thêm khách hàng mới':'🟢','Sửa thông tin KH':'✏️','Xóa khách hàng':'🔴',
-    'Chuyển giai đoạn':'🔄','Thêm công việc':'📝','Sửa công việc':'✏️',
-    'Xóa công việc':'🗑️','Hoàn thành công việc':'✅','Bỏ hoàn thành CV':'↩️',
-    'Ghi nhận liên hệ':'📞','Thêm ghi chú':'💬','Chuyển sang pipeline TC':'⚡',
-    'Đăng nhập':'🔐','Đồng bộ dữ liệu':'🔄',
-  };
 
   el.innerHTML = `
   <!-- Thống kê theo nhân viên -->
@@ -2389,9 +2399,10 @@ function renderLogTable(){
       </tr></thead>
       <tbody>
         ${page.length ? page.map(l=>{
-          const icon = actionIcons[l.action]||'📌';
-          const isDelete = l.action.includes('Xóa');
-          const isAdd = l.action.includes('Thêm');
+          const icon = actionIcon(l.action);
+          const lbl = actionLabel(l.action);
+          const isDelete = lbl.includes('Xóa');
+          const isAdd = lbl.includes('Thêm');
           const rowBg = isDelete?'background:#fff5f5':isAdd?'background:#f0fdf4':'';
           return `<tr style="${rowBg}">
             <td style="font-family:'Be Vietnam Pro',sans-serif;font-size:11px;color:var(--mgray);white-space:nowrap">${l.time||'–'}</td>
@@ -2403,7 +2414,7 @@ function renderLogTable(){
                 <span style="font-size:12px;font-weight:500">${l.staffName||'–'}</span>
               </div>
             </td>
-            <td><span style="font-size:12px">${icon} ${l.action||'–'}</span></td>
+            <td><span style="font-size:12px">${icon} ${lbl}</span></td>
             <td>
               <div style="font-size:12px;font-weight:500;color:var(--charcoal)">${l.targetName||'–'}</div>
               <div style="font-size:10.5px;color:var(--mgray)">${l.target||''} ${l.targetId?'#'+String(l.targetId).slice(-6):''}</div>
