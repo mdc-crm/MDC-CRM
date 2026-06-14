@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v6.1</title>
+<title>MDC Interior — Sales CRM v6.4</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,7 +460,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v6.1</div>
+    <div class="login-sub">Sales CRM v6.4</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
       <input class="login-input" id="login-username" placeholder="username" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -478,11 +478,12 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v6.1</div>
+    <div class="brand-sub">Sales CRM v6.4</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
     </div>
+    <div id="pending-badge" style="display:none;font-size:10px;color:#facc15;margin-top:3px;font-weight:600"></div>
   </div>
   <div class="sidebar-nav">
     <div class="nav-section">Tổng quan</div>
@@ -624,6 +625,24 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
             <option value="admin">🔑 Admin — Toàn quyền</option>
             <option value="manager">👁️ Manager — Xem tất cả, sửa KH mình</option>
             <option value="staff" selected>👤 Staff — Chỉ KH được phân công</option>
+            <option value="">🚫 Không vào CRM (chỉ làm PM)</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Vai trò bên Thi công (PM)</label>
+          <select class="form-input" id="sf-role-pm">
+            <option value="">— Không tham gia PM —</option>
+            <option value="super_admin">👑 Super Admin</option>
+            <option value="pm">📋 Project Manager</option>
+            <option value="team_lead">🔧 Thợ trưởng (Team Lead)</option>
+            <option value="worker">👷 Thợ (Worker)</option>
+            <option value="client">🤝 Khách hàng (Client)</option>
+            <option value="guest">👁️ Khách xem (Guest)</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Trạng thái</label>
+          <select class="form-input" id="sf-active">
+            <option value="true" selected>✅ Đang làm việc</option>
+            <option value="false">⛔ Đã nghỉ (khóa cả CRM & PM)</option>
           </select>
         </div>
         <div class="form-group"><label class="form-label">Màu đại diện</label>
@@ -697,7 +716,7 @@ function saveStaffList(arr){localStorage.setItem(LS_STAFF,JSON.stringify(arr))}
 function initDefaultStaff(){
   const list=loadStaffList();
   if(!list.length){
-    const def=[{id:'admin_001',name:'Quản lý MDC',username:'admin',password:'admin123',roleTitle:'Giám đốc',phone:'',email:'admin@mdc.vn',perm:'admin',color:'#7A3800',initials:'AD'}];
+    const def=[{id:'admin_001',name:'Quản lý MDC',username:'admin',password:'admin123',roleTitle:'Giám đốc',phone:'',email:'admin@mdc.vn',perm:'admin',rolePM:'super_admin',active:true,branch:'Huế',color:'#7A3800',initials:'AD'}];
     saveStaffList(def);return def;
   }
   return list;
@@ -709,6 +728,10 @@ function doLogin(){
   const err=document.getElementById('login-error');
   const found=loadStaffList().find(s=>s.username.toLowerCase()===u&&s.password===p);
   if(!found){err.classList.add('show');return;}
+  // Chặn người đã nghỉ việc (khóa toàn hệ thống)
+  if(found.active===false){err.textContent='⛔ Tài khoản đã bị khóa (đã nghỉ việc)';err.classList.add('show');return;}
+  // Chặn người không có quyền CRM (chỉ làm bên PM)
+  if(!found.perm){err.textContent='⛔ Tài khoản này không có quyền vào CRM';err.classList.add('show');return;}
   err.classList.remove('show');
   currentUser=found;
   localStorage.setItem(LS_SESSION,JSON.stringify({id:found.id,at:Date.now()}));
@@ -781,7 +804,7 @@ function staffInitials(ownerId){const s=loadStaffList().find(s=>s.id===ownerId||
 function staffName(ownerId){const s=loadStaffList().find(s=>s.id===ownerId||s.username===ownerId||s.initials===ownerId);return s?s.name:ownerId||'–';}
 
 function populateOwnerDropdown(){
-  const staffList=loadStaffList();
+  const staffList=loadStaffList().filter(s=>s.perm && s.active!==false);
   const sel=document.getElementById('f-owner');
   if(!sel)return;
   sel.innerHTML=staffList.map(s=>`<option value="${s.id}">${s.name} · ${({admin:'Admin',manager:'Manager',staff:'Staff'}[s.perm]||'–')}</option>`).join('');
@@ -812,15 +835,20 @@ function renderStaff(){
       ${staffList.map(s=>{
         const khCount=leads.filter(l=>l.owner===s.id||l.owner===s.username||l.owner===s.initials).length;
         const isSelf=s.id===currentUser.id;
-        return`<div class="staff-card">
+        const pmLabel={super_admin:'👑 Super Admin',pm:'📋 PM',team_lead:'🔧 Thợ trưởng',worker:'👷 Thợ',client:'🤝 Khách',guest:'👁️ Guest'};
+        const inactive=s.active===false;
+        return`<div class="staff-card" style="${inactive?'opacity:.5;filter:grayscale(.6)':''}">
           <div class="staff-card-actions">
             <button class="icon-btn" onclick="openEditStaff('${s.id}')">✏️</button>
             ${!isSelf?`<button class="icon-btn" onclick="confirmDeleteStaff('${s.id}')">🗑️</button>`:'<span style="font-size:10px;color:var(--mgray);padding:4px 6px">Bạn</span>'}
           </div>
           <div class="staff-avatar-lg" style="background:${s.color||'#0F3460'}">${s.initials||s.name.slice(0,2).toUpperCase()}</div>
-          <div class="staff-name">${s.name}</div>
+          <div class="staff-name">${s.name}${inactive?' <span style="font-size:10px;color:var(--ruby)">⛔ Đã nghỉ</span>':''}</div>
           <div class="staff-meta">@${s.username} · ${s.roleTitle||'–'}</div>
-          <span class="badge ${permClass[s.perm]||'role-staff'}" style="font-size:10px;padding:2px 9px;border-radius:12px">${permLabel[s.perm]||s.perm}</span>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-top:4px">
+            ${s.perm?`<span class="badge ${permClass[s.perm]||'role-staff'}" style="font-size:10px;padding:2px 9px;border-radius:12px">${permLabel[s.perm]||s.perm}</span>`:'<span style="font-size:10px;color:var(--mgray)">— CRM: không —</span>'}
+            ${s.rolePM?`<span class="badge" style="font-size:10px;padding:2px 9px;border-radius:12px;background:#E7F2EB;color:#2E7D4F">${pmLabel[s.rolePM]||s.rolePM}</span>`:''}
+          </div>
           <div style="margin-top:8px;font-size:11px;color:var(--mgray)">${khCount} KH phụ trách · ${s.phone||s.email||'–'}</div>
         </div>`;
       }).join('')}
@@ -833,6 +861,8 @@ function openAddStaff(){
   document.getElementById('staff-save-btn').textContent='💾 Thêm';
   ['sf-name','sf-username','sf-password','sf-password2','sf-role-title','sf-phone','sf-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('sf-perm').value='staff';
+  document.getElementById('sf-role-pm').value='';
+  document.getElementById('sf-active').value='true';
   document.getElementById('sf-color').value='#0F3460';
   document.getElementById('sf-edit-note').style.display='none';
   document.getElementById('staff-modal').classList.add('open');
@@ -851,6 +881,8 @@ function openEditStaff(id){
   document.getElementById('sf-phone').value=s.phone||'';
   document.getElementById('sf-email').value=s.email||'';
   document.getElementById('sf-perm').value=s.perm||'staff';
+  document.getElementById('sf-role-pm').value=s.rolePM||'';
+  document.getElementById('sf-active').value=(s.active===false)?'false':'true';
   document.getElementById('sf-color').value=s.color||'#0F3460';
   document.getElementById('sf-edit-note').style.display='block';
   document.getElementById('staff-modal').classList.add('open');
@@ -871,11 +903,11 @@ function saveStaffMember(){
   const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   if(editingStaffId){
     const idx=staffList.findIndex(s=>s.id===editingStaffId);if(idx<0)return;
-    staffList[idx]={...staffList[idx],name,username,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,perm:document.getElementById('sf-perm').value,color,initials};
+    staffList[idx]={...staffList[idx],name,username,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,perm:document.getElementById('sf-perm').value,rolePM:document.getElementById('sf-role-pm').value,active:document.getElementById('sf-active').value==='true',color,initials};
     if(pw)staffList[idx].password=pw;
     toast(`✅ Đã cập nhật: ${name}`);
   }else{
-    staffList.push({id:'staff_'+Date.now(),name,username,password:pw,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,perm:document.getElementById('sf-perm').value,color,initials});
+    staffList.push({id:'staff_'+Date.now(),name,username,password:pw,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,perm:document.getElementById('sf-perm').value,rolePM:document.getElementById('sf-role-pm').value,active:document.getElementById('sf-active').value==='true',color,initials});
     toast(`✅ Đã thêm: ${name}`);
   }
   saveStaffList(staffList);closeStaffModal();renderStaff();populateOwnerDropdown();
@@ -898,6 +930,18 @@ function confirmDeleteStaff(id){
 const LS_KEY     = 'mdc_crm_v6';
 const LS_API_KEY = 'mdc_crm_api_url';
 const LS_SET_KEY = 'mdc_crm_settings';
+const LS_QUEUE   = 'mdc_crm_pushqueue_v1';   // hàng đợi offline
+
+// ══ HELPERS ĐỒNG BỘ AN TOÀN ══════════════════════════════════
+// ID chống trùng giữa các thiết bị: thời gian + random base36
+let __idCounter = 0;
+function newId(){
+  return Date.now().toString(36) + '-' + (++__idCounter).toString(36) + '-' + Math.random().toString(36).slice(2,7);
+}
+// Đánh dấu thời điểm sửa cuối (epoch ms) — dùng cho merge theo timestamp
+function touch(obj){ if(obj) obj.updatedAt = Date.now(); return obj; }
+// So sánh "bản nào mới hơn" an toàn (thiếu updatedAt coi như cũ nhất = 0)
+function isNewer(a, b){ return (Number(a&&a.updatedAt)||0) > (Number(b&&b.updatedAt)||0); }
 
 // ── Pipeline Thiết kế ─────────────────────────────────────────
 const STAGES_TK = [
@@ -1076,7 +1120,7 @@ function createStageChecklistTasks(lead, newStage){
     const dDate = new Date();
     dDate.setDate(dDate.getDate() + dDays);
     return {
-      id: Date.now() + idx,
+      id: newId(),
       text: tpl.text,
       type: tpl.type,
       urgency: tpl.urgency,
@@ -1089,6 +1133,7 @@ function createStageChecklistTasks(lead, newStage){
       sla: tpl.sla || '',
       done: false,
       created: new Date().toISOString(),
+      updatedAt: Date.now(),
       due: dDate.toISOString().split('T')[0],
       isTemplate: true, // đánh dấu là task từ checklist mẫu
       stage: newStage,
@@ -1216,9 +1261,8 @@ function applySettingsUI(s){
 // API
 // ══════════════════════════════════════════════════════════════
 function getApiUrl(){
-  const DEFAULT='https://script.google.com/macros/s/AKfycbz-PGPFlH1hBfa_vbOi3cLNQsr-ZUjtyH2KhfyqWkgkGMWGlNAvfQY9WkdIjtChLP9Z/exec';
+  const DEFAULT='https://script.google.com/macros/s/AKfycbzVMYIh9fgmNo3omy9b0xL4OAKoQt7EZJ1jTgXTDlE1JzgRRGORVeZgshODS5Smpw4S/exec';
   const url=localStorage.getItem(LS_API_KEY)||DEFAULT;
-  console.log('🔗 API URL:', url.substring(0,50)+'...', 'from:', localStorage.getItem(LS_API_KEY)?'localStorage':'DEFAULT');
   return url;
 }
 function setApiUrl(url){apiUrl=url;localStorage.setItem(LS_API_KEY,url);}
@@ -1226,7 +1270,6 @@ function setApiUrl(url){apiUrl=url;localStorage.setItem(LS_API_KEY,url);}
 async function apiFetch(params){
   const url=getApiUrl();
   if(!url) throw new Error('API URL chưa cài đặt');
-  console.log('📡 apiFetch called with:', params);
   // KHÔNG đặt custom header (Accept/Content-Type) và KHÔNG đặt mode:'cors'
   // → tránh CORS preflight OPTIONS mà Google Apps Script không xử lý được.
   const res=await fetch(url+'?'+new URLSearchParams(params).toString(),{
@@ -1236,41 +1279,97 @@ async function apiFetch(params){
   if(!res.ok) throw new Error('HTTP '+res.status);
   const json=await res.json();
   if(!json.ok) throw new Error(json.error||'API error');
-  console.log('✅ apiFetch response:', json);
   return json;
 }
 
 async function apiPost(body){
   const url=getApiUrl();
   if(!url) throw new Error('API URL chưa cài đặt');
-  console.log('📤 apiPost called with action:', body.action);
-  // Giữ request đơn giản, không custom header → tránh CORS preflight.
-  const res=await fetch(url+'?'+new URLSearchParams({action:body.action,payload:JSON.stringify(body)}).toString(),{
-    method:'GET',
-    redirect:'follow'
+  // Dùng POST với text/plain → KHÔNG kích hoạt CORS preflight (Apps Script chấp nhận e.postData),
+  // đồng thời tránh giới hạn độ dài URL trên điện thoại khi payload (history/note) dài.
+  const res=await fetch(url,{
+    method:'POST',
+    redirect:'follow',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(body)
   });
   if(!res.ok) throw new Error('HTTP '+res.status);
   const json=await res.json();
   if(!json.ok) throw new Error(json.error||'API error');
-  console.log('✅ apiPost response:', json);
   return json;
+}
+
+// ══ HÀNG ĐỢI OFFLINE ══════════════════════════════════════════
+// Push thất bại (mất mạng/lỗi) → cất vào hàng đợi, tự gửi lại lần sync sau.
+// Nhờ vậy dữ liệu KHÔNG bị bản từ Sheets ghi đè ngược khi máy offline.
+function loadQueue(){ try{return JSON.parse(localStorage.getItem(LS_QUEUE)||'[]')}catch(e){return[]} }
+function saveQueue(q){ try{localStorage.setItem(LS_QUEUE, JSON.stringify(q))}catch(e){} }
+function enqueue(body){
+  const q=loadQueue();
+  // Gộp trùng: cùng action + cùng id thì giữ bản mới nhất (tránh phình hàng đợi)
+  const keyOf=b=>b.action+':'+(b.id||(b.lead&&b.lead.id)||(b.task&&b.task.id)||'');
+  const k=keyOf(body);
+  const filtered=q.filter(b=>keyOf(b)!==k);
+  filtered.push(body);
+  saveQueue(filtered);
+  updatePendingBadge();
+}
+async function flushQueue(){
+  let q=loadQueue();
+  if(!q.length) return;
+  const remain=[];
+  for(const body of q){
+    try{ await apiPost(body); }
+    catch(e){ remain.push(body); }   // vẫn lỗi → giữ lại cho lần sau
+  }
+  saveQueue(remain);
+  updatePendingBadge();
+}
+function updatePendingBadge(){
+  const n=loadQueue().length;
+  const el=document.getElementById('pending-badge');
+  if(el){ el.textContent=n?('⏳ '+n+' chờ đồng bộ'):''; el.style.display=n?'':'none'; }
+}
+// Push an toàn: thử ngay, lỗi thì vào hàng đợi (không nuốt lỗi âm thầm).
+async function safePush(body){
+  if(!getApiUrl()) return;
+  try{ await apiPost(body); updatePendingBadge(); }
+  catch(e){ enqueue(body); }
+}
+
+// Hợp nhất 2 mảng theo id: giữ bản có updatedAt mới hơn.
+// remote = từ Sheets (nguồn chung), local = đang có trên máy (có thể đang sửa dở).
+function mergeById(local, remote){
+  const map = new Map();
+  // đưa local vào trước
+  (local||[]).forEach(o=>{ if(o && o.id!=null) map.set(String(o.id), o); });
+  // duyệt remote: chỉ ghi đè khi remote MỚI HƠN hoặc local chưa có
+  (remote||[]).forEach(r=>{
+    if(!r || r.id==null) return;
+    const k = String(r.id);
+    const cur = map.get(k);
+    if(!cur){ map.set(k, r); return; }
+    // Nếu cả hai đều không có updatedAt → ưu tiên remote (nguồn chung) để hội tụ
+    if(isNewer(r, cur) || (!cur.updatedAt && !r.updatedAt)) map.set(k, r);
+    // ngược lại giữ local (bản đang sửa mới hơn) — KHÔNG mất dữ liệu đang nhập
+  });
+  return Array.from(map.values());
 }
 
 async function syncFromSheets(){
   setSyncState('syncing','🔄 Đang đồng bộ...');
   try{
-    console.log('🔄 syncFromSheets started');
+    // Đẩy hàng đợi offline trước, để bản local kịp lên Sheets trước khi kéo về
+    await flushQueue();
     const data=await apiFetch({action:'getAll'});
-    if(data.leads)  leads=data.leads;
-    if(data.tasks)  tasks=data.tasks;
-    
-    // ✅ ALWAYS replace staff từ Sheets (source of truth)
+    // ✅ MERGE thay vì ghi đè — bảo vệ dữ liệu đang sửa trên thiết bị này
+    if(Array.isArray(data.leads)) leads = mergeById(leads, data.leads);
+    if(Array.isArray(data.tasks)) tasks = mergeById(tasks, data.tasks);
+
+    // Staff: Sheets là nguồn sự thật (ít sửa, ít xung đột)
     if(data.staff && Array.isArray(data.staff) && data.staff.length > 0){
       saveStaffList(data.staff);
-      console.log('✅ Staff synced from Sheets:', data.staff.length, 'staff');
     }
-    
-    console.log('📊 Data after sync - leads:', leads.length, 'tasks:', tasks.length, 'staff:', (loadStaffList()||[]).length);
     saveLocal();
     setSyncState('connected',`✅ Đồng bộ lúc ${nowStr()}`);
     isConnected=true;
@@ -1284,10 +1383,10 @@ async function syncFromSheets(){
   }
 }
 
-async function pushLead(lead){if(!getApiUrl()) return;try{await apiPost({action:'saveLead',lead});}catch(e){toast('⚠️ Lưu Sheets lỗi: '+e.message,'⚠️');}}
-async function removeLead(id){if(!getApiUrl()) return;try{await apiPost({action:'deleteLead',id});}catch(e){}}
-async function pushTask(task){if(!getApiUrl()) return;try{await apiPost({action:'saveTask',task});}catch(e){}}
-async function removeTask(id){if(!getApiUrl()) return;try{await apiPost({action:'deleteTask',id});}catch(e){}}
+async function pushLead(lead){ return safePush({action:'saveLead',lead}); }
+async function removeLead(id){ return safePush({action:'deleteLead',id}); }
+async function pushTask(task){ return safePush({action:'saveTask',task}); }
+async function removeTask(id){ return safePush({action:'deleteTask',id}); }
 
 // ── NHẬN / GIAO VIỆC ─────────────────────────────────────────
 // Nhân viên tự nhận việc cho mình (biến task mẫu gợi ý thành việc quản lý)
@@ -1298,6 +1397,7 @@ async function claimTask(id, event){
   t.claimed = true;
   t.assignee = currentUser.id;            // người làm = người đang đăng nhập
   t.assignedBy = currentUser.name;        // tự nhận → người giao chính là họ
+  touch(t);
   saveLocal(); renderTasks(); updateBadges();
   await pushTask(t);
   toast('✅ Đã nhận việc: '+(t.text||'').slice(0,30)+'…','✅');
@@ -1311,6 +1411,7 @@ async function assignTaskTo(id, staffId, event){
   t.claimed = true;
   t.assignee = staffId;                   // người làm = người được giao
   t.assignedBy = currentUser.name;        // người giao = cấp trên đang đăng nhập
+  touch(t);
   saveLocal(); renderTasks(); updateBadges();
   await pushTask(t);
   const who = (loadStaffList().find(s=>s.id===staffId)||{}).name || '';
@@ -1320,7 +1421,7 @@ async function assignTaskTo(id, staffId, event){
 // Mở hộp chọn nhân viên để giao việc (chỉ cấp quản lý thấy)
 function openAssignMenu(id, event){
   if(event) event.stopPropagation();
-  const staff = loadStaffList();
+  const staff = loadStaffList().filter(s=>s.perm && s.active!==false);
   const opts = staff.map(s=>`<button class="assign-opt" onclick="assignTaskTo('${id}','${s.id}',event);closeAssignMenu()">${s.name}</button>`).join('');
   let box=document.getElementById('assign-menu');
   if(box) box.remove();
@@ -1334,7 +1435,7 @@ function openAssignMenu(id, event){
   document.body.appendChild(box);
 }
 function closeAssignMenu(){const b=document.getElementById('assign-menu');if(b)b.remove();}
-async function pushStaff(arr){if(!getApiUrl()) return;try{await apiPost({action:'saveStaff',staff:arr});}catch(e){}}
+async function pushStaff(arr){ return safePush({action:'saveStaff',staff:arr}); }
 
 // ══ Ghi nhật ký thao tác nhân viên lên Sheets ══
 function logActivity(action, target, targetId, targetName, detail='', oldStage='', newStage=''){
@@ -1502,14 +1603,14 @@ function renderDashboard(){
         ${care.length===0?`<div class="empty-state"><div class="es-icon">✅</div>Tuyệt vời! Mọi KH đều đang được bám sát tốt.</div>`
         :care.slice(0,6).map(({lead:l,days,health})=>{
           const pipe=getPipe(l.stage);const st=getStageObj(l.stage);
-          return `<div class="care-item" onclick="openPanel(${l.id})">
+          return `<div class="care-item" onclick="openPanel('${l.id}')">
             <div class="care-avatar" style="background:${SC[l.stage]||'#555'}">${pipe==='tc'?'🔨':'🎨'}</div>
             <div style="flex:1;min-width:0">
               <div style="font-size:12.5px;font-weight:600;color:var(--charcoal)">${l.name}</div>
               <div style="font-size:11px;color:var(--mgray)">${st.label} · ${l.area||'–'}${l.nextAction?` · 👉 ${l.nextAction}`:''}</div>
             </div>
             <span class="care-days ${health==='red'?'hot':'warm'}">${days} ngày</span>
-            <button class="btn btn-sm ${pipe==='tc'?'btn-tc':'btn-tk'}" style="font-size:10px" onclick="event.stopPropagation();quickLogContact(${l.id})">✓ Đã LH</button>
+            <button class="btn btn-sm ${pipe==='tc'?'btn-tc':'btn-tk'}" style="font-size:10px" onclick="event.stopPropagation();quickLogContact('${l.id}')">✓ Đã LH</button>
           </div>`;
         }).join('')}
       </div>
@@ -1525,7 +1626,7 @@ function renderDashboard(){
         ${hot.length===0?`<div class="empty-state"><div class="es-icon">📊</div>Chưa có deal nào ở giai đoạn chốt.</div>`
         :hot.slice(0,6).map(l=>{
           const pipe=getPipe(l.stage);const st=getStageObj(l.stage);const pp=pipeProgress(l);
-          return `<div class="care-item" onclick="openPanel(${l.id})">
+          return `<div class="care-item" onclick="openPanel('${l.id}')">
             <div class="care-avatar" style="background:${SC[l.stage]||'#555'}">${pipe==='tc'?'🔨':'🎨'}</div>
             <div style="flex:1;min-width:0">
               <div style="font-size:12.5px;font-weight:600;color:var(--charcoal)">${l.name}</div>
@@ -1603,7 +1704,7 @@ function renderPipelineBoard(pipe){
             <span>${s.label}</span>
             <span class="pipeline-count">${cols.length}</span>
           </div>
-          ${cols.map(l=>`<div class="pipeline-card" style="--sc:${s.color}" onclick="openPanel(${l.id})">
+          ${cols.map(l=>`<div class="pipeline-card" style="--sc:${s.color}" onclick="openPanel('${l.id}')">
             <div class="pc-name">${l.name}</div>
             <div class="pc-value">${formatShort(Number(pipe==='tk'?l.valueTk:l.valueTc)||0)}</div>
             ${l.nextAction?`<div style="font-size:9.5px;color:var(--amber);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👉 ${l.nextAction}</div>`:''}
@@ -1654,7 +1755,7 @@ function renderLeads(){
           const st=getStageObj(l.stage);
           const pipe=getPipelineOfStage(l.stage||'tk_new');
           const sc=l.score>=80?'#0F5132':l.score>=60?'#7A3800':'#7B1A2B';
-          return`<tr onclick="openPanel(${l.id})">
+          return`<tr onclick="openPanel('${l.id}')">
             <td style="color:var(--mgray);font-family:'Be Vietnam Pro',sans-serif;font-size:10.5px">${i+1}</td>
             <td><div style="display:flex;align-items:center;gap:6px"><span class="health-dot ${leadHealth(l)}" title="${healthLabel(leadHealth(l))}"></span><div><div style="font-weight:600;font-size:12.5px">${l.name}</div><div style="font-size:10.5px;color:var(--mgray)">${l.nextAction?'👉 '+l.nextAction:(l.area||'–')}</div></div></div></td>
             <td style="font-family:'Be Vietnam Pro',sans-serif;font-size:11.5px">${l.phone}</td>
@@ -1665,8 +1766,8 @@ function renderLeads(){
             <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${l.score||0}%;background:${sc}"></div></div><div class="score-num">${l.score||0}</div></div></td>
             <td><div style="display:flex;align-items:center;gap:5px"><div style="width:22px;height:22px;border-radius:50%;background:${staffColor(l.owner)};color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">${staffInitials(l.owner)}</div><span style="font-size:11px;color:var(--mgray)">${staffName(l.owner)}</span></div></td>
             <td onclick="event.stopPropagation()"><div class="action-row">
-              <button class="icon-btn" title="Sửa" onclick="openEditLead(${l.id})">✏️</button>
-              <button class="icon-btn" title="Xóa" onclick="confirmDeleteLead(${l.id})">🗑️</button>
+              <button class="icon-btn" title="Sửa" onclick="openEditLead('${l.id}')">✏️</button>
+              <button class="icon-btn" title="Xóa" onclick="confirmDeleteLead('${l.id}')">🗑️</button>
             </div></td>
           </tr>`;
         }).join('')}</tbody>
@@ -1743,7 +1844,7 @@ function renderTasks(){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <div style="display:flex;gap:8px">
         <button class="btn btn-sm ${!activeKhId || activeKhId==='__global'?'btn-primary':'btn-outline'}" onclick="switchTaskView('__global')">📋 Tất cả</button>
-        <button class="btn btn-sm ${activeKhId && activeKhId!=='__global'?'btn-primary':'btn-outline'}" onclick="switchTaskView(${khList[0]?khList[0].id:'null'})">👤 Theo KH</button>
+        <button class="btn btn-sm ${activeKhId && activeKhId!=='__global'?'btn-primary':'btn-outline'}" onclick="switchTaskView('${khList[0]?khList[0].id:''}')">👤 Theo KH</button>
       </div>
       <button class="btn btn-primary btn-sm" onclick="openAddTask()">+ Thêm công việc</button>
     </div>
@@ -1862,7 +1963,7 @@ function renderTasksByKh(khList, selKh){
           const cnt = tasks.filter(t=>t.leadId==kh.id && !t.done).length;
           const khPipe = getPipe(kh.stage||'tk_new');
           const stObjKh = getStageObj(kh.stage);
-          return `<div class="task-kh-item ${activeKhId==kh.id?'active':''}" onclick="switchTaskView(${kh.id})">
+          return `<div class="task-kh-item ${activeKhId==kh.id?'active':''}" onclick="switchTaskView('${kh.id}')">
             <div class="task-kh-avatar" style="background:${SC[kh.stage]||'#555'}">${khPipe==='tc'?'🔨':'🎨'}</div>
             <div style="flex:1;min-width:0">
               <div class="task-kh-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${kh.name}</div>
@@ -1886,8 +1987,8 @@ function renderTasksByKh(khList, selKh){
             <div class="task-kh-hmeta">${selKh.type||'–'} · ${selKh.area||'–'} · ${stObj.label}</div>
           </div>
           <div style="display:flex;gap:7px">
-            <button class="btn btn-outline btn-sm" onclick="openPanel(${selKh.id})">Xem KH →</button>
-            <button class="btn btn-primary btn-sm" onclick="openAddTask(${selKh.id})">+ Thêm việc</button>
+            <button class="btn btn-outline btn-sm" onclick="openPanel('${selKh.id}')">Xem KH →</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddTask('${selKh.id}')">+ Thêm việc</button>
           </div>
         </div>
         <!-- Pipeline progress bar -->
@@ -1911,7 +2012,7 @@ function renderTasksByKh(khList, selKh){
             <div style="height:100%;background:var(--emerald);width:${Math.round(stageDoneCount/stageTotalCount*100)}%;border-radius:3px;transition:width .3s"></div>
           </div>
           <span style="font-size:11px;font-weight:600;color:var(--emerald);font-family:'Be Vietnam Pro',sans-serif">${stageDoneCount}/${stageTotalCount}</span>
-          ${stageDoneCount<stageTotalCount ? `<button class="btn btn-sm" style="background:var(--goldbg);color:var(--amber);font-size:10px;padding:3px 9px" onclick="createMissingChecklistTasks(${selKh.id},'${selKh.stage}')">+ Tạo lại việc mẫu</button>` : '<span style="font-size:10px;color:var(--emerald)">✅ Hoàn thành</span>'}
+          ${stageDoneCount<stageTotalCount ? `<button class="btn btn-sm" style="background:var(--goldbg);color:var(--amber);font-size:10px;padding:3px 9px" onclick="createMissingChecklistTasks('${selKh.id}','${selKh.stage}')">+ Tạo lại việc mẫu</button>` : '<span style="font-size:10px;color:var(--emerald)">✅ Hoàn thành</span>'}
         </div>` : ''}
       </div>
 
@@ -1942,8 +2043,8 @@ function renderTasksByKh(khList, selKh){
       ${pending.length===0 && done.length===0 ? `<div style="background:var(--white);border:1px solid #e8e4de;border-radius:10px;padding:32px;text-align:center;color:var(--mgray)">
         Chưa có công việc nào.<br>
         <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-          ${selKh && STAGE_CHECKLIST[selKh.stage]?.length ? `<button class="btn btn-primary btn-sm" onclick="createMissingChecklistTasks(${selKh.id},'${selKh.stage}')">📋 Tạo checklist mẫu (${STAGE_CHECKLIST[selKh.stage].length} việc)</button>` : ''}
-          <button class="btn btn-outline btn-sm" onclick="openAddTask(${selKh?selKh.id:''})">+ Thêm việc thủ công</button>
+          ${selKh && STAGE_CHECKLIST[selKh.stage]?.length ? `<button class="btn btn-primary btn-sm" onclick="createMissingChecklistTasks('${selKh.id}','${selKh.stage}')">📋 Tạo checklist mẫu (${STAGE_CHECKLIST[selKh.stage].length} việc)</button>` : ''}
+          <button class="btn btn-outline btn-sm" onclick="openAddTask('${selKh?selKh.id:''}')">+ Thêm việc thủ công</button>
         </div>
       </div>` : `
         ${renderKhTaskGroup('⚠️ Quá hạn', grouped.overdue, 'var(--ruby)')}
@@ -1970,7 +2071,7 @@ async function createMissingChecklistTasks(leadId, stage){
   const newTasks = missing.map((tpl,idx)=>{
     const dd=deadlineDays[tpl.urgency]||3;
     const dDate=new Date(); dDate.setDate(dDate.getDate()+dd);
-    return {id:Date.now()+idx+Math.random()*1000|0,text:tpl.text,type:tpl.type,urgency:tpl.urgency,leadId:Number(leadId),lead:l.name,date:dDate.toISOString().split('T')[0],time:'09:00',assignee:l.owner||currentUser?.id||'',note:tpl.tip||'',sla:tpl.sla||'',done:false,created:new Date().toISOString(),due:dDate.toISOString().split('T')[0],isTemplate:true,stage};
+    return {id:newId(),text:tpl.text,type:tpl.type,urgency:tpl.urgency,leadId:l.id,lead:l.name,date:dDate.toISOString().split('T')[0],time:'09:00',assignee:l.owner||currentUser?.id||'',note:tpl.tip||'',sla:tpl.sla||'',done:false,created:new Date().toISOString(),updatedAt:Date.now(),due:dDate.toISOString().split('T')[0],isTemplate:true,stage};
   });
   tasks.push(...newTasks);
   saveLocal(); renderTasks(); updateBadges();
@@ -2034,7 +2135,7 @@ function populateTaskKhDropdown(selectedLeadId=''){
 }
 
 function populateTaskAssigneeDropdown(selectedId=''){
-  const staffList = loadStaffList();
+  const staffList = loadStaffList().filter(s=>s.perm && s.active!==false);
   const sel = document.getElementById('t-assignee');
   if(!sel) return;
   sel.innerHTML = staffList.map(s=>`<option value="${s.id}" ${s.id===selectedId||(selectedId===''&&s.id===currentUser.id)?'selected':''}>${s.name}</option>`).join('');
@@ -2047,16 +2148,18 @@ async function saveTask(){
   if(!date){toast('⚠️ Chọn ngày thực hiện!','⚠️');return;}
 
   const leadIdRaw = document.getElementById('t-lead-id').value;
-  const leadId = leadIdRaw ? Number(leadIdRaw) : null;
+  // Không ép Number (ID mới là chuỗi). Tìm đúng lead bằng so sánh ==, lấy lại id gốc.
+  const leadId = leadIdRaw ? ((leads.find(l=>String(l.id)===String(leadIdRaw))||{}).id ?? leadIdRaw) : null;
 
   if(editingTaskId){
     const t = tasks.find(t=>String(t.id)===String(editingTaskId));
     if(!t) return;
     Object.assign(t,{text, type:document.getElementById('t-type').value, urgency:document.getElementById('t-urgency').value, leadId, date, time:document.getElementById('t-time').value, assignee:document.getElementById('t-assignee').value, note:document.getElementById('t-note').value});
+    touch(t);
     toast('✅ Đã cập nhật công việc!');
   } else {
     const task = {
-      id: Date.now(),
+      id: newId(),
       text,
       type: document.getElementById('t-type').value,
       urgency: document.getElementById('t-urgency').value,
@@ -2067,6 +2170,7 @@ async function saveTask(){
       note: document.getElementById('t-note').value,
       done: false,
       created: new Date().toISOString(),
+      updatedAt: Date.now(),
       // keep lead field for backward compat
       lead: leadId ? (leads.find(l=>l.id==leadId)||{}).name||'' : 'Chung',
       due: date + (document.getElementById('t-time').value ? ' ' + document.getElementById('t-time').value : ''),
@@ -2092,6 +2196,7 @@ async function toggleTask(id,e){
   if(!t)return;
   t.done=!t.done;
   t.doneAt=t.done?new Date().toISOString():null;
+  touch(t);
   logActivity(t.done?'completeTask':'uncompleteTask','CV',t.id,t.text,
     `KH: ${t.lead||'–'}${t.stage?' · GĐ: '+t.stage:''}`,t.stage||'','');
   // Hoàn thành task gắn KH → tự ghi nhận đã tương tác với KH
@@ -2101,6 +2206,7 @@ async function toggleTask(id,e){
       l.lastContact=new Date().toISOString().split('T')[0];
       if(!Array.isArray(l.history))l.history=[];
       l.history.unshift({t:'✓ Hoàn thành: '+t.text,time:nowStr()});
+      touch(l);
       pushLead(l);
     }
   }
@@ -2376,15 +2482,15 @@ function openPanel(id){
       ${l.inBothPipelines?`<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;background:#FFF0E0;color:#7A3800">⚡ Có trong cả 2 Pipeline</span>`:''}
     </div>
     ${canEdit?`<div class="quick-actions">
-      <div class="qa-btn" onclick="quickLogContact(${l.id})"><span class="qa-emoji">📞</span>Đã liên hệ</div>
-      <div class="qa-btn" onclick="openAddTask(${l.id});closePanel()"><span class="qa-emoji">📅</span>Đặt lịch</div>
-      <div class="qa-btn" onclick="openEditLead(${l.id})"><span class="qa-emoji">✏️</span>Sửa TT</div>
+      <div class="qa-btn" onclick="quickLogContact('${l.id}')"><span class="qa-emoji">📞</span>Đã liên hệ</div>
+      <div class="qa-btn" onclick="openAddTask('${l.id}');closePanel()"><span class="qa-emoji">📅</span>Đặt lịch</div>
+      <div class="qa-btn" onclick="openEditLead('${l.id}')"><span class="qa-emoji">✏️</span>Sửa TT</div>
       <div class="qa-btn" onclick="document.getElementById('qn-${l.id}')?.focus()"><span class="qa-emoji">📝</span>Ghi chú</div>
     </div>`:''}
     <div class="next-action-box ${l.nextAction?'':'next-action-empty'}">
       <span class="na-icon">${l.nextAction?'👉':'💡'}</span>
       <div class="na-text">${l.nextAction?l.nextAction+(l.nextDate?` <span style="font-family:'Be Vietnam Pro',sans-serif;font-size:11px">(${new Date(l.nextDate).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit'})})</span>`:''):'Chưa đặt hành động tiếp theo — hãy lên kế hoạch để không bỏ lỡ KH'}</div>
-      ${canEdit?`<button class="btn btn-outline btn-sm" style="font-size:10px" onclick="openEditLead(${l.id})">Đặt</button>`:''}
+      ${canEdit?`<button class="btn btn-outline btn-sm" style="font-size:10px" onclick="openEditLead('${l.id}')">Đặt</button>`:''}
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:9px 12px;background:var(--lgray);border-radius:8px">
       <span class="health-dot ${leadHealth(l)}"></span>
@@ -2411,23 +2517,23 @@ function openPanel(id){
     <div class="stage-selector">
       ${stages.map(s=>`<div class="stage-btn ${l.stage===s.id?'active':''} ${s.autoTransfer?'highlight-auto':''}" 
         style="--stage-bg:${getSBG(s.id)};--stage-c:${getSC(s.id)};--stage-bc:${getSC(s.id)}" 
-        onclick="updateStage(${l.id},'${s.id}')" 
+        onclick="updateStage('${l.id}','${s.id}')" 
         title="${s.autoTransfer?'⚡ Giai đoạn này sẽ hỏi chuyển sang Pipeline Thi công':''}">${s.label}${s.autoTransfer?' ⚡':''}</div>`).join('')}
     </div>
     ${l.inBothPipelines?`<div style="margin-bottom:16px">
       <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mgray);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #ede9e1">⚡ Giai đoạn Thi công</div>
       <div style="font-size:12px;color:var(--charcoal);background:var(--lgray);padding:8px 12px;border-radius:7px">
         ${getStageObj(l.stageTc||'tc_new').label} 
-        <button class="btn btn-sm btn-tc" style="margin-left:8px;font-size:10px" onclick="switchPanelToTC(${l.id})">Xem TC →</button>
+        <button class="btn btn-sm btn-tc" style="margin-left:8px;font-size:10px" onclick="switchPanelToTC('${l.id}')">Xem TC →</button>
       </div>
     </div>`:''}
-    <div class="section-title">📜 Lịch sử <button class="btn btn-outline btn-sm" style="font-size:10px" onclick="openEditLead(${l.id})">✏️ Sửa</button></div>
+    <div class="section-title">📜 Lịch sử <button class="btn btn-outline btn-sm" style="font-size:10px" onclick="openEditLead('${l.id}')">✏️ Sửa</button></div>
     <div class="timeline">${(Array.isArray(l.history)?l.history:[]).map(h=>`<div class="tl-item"><div class="tl-dot"></div><div><div class="tl-text">${h.t}</div><div class="tl-time">${h.time}</div></div></div>`).join('')||'<div style="color:var(--mgray);font-size:12px">Chưa có lịch sử</div>'}</div>
     <div class="note-input">
       <textarea id="qn-${l.id}" placeholder="Ghi chú nhanh..."></textarea>
-      <button class="btn btn-primary" style="height:65px;white-space:nowrap;font-size:12px" onclick="saveNote(${l.id})">💾 Lưu</button>
+      <button class="btn btn-primary" style="height:65px;white-space:nowrap;font-size:12px" onclick="saveNote('${l.id}')">💾 Lưu</button>
     </div>
-    <button class="btn btn-outline btn-sm" style="width:100%;margin-top:7px;font-size:11.5px" onclick="openAddTask(${l.id});closePanel()">📝 Thêm công việc cho KH này</button>
+    <button class="btn btn-outline btn-sm" style="width:100%;margin-top:7px;font-size:11.5px" onclick="openAddTask('${l.id}');closePanel()">📝 Thêm công việc cho KH này</button>
     </div>`;
 }
 
@@ -2462,6 +2568,7 @@ async function updateStage(id,stage){
     l.stage='tk_quote_tc';
     if(!Array.isArray(l.history)) l.history=[];
     l.history.unshift({t:`Cập nhật: ${old} → Báo giá TC`,time:nowStr()});
+    touch(l);
     saveLocal(); openPanel(id);
     rerenderCurrent();
 
@@ -2476,6 +2583,7 @@ async function updateStage(id,stage){
   if(!Array.isArray(l.history)) l.history=[];
   l.history.unshift({t:`Cập nhật: ${old} → ${nw}`,time:nowStr()});
   l.lastContact=new Date().toISOString().split('T')[0];
+  touch(l);
   // Tự động tạo checklist tasks cho giai đoạn mới
   const newChkTasks = createStageChecklistTasks(l, stage);
   if(newChkTasks.length > 0){
@@ -2506,6 +2614,7 @@ async function handleTransferAccept(id){
   l.history.unshift({t:'⚡ Chuyển sang Pipeline Thi công (giai đoạn: Mới)',time:nowStr()});
   l.history.unshift({t:'TK → Nghiệm thu TK (đã nghiệm thu thiết kế)',time:nowStr()});
   l.lastContact=new Date().toISOString().split('T')[0];
+  touch(l);
   saveLocal(); closePanel(); rerenderCurrent();
   await pushLead(l);
   toast(`⚡ ${l.name} đã chuyển sang Pipeline Thi công!`);
@@ -2522,6 +2631,7 @@ async function handleTransferReject(id){
   if(!Array.isArray(l.history)) l.history=[];
   l.history.unshift({t:`KH không đồng ý báo giá TC → Nghiệm thu TK`,time:nowStr()});
   l.lastContact=new Date().toISOString().split('T')[0];
+  touch(l);
   saveLocal(); closePanel(); rerenderCurrent();
   await pushLead(l);
   toast(`KH chuyển sang Nghiệm thu TK`);
@@ -2534,6 +2644,7 @@ async function saveNote(id){
   if(!Array.isArray(l.history)) l.history=[];
   l.history.unshift({t:txt,time:nowStr()});
   l.lastContact=new Date().toISOString().split('T')[0];
+  touch(l);
   logActivity('addNote','KH',l.id,l.name,txt.slice(0,80),l.stage||'','');
   ta.value=''; saveLocal(); openPanel(id);
   await pushLead(l);
@@ -2611,12 +2722,13 @@ async function saveLead(){
     Object.assign(l,{name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||l.valueTk||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||l.valueTc||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,owner:document.getElementById('f-owner').value,score:parseInt(document.getElementById('f-score').value)||50,stage,note:document.getElementById('f-note').value,nextAction:(document.getElementById('f-next-action')||{}).value||'',nextDate:(document.getElementById('f-next-date')||{}).value||'',lastContact:now});
     if(!Array.isArray(l.history)) l.history=[];
     l.history.unshift({t:'Cập nhật thông tin KH',time:nowStr()});
+    touch(l);
     saveLocal(); closeModal(); rerenderCurrent();
     await pushLead(l);
     logActivity('editLead','KH',l.id,l.name,`Sửa thông tin KH`,'','');
     toast(`✅ Đã cập nhật: ${name}!`);
   } else {
-    const newLead={id:Date.now(),name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,stage,score:parseInt(document.getElementById('f-score').value)||50,owner:document.getElementById('f-owner').value,note:document.getElementById('f-note').value,nextAction:(document.getElementById('f-next-action')||{}).value||'',nextDate:(document.getElementById('f-next-date')||{}).value||'',created:now,lastContact:now,inBothPipelines:false,history:[{t:`KH mới từ ${document.getElementById('f-source').value}`,time:nowStr()}]};
+    const newLead={id:newId(),name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,stage,score:parseInt(document.getElementById('f-score').value)||50,owner:document.getElementById('f-owner').value,note:document.getElementById('f-note').value,nextAction:(document.getElementById('f-next-action')||{}).value||'',nextDate:(document.getElementById('f-next-date')||{}).value||'',created:now,lastContact:now,inBothPipelines:false,updatedAt:Date.now(),history:[{t:`KH mới từ ${document.getElementById('f-source').value}`,time:nowStr()}]};
     leads.unshift(newLead); saveLocal(); closeModal(); rerenderCurrent();
     await pushLead(newLead);
     logActivity('addLead','KH',newLead.id,newLead.name,`Nguồn: ${newLead.source} · Giai đoạn: ${newLead.stage}`,'',newLead.stage);
@@ -2720,9 +2832,16 @@ if(restoreSession()){
 }
 // Else: login screen đã hiển thị sẵn
 
-// Auto-sync mỗi 30s
-setInterval(()=>{if(currentUser&&getApiUrl()&&!isSyncing)syncFromSheets().then(()=>{if(currentUser)rerenderCurrent();});},30*1000);
+// Hiển thị số mục đang chờ đồng bộ (nếu có từ phiên trước)
+updatePendingBadge();
+
+// Auto-sync định kỳ (45s). syncFromSheets đã tự flushQueue trước khi kéo về.
+setInterval(()=>{if(currentUser&&getApiUrl()&&!isSyncing)syncFromSheets().then(()=>{if(currentUser)rerenderCurrent();});},45*1000);
+// Thử đẩy lại hàng đợi offline thường xuyên hơn (15s) — không kéo data, nhẹ
+setInterval(()=>{if(getApiUrl()&&loadQueue().length)flushQueue();},15*1000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&currentUser&&getApiUrl()&&!isSyncing)syncFromSheets();});
+// Khi có mạng trở lại → đẩy ngay hàng đợi
+window.addEventListener('online',()=>{if(getApiUrl())flushQueue();});
 
 // Mobile sidebar
 function toggleSidebar(){document.querySelector('.sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open');}
