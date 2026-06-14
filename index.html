@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v6.5</title>
+<title>MDC Interior — Sales CRM v6.8</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,10 +460,10 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v6.5</div>
+    <div class="login-sub">Sales CRM v6.8</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
-      <input class="login-input" id="login-username" placeholder="username" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+      <input class="login-input" id="login-username" placeholder="Email hoặc số điện thoại" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
     <div class="login-form-group">
       <label class="login-label">Mật khẩu</label>
@@ -478,7 +478,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v6.5</div>
+    <div class="brand-sub">Sales CRM v6.8</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -614,35 +614,32 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group"><label class="form-label">Họ tên *</label><input type="text" class="form-input" id="sf-name"></div>
-        <div class="form-group"><label class="form-label">Username *</label><input type="text" class="form-input" id="sf-username" autocomplete="off"></div>
         <div class="form-group"><label class="form-label">Mật khẩu *</label><input type="password" class="form-input" id="sf-password" autocomplete="new-password"></div>
         <div class="form-group"><label class="form-label">Xác nhận MK</label><input type="password" class="form-input" id="sf-password2" autocomplete="new-password"></div>
         <div class="form-group"><label class="form-label">Chức vụ</label><input type="text" class="form-input" id="sf-role-title" placeholder="Sale Executive"></div>
-        <div class="form-group"><label class="form-label">SĐT</label><input type="text" class="form-input" id="sf-phone"></div>
-        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="sf-email"></div>
-        <div class="form-group"><label class="form-label">Phân quyền</label>
-          <select class="form-input" id="sf-perm">
-            <option value="admin">🔑 Admin — Toàn quyền</option>
-            <option value="manager">👁️ Manager — Xem tất cả, sửa KH mình</option>
-            <option value="staff" selected>👤 Staff — Chỉ KH được phân công</option>
-            <option value="">🚫 Không vào CRM (chỉ làm PM)</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Vai trò bên Thi công (PM)</label>
-          <select class="form-input" id="sf-role-pm">
-            <option value="">— Không tham gia PM —</option>
-            <option value="super_admin">👑 Super Admin</option>
-            <option value="pm">📋 Project Manager</option>
-            <option value="team_lead">🔧 Thợ trưởng (Team Lead)</option>
-            <option value="worker">👷 Thợ (Worker)</option>
-            <option value="client">🤝 Khách hàng (Client)</option>
-            <option value="guest">👁️ Khách xem (Guest)</option>
+        <div class="form-group"><label class="form-label">SĐT <span style="font-weight:400;color:var(--mgray)">(dùng đăng nhập được)</span></label><input type="text" class="form-input" id="sf-phone"></div>
+        <div class="form-group"><label class="form-label">Email <span style="font-weight:400;color:var(--mgray)">(dùng đăng nhập được)</span></label><input type="email" class="form-input" id="sf-email"></div>
+        <div class="form-group"><label class="form-label">Cấp bậc *</label>
+          <select class="form-input" id="sf-cap-bac">
+            <option value="nhanvien" selected>Nhân viên</option>
+            <option value="quanly">Quản lý</option>
+            <option value="truongphong">Trưởng phòng</option>
+            <option value="giamdoc">Giám đốc</option>
+            <option value="tonggiamdoc">Tổng giám đốc</option>
           </select>
         </div>
         <div class="form-group"><label class="form-label">Trạng thái</label>
           <select class="form-input" id="sf-active">
             <option value="true" selected>✅ Đang làm việc</option>
             <option value="false">⛔ Đã nghỉ (khóa cả CRM & PM)</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Cấp phê duyệt (bên Thi công) <span style="font-weight:400;color:var(--mgray)">— để trống nếu không có quyền duyệt</span></label>
+          <select class="form-input" id="sf-cap-duyet">
+            <option value="">— Không có quyền duyệt —</option>
+            <option value="Quản lý">Quản lý</option>
+            <option value="Giám đốc">Giám đốc</option>
+            <option value="Tổng giám đốc">Tổng giám đốc</option>
           </select>
         </div>
         <div class="form-group"><label class="form-label">Màu đại diện</label>
@@ -713,20 +710,31 @@ let currentUser = null;
 function loadStaffList(){try{return JSON.parse(localStorage.getItem(LS_STAFF)||'[]')}catch(e){return[]}}
 function saveStaffList(arr){localStorage.setItem(LS_STAFF,JSON.stringify(arr))}
 // Chuẩn hóa nhân sự đến từ Sheets — ưu tiên cột tiếng Việt (nguồn hiển thị chính)
+function normCapBac(raw){
+  const v=String(raw||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').trim();
+  if(v.indexOf('tong giam doc')>-1||v==='tonggiamdoc'||v==='tgd')return'tonggiamdoc';
+  if(v.indexOf('giam doc')>-1||v==='giamdoc'||v==='gd'||v==='admin'||v==='super_admin')return'giamdoc';
+  if(v.indexOf('truong phong')>-1||v==='truongphong'||v==='tp')return'truongphong';
+  if(v.indexOf('quan ly')>-1||v==='quanly'||v==='manager'||v==='pm')return'quanly';
+  if(v.indexOf('nhan vien')>-1||v==='nhanvien'||v==='staff'||v==='worker'||v==='team_lead'||v==='guest'||v==='client')return'nhanvien';
+  return v?'nhanvien':'nhanvien';
+}
+function capBacToPerm(cb){const c=String(cb||'').toLowerCase();if(c==='giamdoc'||c==='tonggiamdoc')return'admin';if(c==='quanly'||c==='truongphong')return'manager';return'staff';}
 function normalizeStaff(arr){
   if(!Array.isArray(arr)) return [];
   return arr.map(o=>{
     o=Object.assign({},o);
     if(o['Mã NV']) o.id=o['Mã NV']; else if(!o.id) o.id='';
     if(o['Họ tên']) o.name=o['Họ tên']; else if(!o.name) o.name='';
-    if(o['Chức danh']) o.roleTitle=o['Chức danh'];
-    if(o['SĐT']) o.phone=o['SĐT'];
-    if(o.Email){o.email=o.Email; if(!o.username) o.username=o.Email;}
-    if(o['Mật khẩu']) o.password=o['Mật khẩu'];
-    if(!o.perm && o['Vai trò']){const vt=String(o['Vai trò']).toLowerCase();o.perm=vt==='admin'?'admin':vt==='quanly'?'manager':'staff';}
+    if(o['Chức danh']!=null) o.roleTitle=o['Chức danh'];
+    if(o['SĐT']!=null) o.phone=o['SĐT'];
+    if(o.Email!=null) o.email=o.Email;
+    if(o['Mật khẩu']!=null) o.password=o['Mật khẩu'];
+    o.capBac=normCapBac(o['Vai trò']||o.capBac||o.perm);
+    o.perm=capBacToPerm(o.capBac);
+    o.username=o.email||o.phone||'';
+    if(o['Cấp duyệt']!==undefined) o.capDuyet=o['Cấp duyệt'];
     if(o['Trạng thái']) o.active=String(o['Trạng thái']).indexOf('Nghỉ')===-1;
-    else if(o.active===false||o.active==='FALSE') o.active=false;
-    else if(o.active===true||o.active==='TRUE') o.active=true;
     else o.active=true;
     if(!o.initials && o.name) o.initials=o.name.trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     return o;
@@ -736,22 +744,25 @@ function normalizeStaff(arr){
 function initDefaultStaff(){
   const list=loadStaffList();
   if(!list.length){
-    const def=[{id:'admin_001',name:'Quản lý MDC',username:'admin',password:'admin123',roleTitle:'Giám đốc',phone:'',email:'admin@mdc.vn',perm:'admin',rolePM:'super_admin',active:true,branch:'Huế',color:'#7A3800',initials:'AD'}];
+    const def=[{id:'admin_001','Mã NV':'admin_001',name:'Quản lý MDC',password:'admin123',roleTitle:'Giám đốc',phone:'',email:'admin@mdc.vn',capBac:'tonggiamdoc','Vai trò':'tonggiamdoc',perm:'admin',username:'admin@mdc.vn',active:true,capDuyet:'Tổng giám đốc','Cấp duyệt':'Tổng giám đốc',color:'#7A3800',initials:'AD'}];
     saveStaffList(def);return def;
   }
   return list;
 }
 
 function doLogin(){
-  const u=document.getElementById('login-username').value.trim().toLowerCase();
+  const raw=document.getElementById('login-username').value.trim().toLowerCase();
+  const rawPhone=raw.replace(/[^0-9]/g,'');
   const p=document.getElementById('login-password').value;
   const err=document.getElementById('login-error');
-  const found=loadStaffList().find(s=>s.username.toLowerCase()===u&&s.password===p);
-  if(!found){err.classList.add('show');return;}
-  // Chặn người đã nghỉ việc (khóa toàn hệ thống)
+  const found=loadStaffList().find(s=>{
+    const em=(s.email||'').toLowerCase().trim();
+    const ph=String(s.phone||'').replace(/[^0-9]/g,'');
+    const matchUser=(em&&em===raw)||(rawPhone&&ph&&ph===rawPhone);
+    return matchUser && s.password===p;
+  });
+  if(!found){err.textContent='Sai tài khoản hoặc mật khẩu';err.classList.add('show');return;}
   if(found.active===false){err.textContent='⛔ Tài khoản đã bị khóa (đã nghỉ việc)';err.classList.add('show');return;}
-  // Chặn người không có quyền CRM (chỉ làm bên PM)
-  if(!found.perm){err.textContent='⛔ Tài khoản này không có quyền vào CRM';err.classList.add('show');return;}
   err.classList.remove('show');
   currentUser=found;
   localStorage.setItem(LS_SESSION,JSON.stringify({id:found.id,at:Date.now()}));
@@ -837,8 +848,8 @@ let editingStaffId=null;
 
 function renderStaff(){
   const staffList=loadStaffList();
-  const permLabel={admin:'🔑 Admin',manager:'👁️ Manager',staff:'👤 Staff'};
-  const permClass={admin:'role-admin',manager:'role-manager',staff:'role-staff'};
+  const capBacLabel={nhanvien:'Nhân viên',quanly:'Quản lý',truongphong:'Trưởng phòng',giamdoc:'Giám đốc',tonggiamdoc:'Tổng giám đốc'};
+  const capBacClass={tonggiamdoc:'role-admin',giamdoc:'role-admin',truongphong:'role-manager',quanly:'role-manager',nhanvien:'role-staff'};
   document.getElementById('page-content').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div><div style="font-size:16px;font-weight:600;color:var(--navy)">👤 Quản lý Nhân sự & Phân quyền</div>
@@ -866,8 +877,9 @@ function renderStaff(){
           <div class="staff-name">${s.name}${inactive?' <span style="font-size:10px;color:var(--ruby)">⛔ Đã nghỉ</span>':''}</div>
           <div class="staff-meta">@${s.username} · ${s.roleTitle||'–'}</div>
           <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-top:4px">
-            ${s.perm?`<span class="badge ${permClass[s.perm]||'role-staff'}" style="font-size:10px;padding:2px 9px;border-radius:12px">${permLabel[s.perm]||s.perm}</span>`:'<span style="font-size:10px;color:var(--mgray)">— CRM: không —</span>'}
+            <span class="badge ${capBacClass[s.capBac]||'role-staff'}" style="font-size:10px;padding:2px 9px;border-radius:12px">${capBacLabel[s.capBac]||'Nhân viên'}</span>
             ${s.rolePM?`<span class="badge" style="font-size:10px;padding:2px 9px;border-radius:12px;background:#E7F2EB;color:#2E7D4F">${pmLabel[s.rolePM]||s.rolePM}</span>`:''}
+            ${(s.capDuyet||s['Cấp duyệt'])?`<span class="badge" style="font-size:10px;padding:2px 9px;border-radius:12px;background:#FBF0DC;color:#8F6A2B">✔ Duyệt: ${s.capDuyet||s['Cấp duyệt']}</span>`:''}
           </div>
           <div style="margin-top:8px;font-size:11px;color:var(--mgray)">${khCount} KH phụ trách · ${s.phone||s.email||'–'}</div>
         </div>`;
@@ -879,10 +891,10 @@ function openAddStaff(){
   editingStaffId=null;
   document.getElementById('staff-modal-title').textContent='👤 Thêm nhân sự mới';
   document.getElementById('staff-save-btn').textContent='💾 Thêm';
-  ['sf-name','sf-username','sf-password','sf-password2','sf-role-title','sf-phone','sf-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('sf-perm').value='staff';
-  document.getElementById('sf-role-pm').value='';
+  ['sf-name','sf-password','sf-password2','sf-role-title','sf-phone','sf-email'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('sf-cap-bac').value='nhanvien';
   document.getElementById('sf-active').value='true';
+  document.getElementById('sf-cap-duyet').value='';
   document.getElementById('sf-color').value='#0F3460';
   document.getElementById('sf-edit-note').style.display='none';
   document.getElementById('staff-modal').classList.add('open');
@@ -894,15 +906,14 @@ function openEditStaff(id){
   document.getElementById('staff-modal-title').textContent=`✏️ Sửa – ${s.name}`;
   document.getElementById('staff-save-btn').textContent='💾 Cập nhật';
   document.getElementById('sf-name').value=s.name;
-  document.getElementById('sf-username').value=s.username;
   document.getElementById('sf-password').value='';
   document.getElementById('sf-password2').value='';
   document.getElementById('sf-role-title').value=s.roleTitle||'';
   document.getElementById('sf-phone').value=s.phone||'';
   document.getElementById('sf-email').value=s.email||'';
-  document.getElementById('sf-perm').value=s.perm||'staff';
-  document.getElementById('sf-role-pm').value=s.rolePM||'';
+  document.getElementById('sf-cap-bac').value=s.capBac||normCapBac(s['Vai trò']||s.perm);
   document.getElementById('sf-active').value=(s.active===false)?'false':'true';
+  document.getElementById('sf-cap-duyet').value=s.capDuyet||s['Cấp duyệt']||'';
   document.getElementById('sf-color').value=s.color||'#0F3460';
   document.getElementById('sf-edit-note').style.display='block';
   document.getElementById('staff-modal').classList.add('open');
@@ -911,25 +922,30 @@ function closeStaffModal(){document.getElementById('staff-modal').classList.remo
 
 function saveStaffMember(){
   const name=document.getElementById('sf-name').value.trim();
-  const username=document.getElementById('sf-username').value.trim().toLowerCase();
+  const email=document.getElementById('sf-email').value.trim();
+  const phone=document.getElementById('sf-phone').value.trim();
   const pw=document.getElementById('sf-password').value;
   const pw2=document.getElementById('sf-password2').value;
-  if(!name||!username){toast('⚠️ Nhập Tên và Username','⚠️');return;}
+  if(!name){toast('⚠️ Nhập Họ tên','⚠️');return;}
+  if(!email&&!phone){toast('⚠️ Cần Email hoặc SĐT để đăng nhập','⚠️');return;}
   if(!editingStaffId&&!pw){toast('⚠️ Nhập mật khẩu','⚠️');return;}
   if(pw&&pw!==pw2){toast('⚠️ Mật khẩu không khớp','⚠️');return;}
   const staffList=loadStaffList();
-  if(staffList.find(s=>s.username.toLowerCase()===username&&s.id!==editingStaffId)){toast('⚠️ Username đã tồn tại','⚠️');return;}
+  if(email&&staffList.find(s=>(s.email||'').toLowerCase()===email.toLowerCase()&&s.id!==editingStaffId)){toast('⚠️ Email đã tồn tại','⚠️');return;}
+  if(phone&&staffList.find(s=>String(s.phone||'').replace(/[^0-9]/g,'')===phone.replace(/[^0-9]/g,'')&&s.id!==editingStaffId)){toast('⚠️ SĐT đã tồn tại','⚠️');return;}
   const color=document.getElementById('sf-color').value;
   const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   if(editingStaffId){
     const idx=staffList.findIndex(s=>s.id===editingStaffId);if(idx<0)return;
-    staffList[idx]={...staffList[idx],name,username,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,perm:document.getElementById('sf-perm').value,rolePM:document.getElementById('sf-role-pm').value,active:document.getElementById('sf-active').value==='true',color,initials};
+    const cb=document.getElementById('sf-cap-bac').value;
+    staffList[idx]={...staffList[idx],name,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,capBac:cb,'Vai trò':cb,perm:capBacToPerm(cb),username:document.getElementById('sf-email').value||document.getElementById('sf-phone').value,active:document.getElementById('sf-active').value==='true',capDuyet:document.getElementById('sf-cap-duyet').value,'Cấp duyệt':document.getElementById('sf-cap-duyet').value,color,initials};
     if(pw)staffList[idx].password=pw;
     toast(`✅ Đã cập nhật: ${name}`);
   }else{
     const maxNV=staffList.reduce((mx,s)=>{const m=String(s['Mã NV']||s.id||'').match(/NV(\d+)/);return m?Math.max(mx,+m[1]):mx;},0);
     const newMaNV='NV'+String(maxNV+1).padStart(3,'0');
-    staffList.push({id:newMaNV,'Mã NV':newMaNV,name,username,password:pw,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,perm:document.getElementById('sf-perm').value,rolePM:document.getElementById('sf-role-pm').value,active:document.getElementById('sf-active').value==='true',color,initials});
+    const cb=document.getElementById('sf-cap-bac').value;
+    staffList.push({id:newMaNV,'Mã NV':newMaNV,name,password:pw,roleTitle:document.getElementById('sf-role-title').value,phone:document.getElementById('sf-phone').value,email:document.getElementById('sf-email').value,capBac:cb,'Vai trò':cb,perm:capBacToPerm(cb),username:document.getElementById('sf-email').value||document.getElementById('sf-phone').value,active:document.getElementById('sf-active').value==='true',capDuyet:document.getElementById('sf-cap-duyet').value,'Cấp duyệt':document.getElementById('sf-cap-duyet').value,color,initials});
     toast(`✅ Đã thêm: ${name}`);
   }
   saveStaffList(staffList);closeStaffModal();renderStaff();populateOwnerDropdown();
@@ -938,10 +954,15 @@ function saveStaffMember(){
 
 function confirmDeleteStaff(id){
   const s=loadStaffList().find(s=>s.id===id);if(!s)return;
-  if(s.id===currentUser.id){toast('⚠️ Không thể xóa tài khoản đang dùng','⚠️');return;}
-  showConfirm('🗑️','Xóa nhân sự',`Xóa "${s.name}"?`,()=>{
-    saveStaffList(loadStaffList().filter(s=>s.id!==id));
-    renderStaff();populateOwnerDropdown();toast(`🗑️ Đã xóa: ${s.name}`);
+  if(s.id===currentUser.id){toast('⚠️ Không thể khóa tài khoản đang dùng','⚠️');return;}
+  showConfirm('🔒','Cho nghỉ việc',`Đánh dấu "${s.name}" đã nghỉ việc? Tài khoản sẽ bị khóa ở CẢ CRM và PM, nhưng lịch sử công việc được giữ lại.`,()=>{
+    const list=loadStaffList();
+    const t=list.find(x=>x.id===id);
+    if(t){ t.active=false; t['Trạng thái']='Nghỉ việc'; }
+    saveStaffList(list);
+    renderStaff();populateOwnerDropdown();
+    pushStaff(list);
+    toast(`🔒 Đã cho nghỉ: ${s.name}`);
   });
 }
 
