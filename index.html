@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v7.2</title>
+<title>MDC Interior — Sales CRM v7.3</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,7 +460,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v7.2</div>
+    <div class="login-sub">Sales CRM v7.3</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
       <input class="login-input" id="login-username" placeholder="Email hoặc số điện thoại" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -478,7 +478,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v7.2</div>
+    <div class="brand-sub">Sales CRM v7.3</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -750,17 +750,30 @@ function initDefaultStaff(){
   return list;
 }
 
-function doLogin(){
+async function doLogin(){
   const raw=document.getElementById('login-username').value.trim().toLowerCase();
   const rawPhone=raw.replace(/[^0-9]/g,'');
   const p=document.getElementById('login-password').value;
   const err=document.getElementById('login-error');
-  const found=loadStaffList().find(s=>{
+  // Chuẩn hóa SĐT VN: bỏ '84' hoặc '0' ở đầu để +84/0xxx/xxx đều khớp
+  const normPhone=x=>{let d=String(x||'').replace(/[^0-9]/g,'');if(d.indexOf('84')===0&&d.length>=11)d=d.slice(2);if(d.indexOf('0')===0)d=d.slice(1);return d;};
+  const rawP=normPhone(rawPhone);
+  const matchFn=s=>{
     const em=(s.email||'').toLowerCase().trim();
-    const ph=String(s.phone||'').replace(/[^0-9]/g,'');
-    const matchUser=(em&&em===raw)||(rawPhone&&ph&&ph===rawPhone);
+    const ph=normPhone(s.phone);
+    const matchUser=(em&&em===raw)||(rawP&&ph&&ph===rawP);
     return matchUser && s.password===p;
-  });
+  };
+  let found=loadStaffList().find(matchFn);
+  // Không thấy → có thể staff chưa tải về (điện thoại mới). Thử kéo từ Sheets rồi tìm lại.
+  if(!found && getApiUrl()){
+    err.textContent='⏳ Đang tải danh sách nhân sự...';err.classList.add('show');
+    try{
+      const data=await apiFetch({action:'getAll'});
+      if(data && data.staff && data.staff.length){ saveStaffList(normalizeStaff(data.staff)); }
+    }catch(e){}
+    found=loadStaffList().find(matchFn);
+  }
   if(!found){err.textContent='Sai tài khoản hoặc mật khẩu';err.classList.add('show');return;}
   if(found.active===false){err.textContent='⛔ Tài khoản đã bị khóa (đã nghỉ việc)';err.classList.add('show');return;}
   err.classList.remove('show');
@@ -2913,6 +2926,23 @@ updateStageDropdown();
 
 // Khởi tạo staff mặc định
 initDefaultStaff();
+
+// ✅ SỬA LỖI ĐĂNG NHẬP MOBILE: kéo danh sách nhân sự từ Sheets về TRƯỚC khi đăng nhập.
+// Thiết bị mới (điện thoại) có localStorage trống → chỉ có admin mặc định →
+// không đăng nhập được bằng tài khoản thật. Preload khắc phục điều này.
+async function preloadStaffForLogin(){
+  try{
+    if(!getApiUrl()) return;
+    const loginBox=document.getElementById('login-error');
+    const data=await apiFetch({action:'getAll'});
+    if(data && data.staff && Array.isArray(data.staff) && data.staff.length>0){
+      saveStaffList(normalizeStaff(data.staff));
+      console.log('✅ Đã tải '+data.staff.length+' nhân sự từ Sheets cho đăng nhập');
+    }
+  }catch(e){ console.warn('Preload staff lỗi (vẫn đăng nhập được bằng dữ liệu local):', e); }
+}
+// Chạy preload ngay khi mở app (không chặn giao diện)
+preloadStaffForLogin();
 
 // Restore session (nếu đã đăng nhập trước đó, < 8 tiếng)
 if(restoreSession()){
