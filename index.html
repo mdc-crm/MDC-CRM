@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v7.0</title>
+<title>MDC Interior — Sales CRM v7.2</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,7 +460,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v7.0</div>
+    <div class="login-sub">Sales CRM v7.2</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
       <input class="login-input" id="login-username" placeholder="Email hoặc số điện thoại" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -478,7 +478,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v7.0</div>
+    <div class="brand-sub">Sales CRM v7.2</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -568,7 +568,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
         <div class="form-group"><label class="form-label">Khu vực</label><input type="text" class="form-input" id="f-area" placeholder="Q2, TP.HCM"></div>
         <div class="form-group"><label class="form-label">Dự kiến nhận nhà</label><input type="text" class="form-input" id="f-timeline" placeholder="Tháng 6/2025"></div>
         <div class="form-group"><label class="form-label">Người phụ trách</label><select class="form-input" id="f-owner"></select></div>
-        <div class="form-group"><label class="form-label">Lead Score (0–100)</label><input type="number" class="form-input" id="f-score" min="0" max="100" placeholder="50"></div>
+        <div class="form-group"><label class="form-label">Lead Score (0–100) <span style="font-weight:400;color:var(--mgray)">— để trống: tự chấm điểm</span></label><input type="number" class="form-input" id="f-score" min="0" max="100" placeholder="Tự tính theo ngân sách, nguồn, giai đoạn"></div>
         <div class="form-group"><label class="form-label">Pipeline</label><select class="form-input" id="f-pipeline" onchange="updateStageDropdown()"><option value="tk">🎨 Thiết kế</option><option value="tc">🔨 Thi công</option></select></div>
         <div class="form-group"><label class="form-label">Giai đoạn</label><select class="form-input" id="f-stage"></select></div>
         <div class="form-group"><label class="form-label">👉 Hành động tiếp theo</label><input type="text" class="form-input" id="f-next-action" placeholder="VD: Gọi chốt lịch khảo sát"></div>
@@ -576,7 +576,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
         <div class="form-group full"><label class="form-label">Ghi chú / Nhu cầu</label><textarea class="form-input" id="f-note" placeholder="Phong cách thiết kế, yêu cầu đặc biệt, nỗi lo của KH..."></textarea></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Hủy</button><button class="btn btn-primary" id="modal-save-btn" onclick="saveLead()">💾 Lưu</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal()">Hủy</button><button class="btn btn-primary" id="modal-save-btn" onclick="withSubmitLock('modal-save-btn',saveLead)">💾 Lưu</button></div>
   </div>
 </div>
 
@@ -653,7 +653,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
       </div>
       <div id="sf-edit-note" style="display:none;background:var(--goldbg);border-radius:7px;padding:9px 12px;font-size:12px;color:var(--amber);margin-top:12px">💡 Để trống mật khẩu nếu không muốn thay đổi</div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeStaffModal()">Hủy</button><button class="btn btn-primary" id="staff-save-btn" onclick="saveStaffMember()">💾 Lưu</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeStaffModal()">Hủy</button><button class="btn btn-primary" id="staff-save-btn" onclick="withSubmitLock('staff-save-btn',saveStaffMember)">💾 Lưu</button></div>
   </div>
 </div>
 
@@ -673,7 +673,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
         <div class="form-group full"><label class="form-label">Ghi chú</label><textarea class="form-input" id="t-note" rows="2" placeholder="Chi tiết, kịch bản, lưu ý..."></textarea></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeTaskModal()">Hủy</button><button class="btn btn-primary" id="task-save-btn" onclick="saveTask()">💾 Lưu công việc</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeTaskModal()">Hủy</button><button class="btn btn-primary" id="task-save-btn" onclick="withSubmitLock('task-save-btn',saveTask)">💾 Lưu công việc</button></div>
   </div>
 </div>
 
@@ -983,6 +983,49 @@ function newId(){
 }
 // Đánh dấu thời điểm sửa cuối (epoch ms) — dùng cho merge theo timestamp
 function touch(obj){ if(obj) obj.updatedAt = Date.now(); return obj; }
+
+// ── Chống double-submit: khóa nút trong lúc đang lưu ──
+const _submitLocks={};
+async function withSubmitLock(btnId, fn){
+  if(_submitLocks[btnId]) return;            // đang chạy → bỏ qua cú bấm thứ 2
+  _submitLocks[btnId]=true;
+  const btn=document.getElementById(btnId);
+  let oldHtml='';
+  if(btn){ oldHtml=btn.innerHTML; btn.disabled=true; btn.style.opacity='0.6'; btn.innerHTML='⏳ Đang lưu...'; }
+  try{ await fn(); }
+  finally{
+    _submitLocks[btnId]=false;
+    if(btn){ btn.disabled=false; btn.style.opacity=''; btn.innerHTML=oldHtml; }
+  }
+}
+
+// ── Tính Lead Score tự động (0–100) từ ngân sách, nguồn, giai đoạn ──
+function autoLeadScore(lead){
+  let s=0;
+  // Ngân sách (0–40): so khớp từ mức cao xuống, tránh chuỗi con khớp nhầm
+  const b=String(lead.budget||'');
+  if(b.indexOf('Trên 2 tỷ')>-1||b.indexOf('trên 2')>-1) s+=40;
+  else if(b.indexOf('1 – 2 tỷ')>-1||b.indexOf('1-2 tỷ')>-1||b.indexOf('1 - 2')>-1) s+=32;
+  else if(b.indexOf('500 triệu')>-1||b.indexOf('500tr')>-1) s+=24;  // '500 triệu – 1 tỷ'
+  else if(b.indexOf('1 tỷ')>-1) s+=28;
+  else if(b.indexOf('200')>-1) s+=14;
+  else if(b) s+=8;
+  // Giá trị HĐ thực tế (0–20): nếu đã có số
+  const val=(parseInt(lead.valueTk)||0)+(parseInt(lead.valueTc)||0);
+  if(val>=2e9) s+=20; else if(val>=1e9) s+=15; else if(val>=5e8) s+=10; else if(val>0) s+=5;
+  // Nguồn lead (0–20): giới thiệu/khách cũ chất hơn ads
+  const src=String(lead.source||'').toLowerCase();
+  if(src.indexOf('giới thiệu')>-1||src.indexOf('kh cũ')>-1||src.indexOf('khách cũ')>-1) s+=20;
+  else if(src.indexOf('website')>-1||src.indexOf('zalo')>-1) s+=12;
+  else if(src.indexOf('facebook')>-1||src.indexOf('ads')>-1) s+=8;
+  else if(src) s+=5;
+  // Giai đoạn (0–20): càng gần ký HĐ càng nóng
+  const st=String(lead.stage||'')+' '+String(lead.stageTc||'');
+  if(st.indexOf('sign')>-1||st.indexOf('hop_dong')>-1||st.indexOf('hd')>-1) s+=20;
+  else if(st.indexOf('quote')>-1||st.indexOf('bao_gia')>-1) s+=15;
+  else if(st.indexOf('design')>-1||st.indexOf('consult')>-1||st.indexOf('tu_van')>-1) s+=8;
+  return Math.max(0,Math.min(100,Math.round(s)));
+}
 // So sánh "bản nào mới hơn" an toàn (thiếu updatedAt coi như cũ nhất = 0)
 function isNewer(a, b){ return (Number(a&&a.updatedAt)||0) > (Number(b&&b.updatedAt)||0); }
 
@@ -1483,14 +1526,15 @@ async function pushStaff(arr){ return safePush({action:'saveStaff',staff:arr}); 
 // ══ Ghi nhật ký thao tác nhân viên lên Sheets ══
 function logActivity(action, target, targetId, targetName, detail='', oldStage='', newStage=''){
   if(!getApiUrl() || !currentUser) return;
-  const payload={
+  const entry={
     action, target, targetId, targetName, detail, oldStage, newStage,
     staffId   : currentUser.id,
     staffName : currentUser.name,
     device    : navigator.userAgent.slice(0,60),
   };
+  // Bọc trong 'entry' để field action (loại thao tác) KHÔNG ghi đè action route 'logActivity'
   // Fire-and-forget — không await, không block UI
-  apiPost({action:'logActivity',...payload}).catch(()=>{});
+  apiPost({action:'logActivity', entry}).catch(()=>{});
 }
 
 async function syncNow(){
@@ -2773,7 +2817,9 @@ async function saveLead(){
 
   if(editingLeadId){
     const l=leads.find(l=>l.id==editingLeadId); if(!l) return;
-    Object.assign(l,{name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||l.valueTk||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||l.valueTc||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,owner:document.getElementById('f-owner').value,score:parseInt(document.getElementById('f-score').value)||50,stage,note:document.getElementById('f-note').value,nextAction:(document.getElementById('f-next-action')||{}).value||'',nextDate:(document.getElementById('f-next-date')||{}).value||'',lastContact:now});
+    Object.assign(l,{name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||l.valueTk||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||l.valueTc||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,owner:document.getElementById('f-owner').value,stage,note:document.getElementById('f-note').value,nextAction:(document.getElementById('f-next-action')||{}).value||'',nextDate:(document.getElementById('f-next-date')||{}).value||'',lastContact:now});
+    const _sIn=document.getElementById('f-score').value;
+    l.score=_sIn!==''?parseInt(_sIn):autoLeadScore(l);
     if(!Array.isArray(l.history)) l.history=[];
     l.history.unshift({t:'Cập nhật thông tin KH',time:nowStr()});
     touch(l);
@@ -2782,7 +2828,9 @@ async function saveLead(){
     logActivity('editLead','KH',l.id,l.name,`Sửa thông tin KH`,'','');
     toast(`✅ Đã cập nhật: ${name}!`);
   } else {
-    const newLead={id:newId(),name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,stage,score:parseInt(document.getElementById('f-score').value)||50,owner:document.getElementById('f-owner').value,note:document.getElementById('f-note').value,nextAction:(document.getElementById('f-next-action')||{}).value||'',nextDate:(document.getElementById('f-next-date')||{}).value||'',created:now,lastContact:now,inBothPipelines:false,updatedAt:Date.now(),history:[{t:`KH mới từ ${document.getElementById('f-source').value}`,time:nowStr()}]};
+    const _fScore=document.getElementById('f-score').value;
+    const newLead={id:newId(),name,phone,email:document.getElementById('f-email').value,type:document.getElementById('f-type').value,source:document.getElementById('f-source').value,budget:document.getElementById('f-budget').value,valueTk:parseInt(document.getElementById('f-value-tk').value)||0,valueTc:parseInt(document.getElementById('f-value-tc').value)||0,area:document.getElementById('f-area').value,timeline:document.getElementById('f-timeline').value,stage,owner:document.getElementById('f-owner').value,note:document.getElementById('f-note').value,nextAction:(document.getElementById('f-next-action')||{}).value||'',nextDate:(document.getElementById('f-next-date')||{}).value||'',created:now,lastContact:now,inBothPipelines:false,updatedAt:Date.now(),history:[{t:`KH mới từ ${document.getElementById('f-source').value}`,time:nowStr()}]};
+    newLead.score=_fScore!==''?parseInt(_fScore):autoLeadScore(newLead);
     leads.unshift(newLead); saveLocal(); closeModal(); rerenderCurrent();
     await pushLead(newLead);
     logActivity('addLead','KH',newLead.id,newLead.name,`Nguồn: ${newLead.source} · Giai đoạn: ${newLead.stage}`,'',newLead.stage);
