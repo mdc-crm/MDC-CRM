@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v7.8</title>
+<title>MDC Interior — Sales CRM v7.9</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,7 +460,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v7.8</div>
+    <div class="login-sub">Sales CRM v7.9</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
       <input class="login-input" id="login-username" placeholder="Email hoặc số điện thoại" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -478,7 +478,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v7.8</div>
+    <div class="brand-sub">Sales CRM v7.9</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -1780,9 +1780,11 @@ function renderPipelineBoard(pipe){
     return getPipelineOfStage(l.stage||'tk_new')==='tk' ? l.stage : null;
   };
   // Khách thuộc board này: TK nếu stage là TK; TC nếu stage là TC HOẶC (có 2 pipeline & có stageTc)
+  // Khi đã chuyển sang TC (có stageTc) → ẩn khỏi board Thiết kế (thiết kế coi như xong)
   const pipeLeads=vl.filter(l=>{
     if(pipe==='tc') return getPipelineOfStage(l.stage||'tk_new')==='tc' || (l.inBothPipelines && l.stageTc);
-    return getPipelineOfStage(l.stage||'tk_new')==='tk';
+    // board TK: chỉ hiện khách thuộc TK VÀ chưa chuyển sang TC
+    return getPipelineOfStage(l.stage||'tk_new')==='tk' && !(l.inBothPipelines && l.stageTc);
   });
   const active=pipeLeads.filter(l=>!['tk_accept','tk_lost','tc_handover','tc_lost'].includes(effStage(l)));
   const done=pipeLeads.filter(l=>['tk_accept','tc_handover'].includes(effStage(l)));
