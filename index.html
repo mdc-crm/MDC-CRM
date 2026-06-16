@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v7.7</title>
+<title>MDC Interior — Sales CRM v7.8</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,7 +460,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v7.7</div>
+    <div class="login-sub">Sales CRM v7.8</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
       <input class="login-input" id="login-username" placeholder="Email hoặc số điện thoại" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -478,7 +478,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v7.7</div>
+    <div class="brand-sub">Sales CRM v7.8</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -1772,9 +1772,20 @@ async function quickLogContact(id){
 function renderPipelineBoard(pipe){
   const vl=visibleLeads();
   const stages=getStages(pipe);
-  const pipeLeads=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')===pipe);
-  const active=pipeLeads.filter(l=>!['tk_accept','tk_lost','tc_handover','tc_lost'].includes(l.stage));
-  const done=pipeLeads.filter(l=>['tk_accept','tc_handover'].includes(l.stage));
+  // Giai đoạn hiệu lực của khách TRONG pipeline đang xem:
+  //  - board TK: dùng l.stage
+  //  - board TC: nếu khách có stageTc (đã chuyển/đang ở TC) thì dùng stageTc
+  const effStage=l=>{
+    if(pipe==='tc') return l.stageTc || (getPipelineOfStage(l.stage||'tk_new')==='tc'?l.stage:null);
+    return getPipelineOfStage(l.stage||'tk_new')==='tk' ? l.stage : null;
+  };
+  // Khách thuộc board này: TK nếu stage là TK; TC nếu stage là TC HOẶC (có 2 pipeline & có stageTc)
+  const pipeLeads=vl.filter(l=>{
+    if(pipe==='tc') return getPipelineOfStage(l.stage||'tk_new')==='tc' || (l.inBothPipelines && l.stageTc);
+    return getPipelineOfStage(l.stage||'tk_new')==='tk';
+  });
+  const active=pipeLeads.filter(l=>!['tk_accept','tk_lost','tc_handover','tc_lost'].includes(effStage(l)));
+  const done=pipeLeads.filter(l=>['tk_accept','tc_handover'].includes(effStage(l)));
   const pv=active.reduce((s,l)=>s+(Number(pipe==='tk'?l.valueTk:l.valueTc)||0),0);
 
   document.getElementById('page-content').innerHTML=`
@@ -1789,7 +1800,7 @@ function renderPipelineBoard(pipe){
       <div class="stat-card" style="--accent:${pipe==='tk'?'var(--tk-color)':'var(--tc-color)'}"><div class="stat-label">Active</div><div class="stat-value">${active.length}</div><div class="stat-sub">Đang trong pipeline</div></div>
       <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">${pipe==='tk'?'Nghiệm thu TK':'Bàn giao'}</div><div class="stat-value">${done.length}</div></div>
       <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Pipeline value</div><div class="stat-value">${formatB(pv)}</div></div>
-      <div class="stat-card" style="--accent:var(--ruby)"><div class="stat-label">Mất deal</div><div class="stat-value">${pipeLeads.filter(l=>l.stage===(pipe==='tk'?'tk_lost':'tc_lost')).length}</div></div>
+      <div class="stat-card" style="--accent:var(--ruby)"><div class="stat-label">Mất deal</div><div class="stat-value">${pipeLeads.filter(l=>effStage(l)===(pipe==='tk'?'tk_lost':'tc_lost')).length}</div></div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <div style="font-size:12px;color:var(--mgray)">${pipeLeads.length} khách hàng trong pipeline</div>
@@ -1797,7 +1808,7 @@ function renderPipelineBoard(pipe){
     </div>
     <div class="pipeline-board">
       ${stages.filter(s=>!['tk_lost','tc_lost'].includes(s.id)).map(s=>{
-        const cols=vl.filter(l=>l.stage===s.id);
+        const cols=pipeLeads.filter(l=>effStage(l)===s.id);
         const isAutoTransfer=s.autoTransfer;
         return`<div class="pipeline-col${isAutoTransfer?' auto-transfer':''}">
           <div class="pipeline-header" style="background:${s.color}">
