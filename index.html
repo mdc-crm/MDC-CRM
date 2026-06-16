@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v7.9</title>
+<title>MDC Interior — Sales CRM v8.0</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,7 +460,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v7.9</div>
+    <div class="login-sub">Sales CRM v8.0</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
       <input class="login-input" id="login-username" placeholder="Email hoặc số điện thoại" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -478,7 +478,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v7.9</div>
+    <div class="brand-sub">Sales CRM v8.0</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -1079,6 +1079,10 @@ function getStages(pipeline){ return pipeline==='tc'?STAGES_TC:STAGES_TK; }
 function getSBG(stage){ return SBG_TK[stage]||SBG_TC[stage]||'#F5F5F5'; }
 function getSC(stage){ return SC_TK[stage]||SC_TC[stage]||'#555'; }
 function getPipe(stageId){return(stageId||'tk_new').startsWith('tc_')?'tc':'tk'}
+// Giai đoạn HIỆU LỰC của khách: nếu đã chuyển sang Thi công (inBothPipelines + stageTc) thì ưu tiên stageTc,
+// ngược lại dùng stage (Thiết kế). Dùng thống nhất ở badge sidebar, màn Công việc, thanh tiến độ.
+function effStageOf(l){ return (l && l.inBothPipelines && l.stageTc) ? l.stageTc : (l?l.stage:'tk_new'); }
+function effPipeOf(l){ return getPipe(effStageOf(l)); }
 
 // ══════════════════════════════════════════════════════════════
 // CUSTOMER HEALTH & CARE LOGIC — Bám sát KH, không bỏ lỡ cơ hội
@@ -1282,9 +1286,10 @@ function hotDeals(){
 }
 // Tiến độ pipeline (vị trí hiện tại / tổng)
 function pipeProgress(l){
-  const pipe = getPipe(l.stage);
+  const eff = effStageOf(l);
+  const pipe = getPipe(eff);
   const stages = getStages(pipe).filter(s=>!['tk_lost','tc_lost'].includes(s.id));
-  const idx = stages.findIndex(s=>s.id===l.stage);
+  const idx = stages.findIndex(s=>s.id===eff);
   return {idx: idx<0?0:idx, total: stages.length, stages};
 }
 
@@ -2037,7 +2042,9 @@ function renderTasksByKh(khList, selKh){
   const khTasks = selKh ? tasks.filter(t=>t.leadId==selKh.id) : [];
   const pending = khTasks.filter(t=>!t.done);
   const done    = khTasks.filter(t=>t.done);
-  const pipe    = selKh ? getPipe(selKh.stage) : 'tk';
+  // Giai đoạn hiệu lực: nếu KH đã sang Thi công thì dùng stageTc, không thì stage
+  const effSel  = selKh ? effStageOf(selKh) : 'tk_new';
+  const pipe    = selKh ? getPipe(effSel) : 'tk';
   const stages  = getStages(pipe);
 
   const grouped = {overdue:[], today:[], upcoming:[]};
@@ -2056,13 +2063,13 @@ function renderTasksByKh(khList, selKh){
     </div>`;
   }
 
-  const stObj = selKh ? getStageObj(selKh.stage) : {};
+  const stObj = selKh ? getStageObj(effSel) : {};
   const pp    = selKh ? pipeProgress(selKh) : null;
 
-  // Tính checklist tổng cho từng giai đoạn
-  const stageChecklist = selKh ? STAGE_CHECKLIST[selKh.stage] || [] : [];
+  // Tính checklist tổng cho từng giai đoạn (theo giai đoạn hiệu lực)
+  const stageChecklist = selKh ? STAGE_CHECKLIST[effSel] || [] : [];
   const stageDoneCount = stageChecklist.length
-    ? khTasks.filter(t=>t.done && t.stage===selKh.stage && t.isTemplate).length
+    ? khTasks.filter(t=>t.done && t.stage===effSel && t.isTemplate).length
     : 0;
   const stageTotalCount = stageChecklist.length;
 
@@ -2075,10 +2082,11 @@ function renderTasksByKh(khList, selKh){
       <div style="max-height:520px;overflow-y:auto">
         ${khList.map(kh=>{
           const cnt = tasks.filter(t=>t.leadId==kh.id && !t.done).length;
-          const khPipe = getPipe(kh.stage||'tk_new');
-          const stObjKh = getStageObj(kh.stage);
+          const effKh = effStageOf(kh);
+          const khPipe = getPipe(effKh);
+          const stObjKh = getStageObj(effKh);
           return `<div class="task-kh-item ${activeKhId==kh.id?'active':''}" onclick="switchTaskView('${kh.id}')">
-            <div class="task-kh-avatar" style="background:${SC[kh.stage]||'#555'}">${khPipe==='tc'?'🔨':'🎨'}</div>
+            <div class="task-kh-avatar" style="background:${SC[effKh]||'#555'}">${khPipe==='tc'?'🔨':'🎨'}</div>
             <div style="flex:1;min-width:0">
               <div class="task-kh-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${kh.name}</div>
               <div class="task-kh-meta">${stObjKh.label}</div>
@@ -2095,7 +2103,7 @@ function renderTasksByKh(khList, selKh){
       <!-- KH Header + pipeline progress -->
       <div class="task-kh-header" style="flex-direction:column;align-items:flex-start;gap:10px">
         <div style="display:flex;align-items:center;gap:12px;width:100%">
-          <div class="task-kh-hav" style="background:${SC[selKh.stage]||'#555'}">${pipe==='tc'?'🔨':'🎨'}</div>
+          <div class="task-kh-hav" style="background:${SC[effSel]||'#555'}">${pipe==='tc'?'🔨':'🎨'}</div>
           <div style="flex:1">
             <div class="task-kh-htitle">${selKh.name}</div>
             <div class="task-kh-hmeta">${selKh.type||'–'} · ${selKh.area||'–'} · ${stObj.label}</div>
@@ -2109,10 +2117,10 @@ function renderTasksByKh(khList, selKh){
         ${pp ? `<div style="width:100%">
           <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--mgray);margin-bottom:5px">
             <span>${pipe==='tc'?'🔨 Thi công':'🎨 Thiết kế'} — Bước ${pp.idx+1}/${pp.total}</span>
-            <span style="font-weight:600;color:${SC[selKh.stage]||'#555'}">${stObj.label}</span>
+            <span style="font-weight:600;color:${SC[effSel]||'#555'}">${stObj.label}</span>
           </div>
           <div style="display:flex;gap:3px;height:6px">
-            ${pp.stages.map((s,i)=>`<div style="flex:1;border-radius:3px;background:${i<pp.idx?'var(--emerald)':i===pp.idx?(SC[selKh.stage]||'var(--gold)'):'var(--lgray)'}"></div>`).join('')}
+            ${pp.stages.map((s,i)=>`<div style="flex:1;border-radius:3px;background:${i<pp.idx?'var(--emerald)':i===pp.idx?(SC[effSel]||'var(--gold)'):'var(--lgray)'}"></div>`).join('')}
           </div>
           <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--mgray);margin-top:4px">
             <span>${pp.stages[0]?.label||''}</span>
@@ -2126,7 +2134,7 @@ function renderTasksByKh(khList, selKh){
             <div style="height:100%;background:var(--emerald);width:${Math.round(stageDoneCount/stageTotalCount*100)}%;border-radius:3px;transition:width .3s"></div>
           </div>
           <span style="font-size:11px;font-weight:600;color:var(--emerald);font-family:'Be Vietnam Pro',sans-serif">${stageDoneCount}/${stageTotalCount}</span>
-          ${stageDoneCount<stageTotalCount ? `<button class="btn btn-sm" style="background:var(--goldbg);color:var(--amber);font-size:10px;padding:3px 9px" onclick="createMissingChecklistTasks('${selKh.id}','${selKh.stage}')">+ Tạo lại việc mẫu</button>` : '<span style="font-size:10px;color:var(--emerald)">✅ Hoàn thành</span>'}
+          ${stageDoneCount<stageTotalCount ? `<button class="btn btn-sm" style="background:var(--goldbg);color:var(--amber);font-size:10px;padding:3px 9px" onclick="createMissingChecklistTasks('${selKh.id}','${effSel}')">+ Tạo lại việc mẫu</button>` : '<span style="font-size:10px;color:var(--emerald)">✅ Hoàn thành</span>'}
         </div>` : ''}
       </div>
 
@@ -2138,7 +2146,7 @@ function renderTasksByKh(khList, selKh){
         </div>
         <div style="display:flex;flex-direction:column;gap:4px">
           ${stageChecklist.map((tpl,i)=>{
-            const done = khTasks.find(t=>t.isTemplate&&t.stage===selKh.stage&&t.text===tpl.text&&t.done);
+            const done = khTasks.find(t=>t.isTemplate&&t.stage===effSel&&t.text===tpl.text&&t.done);
             const uColor = tpl.urgency==='red'?'var(--ruby)':tpl.urgency==='orange'?'var(--amber)':'var(--emerald)';
             return `<div style="display:flex;align-items:flex-start;gap:7px;padding:6px 8px;border-radius:6px;background:${done?'var(--lgreen)':'var(--white)'}" title="${(tpl.tip||'').replace(/"/g,'&quot;')}">
               <span style="font-size:12px;flex-shrink:0">${done?'✅':'⬜'}</span>
@@ -2157,7 +2165,7 @@ function renderTasksByKh(khList, selKh){
       ${pending.length===0 && done.length===0 ? `<div style="background:var(--white);border:1px solid #e8e4de;border-radius:10px;padding:32px;text-align:center;color:var(--mgray)">
         Chưa có công việc nào.<br>
         <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
-          ${selKh && STAGE_CHECKLIST[selKh.stage]?.length ? `<button class="btn btn-primary btn-sm" onclick="createMissingChecklistTasks('${selKh.id}','${selKh.stage}')">📋 Tạo checklist mẫu (${STAGE_CHECKLIST[selKh.stage].length} việc)</button>` : ''}
+          ${selKh && STAGE_CHECKLIST[effSel]?.length ? `<button class="btn btn-primary btn-sm" onclick="createMissingChecklistTasks('${selKh.id}','${effSel}')">📋 Tạo checklist mẫu (${STAGE_CHECKLIST[effSel].length} việc)</button>` : ''}
           <button class="btn btn-outline btn-sm" onclick="openAddTask('${selKh?selKh.id:''}')">+ Thêm việc thủ công</button>
         </div>
       </div>` : `
@@ -2815,6 +2823,8 @@ async function handleTransferAccept(id){
   touch(l);
   saveLocal(); closePanel(); rerenderCurrent();
   await pushLead(l);
+  // Tự sinh checklist công việc cho giai đoạn Thi công (Ký HĐ TC) để KH có việc ngay
+  await createMissingChecklistTasks(l.id, 'tc_sign_tc');
   toast(`⚡ ${l.name} đã chuyển sang Pipeline Thi công!`);
 
   // Chuyển sang trang TC để thấy ngay
@@ -3053,8 +3063,8 @@ function setFilter(f){activeFilter=f;renderLeads()}
 function handleSearch(q){searchQuery=q;if(currentPage==='leads')renderLeads()}
 function updateBadges(){
   const vl=visibleLeads();
-  const tkN=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tk').length;
-  const tcN=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tc').length;
+  const tkN=vl.filter(l=>effPipeOf(l)==='tk').length;
+  const tcN=vl.filter(l=>effPipeOf(l)==='tc').length;
   if(document.getElementById('count-tk'))document.getElementById('count-tk').textContent=tkN;
   if(document.getElementById('count-tc'))document.getElementById('count-tc').textContent=tcN;
   if(document.getElementById('lead-count'))document.getElementById('lead-count').textContent=vl.length;
