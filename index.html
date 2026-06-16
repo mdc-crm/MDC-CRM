@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v7.6</title>
+<title>MDC Interior — Sales CRM v7.7</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,7 +460,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v7.6</div>
+    <div class="login-sub">Sales CRM v7.7</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
       <input class="login-input" id="login-username" placeholder="Email hoặc số điện thoại" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -478,7 +478,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v7.6</div>
+    <div class="brand-sub">Sales CRM v7.7</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -1860,12 +1860,13 @@ function renderLeads(){
             <td><div style="display:flex;align-items:center;gap:6px"><span class="health-dot ${leadHealth(l)}" title="${healthLabel(leadHealth(l))}"></span><div><div style="font-weight:600;font-size:12.5px">${l.name}</div><div style="font-size:10.5px;color:var(--mgray)">${l.nextAction?'👉 '+l.nextAction:(l.area||'–')}</div></div></div></td>
             <td style="font-family:'Be Vietnam Pro',sans-serif;font-size:11.5px">${l.phone}</td>
             <td style="font-size:12px">${l.type||'–'}</td>
-            <td><span style="font-size:9.5px;padding:3px 8px;border-radius:10px;font-weight:600;background:${pipe==='tc'?'#E0F4F1':'#EBF3FC'};color:${pipe==='tc'?'#8F6A2B':'#0F3460'}">${pipe==='tc'?'🔨 TC':'🎨 TK'}</span>${l.inBothPipelines?` <span style="font-size:9px;padding:2px 5px;border-radius:8px;background:#FFF0E0;color:#7A3800">+TC</span>`:''}</td>
+            <td><span style="font-size:9.5px;padding:3px 8px;border-radius:10px;font-weight:600;background:${pipe==='tc'?'#E0F4F1':'#EBF3FC'};color:${pipe==='tc'?'#8F6A2B':'#0F3460'}">${pipe==='tc'?'🔨 TC':'🎨 TK'}</span>${l.inBothPipelines?` <span style="font-size:9px;padding:2px 5px;border-radius:8px;background:#FFF0E0;color:#7A3800">+TC</span>`:''}${l.afterSale?` <span style="font-size:9px;padding:2px 5px;border-radius:8px;background:#E6F4EC;color:#0F5132">💚 Sau bán</span>`:''}</td>
             <td><span class="badge ${st.badge}">${st.label}</span>${l.pmStatus?`<div style="font-size:10px;color:var(--brass-deep,#8F6A2B);margin-top:3px">🔨 ${l.pmStatus}</div>`:''}</td>
             <td style="font-weight:600;color:var(--amber);font-family:'Be Vietnam Pro',sans-serif;font-size:11.5px">${formatShort(Number(l.valueTc||l.valueTk)||0)}</td>
             <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${l.score||0}%;background:${sc}"></div></div><div class="score-num">${l.score||0}</div></div></td>
             <td><div style="display:flex;align-items:center;gap:5px"><div style="width:22px;height:22px;border-radius:50%;background:${staffColor(l.owner)};color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">${staffInitials(l.owner)}</div><span style="font-size:11px;color:var(--mgray)">${staffName(l.owner)}</span></div></td>
             <td onclick="event.stopPropagation()"><div class="action-row">
+              ${(l.stage==='tk_accept'||l.stage==='tc_handover')?`<button class="icon-btn" title="Hoàn thành giai đoạn → Chăm sóc sau bán" style="background:#E6F4EC" onclick="completeStage('${l.id}')">✅</button>`:''}
               <button class="icon-btn" title="Sửa" onclick="openEditLead('${l.id}')">✏️</button>
               <button class="icon-btn" title="Xóa" onclick="confirmDeleteLead('${l.id}')">🗑️</button>
             </div></td>
@@ -2805,6 +2806,65 @@ async function handleTransferAccept(id){
 
   // Chuyển sang trang TC để thấy ngay
   setTimeout(()=>showPage('pipeline_tc',document.querySelector('[data-page=pipeline_tc]')),500);
+}
+
+// ── HOÀN THÀNH GIAI ĐOẠN → CHĂM SÓC SAU BÁN ──────────────────
+// Lịch chăm sóc chuẩn ngành nội thất: 7 ngày, 30 ngày, 6 tháng (bảo hành), 1 năm
+const CARE_SCHEDULE = [
+  {days:7,   text:'Gọi hỏi thăm sau bàn giao (mức độ hài lòng, góp ý)', type:'followup', urgency:'orange'},
+  {days:30,  text:'Ghé thăm/gọi kiểm tra sử dụng sau 1 tháng',          type:'followup', urgency:'green'},
+  {days:180, text:'Kiểm tra bảo hành 6 tháng + xin đánh giá/giới thiệu', type:'followup', urgency:'green'},
+  {days:365, text:'Chăm sóc 1 năm: tri ân, ưu đãi dự án mới/giới thiệu', type:'followup', urgency:'green'},
+];
+function addDaysISO(d){ const t=new Date(); t.setDate(t.getDate()+d); return t.toISOString().split('T')[0]; }
+
+async function completeStage(id){
+  const l=leads.find(l=>l.id==id); if(!l) return;
+  const isTC = (l.stage==='tc_handover');
+  const isTK = (l.stage==='tk_accept');
+  if(!isTC && !isTK){ toast('Khách chưa ở giai đoạn cuối để hoàn thành','⚠️'); return; }
+
+  // Trường hợp TK xong nhưng còn theo TC → nhắc chuyển, không tạo chăm sóc vội
+  if(isTK && l.inBothPipelines && l.stageTc && l.stageTc!=='tc_handover'){
+    if(!confirm(`${l.name} đã xong Thiết kế nhưng vẫn đang ở pipeline Thi công.\n\nĐánh dấu HOÀN THÀNH THIẾT KẾ và tiếp tục theo dõi Thi công?`)) return;
+    if(!Array.isArray(l.history)) l.history=[];
+    l.history.unshift({t:'✅ Hoàn thành giai đoạn THIẾT KẾ',time:nowStr()});
+    logActivity('completeStage','KH',l.id,l.name,'Hoàn thành Thiết kế','tk_accept','');
+    touch(l); saveLocal(); closePanel(); rerenderCurrent(); await pushLead(l);
+    toast(`✅ ${l.name}: hoàn thành Thiết kế. Tiếp tục theo dõi Thi công.`);
+    return;
+  }
+
+  // Hoàn thành toàn bộ → đưa vào chăm sóc sau bán
+  const loai = isTC ? 'Thi công' : (l.inBothPipelines?'Thiết kế & Thi công':'Thiết kế');
+  if(!confirm(`Hoàn thành ${loai} cho "${l.name}"?\n\nKhách sẽ chuyển sang DANH SÁCH CHĂM SÓC SAU BÁN HÀNG và hệ thống tự tạo ${CARE_SCHEDULE.length} lịch chăm sóc (7 ngày, 30 ngày, 6 tháng, 1 năm).`)) return;
+
+  // Đánh dấu trạng thái chăm sóc
+  l.stage = isTC ? 'tc_handover' : 'tk_accept';
+  l.afterSale = true;             // cờ: đang chăm sóc sau bán
+  l.afterSaleSince = new Date().toISOString().split('T')[0];
+  if(!Array.isArray(l.history)) l.history=[];
+  l.history.unshift({t:`🎉 Hoàn thành ${loai} → Chăm sóc sau bán hàng`,time:nowStr()});
+  logActivity('completeStage','KH',l.id,l.name,`Hoàn thành ${loai} → Chăm sóc sau bán`,'','');
+
+  // Tạo các task chăm sóc theo lịch
+  const newCare = CARE_SCHEDULE.map(c=>({
+    id:newId(),
+    text:`[Chăm sóc] ${l.name}: ${c.text}`,
+    type:c.type, urgency:c.urgency,
+    leadId:l.id, lead:l.name,
+    date:addDaysISO(c.days),
+    assignee:l.owner||currentUser.id,
+    note:`Tự tạo khi hoàn thành ${loai}`,
+    done:false, created:new Date().toISOString(), updatedAt:Date.now(),
+    isCare:true, due:addDaysISO(c.days),
+  }));
+  tasks.push(...newCare);
+
+  touch(l); saveLocal(); closePanel(); rerenderCurrent();
+  await pushLead(l);
+  for(const t of newCare){ await pushTask(t); }
+  toast(`🎉 ${l.name} đã vào danh sách chăm sóc sau bán — đã tạo ${newCare.length} lịch nhắc!`);
 }
 
 async function handleTransferReject(id){
