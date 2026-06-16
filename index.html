@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MDC Interior — Sales CRM v7.6</title>
+<title>MDC Interior — Sales CRM v7.3</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
 :root{
@@ -460,7 +460,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <div class="login-screen" id="login-screen">
   <div class="login-card">
     <div class="login-logo">MDC Interior</div>
-    <div class="login-sub">Sales CRM v7.6</div>
+    <div class="login-sub">Sales CRM v7.3</div>
     <div class="login-form-group">
       <label class="login-label">Tên đăng nhập</label>
       <input class="login-input" id="login-username" placeholder="Email hoặc số điện thoại" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
@@ -478,7 +478,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
 <nav class="sidebar" id="main-sidebar" style="display:none">
   <div class="sidebar-brand">
     <div class="brand-title">MDC Interior</div>
-    <div class="brand-sub">Sales CRM v7.6</div>
+    <div class="brand-sub">Sales CRM v7.3</div>
     <div class="brand-ver">
       <div class="sync-dot gray" id="sync-dot"></div>
       <span id="sync-label" style="color:rgba(212,175,106,.4)">Chưa kết nối</span>
@@ -596,7 +596,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
       <div style="background:var(--lgray);border-radius:8px;padding:12px;font-size:12px;color:var(--charcoal);line-height:1.8">
         <strong>Khi chuyển:</strong><br>
         ✅ KH vẫn giữ nguyên trong Pipeline Thiết kế (giai đoạn: Nghiệm thu TK)<br>
-        ✅ Đồng thời xuất hiện trong Pipeline Thi công (giai đoạn: Ký HĐ TC)<br>
+        ✅ Đồng thời xuất hiện trong Pipeline Thi công (giai đoạn: Mới)<br>
         ✅ Dữ liệu và lịch sử được đồng bộ hoàn toàn
       </div>
     </div>
@@ -1861,7 +1861,7 @@ function renderLeads(){
             <td style="font-family:'Be Vietnam Pro',sans-serif;font-size:11.5px">${l.phone}</td>
             <td style="font-size:12px">${l.type||'–'}</td>
             <td><span style="font-size:9.5px;padding:3px 8px;border-radius:10px;font-weight:600;background:${pipe==='tc'?'#E0F4F1':'#EBF3FC'};color:${pipe==='tc'?'#8F6A2B':'#0F3460'}">${pipe==='tc'?'🔨 TC':'🎨 TK'}</span>${l.inBothPipelines?` <span style="font-size:9px;padding:2px 5px;border-radius:8px;background:#FFF0E0;color:#7A3800">+TC</span>`:''}</td>
-            <td><span class="badge ${st.badge}">${st.label}</span>${l.pmStatus?`<div style="font-size:10px;color:var(--brass-deep,#8F6A2B);margin-top:3px">🔨 ${l.pmStatus}</div>`:''}</td>
+            <td><span class="badge ${st.badge}">${st.label}</span></td>
             <td style="font-weight:600;color:var(--amber);font-family:'Be Vietnam Pro',sans-serif;font-size:11.5px">${formatShort(Number(l.valueTc||l.valueTk)||0)}</td>
             <td><div class="score-bar"><div class="score-track"><div class="score-fill" style="width:${l.score||0}%;background:${sc}"></div></div><div class="score-num">${l.score||0}</div></div></td>
             <td><div style="display:flex;align-items:center;gap:5px"><div style="width:22px;height:22px;border-radius:50%;background:${staffColor(l.owner)};color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">${staffInitials(l.owner)}</div><span style="font-size:11px;color:var(--mgray)">${staffName(l.owner)}</span></div></td>
@@ -2325,103 +2325,30 @@ async function confirmDeleteTask(id){
 }
 
 // ── REPORTS// ── REPORTS ───────────────────────────────────────────────────
-// Xác suất chốt theo giai đoạn (chuẩn bán hàng: gần ký HĐ → cao)
-const WIN_PROB = {
-  tk_new:0.10, tk_consult:0.20, tk_survey:0.35, tk_quote_tk:0.50,
-  tk_sign_tk:0.90, tk_design:0.95, tk_handover:0.98, tk_quote_tc:0.55,
-  tk_accept:1.00, tk_lost:0,
-  tc_new:0.10, tc_consult:0.20, tc_survey:0.35, tc_quote_tc:0.50,
-  tc_sign_tc:0.90, tc_docs:0.95, tc_construct:0.97, tc_handover:1.00, tc_lost:0
-};
-function stageProb(stage){ return WIN_PROB[stage] != null ? WIN_PROB[stage] : 0.15; }
-function leadValue(l){
-  // giá trị kỳ vọng của 1 lead: ưu tiên pipeline đang đứng
-  const pl=getPipelineOfStage(l.stage||'tk_new');
-  if(pl==='tc') return Number(l.valueTc)||Number(l.valueTk)||0;
-  return Number(l.valueTk)||Number(l.valueTc)||0;
-}
-
 function renderReports(){
-  const all = leads;
-  const active = all.filter(l=>!['tk_lost','tc_lost'].includes(l.stage));
-  const tkLeads = all.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tk');
-  const tcLeads = all.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tc');
-
-  // Giá trị pipeline (chưa mất, chưa hoàn tất)
-  const tkV = tkLeads.filter(l=>!['tk_accept','tk_lost'].includes(l.stage)).reduce((s,l)=>s+(Number(l.valueTk)||0),0);
-  const tcV = tcLeads.filter(l=>!['tc_handover','tc_lost'].includes(l.stage)).reduce((s,l)=>s+(Number(l.valueTc)||0),0);
-
-  // Doanh thu DỰ BÁO = Σ giá trị × xác suất chốt
-  const forecast = active.reduce((s,l)=>s+leadValue(l)*stageProb(l.stage),0);
-  // Đã chốt (ký HĐ trở đi)
-  const wonStages=['tk_sign_tk','tk_design','tk_handover','tk_accept','tc_sign_tc','tc_docs','tc_construct','tc_handover'];
-  const won = all.filter(l=>wonStages.includes(l.stage)).reduce((s,l)=>s+leadValue(l),0);
-  const wonCount = all.filter(l=>wonStages.includes(l.stage)).length;
-  const lostCount = all.filter(l=>['tk_lost','tc_lost'].includes(l.stage)).length;
-  const closedTotal = wonCount+lostCount;
-  const winRate = closedTotal? Math.round(wonCount/closedTotal*100):0;
-
-  // Nguồn lead
-  const srcMap={};all.forEach(l=>{const s=l.source||'Khác';srcMap[s]=(srcMap[s]||0)+1;});
+  const tkLeads=leads.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tk');
+  const tcLeads=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tc');
+  const tkV=tkLeads.filter(l=>!['tk_accept','tk_lost'].includes(l.stage)).reduce((s,l)=>s+(Number(l.valueTk)||0),0);
+  const tcV=tcLeads.filter(l=>!['tc_handover','tc_lost'].includes(l.stage)).reduce((s,l)=>s+(Number(l.valueTc)||0),0);
+  const srcMap={};leads.forEach(l=>{const s=l.source||'Khác';srcMap[s]=(srcMap[s]||0)+1;});
   const srcArr=Object.entries(srcMap).sort((a,b)=>b[1]-a[1]);
   const maxS=srcArr[0]?srcArr[0][1]:1;
 
-  // Phễu chuyển đổi TK (số KH đã từng đạt mỗi mốc — ước lượng theo giai đoạn hiện tại trở đi)
-  const funnelTK=[
-    {label:'Mới/Tư vấn', ids:['tk_new','tk_consult']},
-    {label:'Khảo sát',   ids:['tk_survey']},
-    {label:'Báo giá',    ids:['tk_quote_tk']},
-    {label:'Ký HĐ',      ids:['tk_sign_tk','tk_design','tk_handover','tk_accept']},
-  ];
-  const funnelTC=[
-    {label:'Mới/Tư vấn', ids:['tc_new','tc_consult']},
-    {label:'Khảo sát',   ids:['tc_survey']},
-    {label:'Báo giá',    ids:['tc_quote_tc']},
-    {label:'Ký HĐ',      ids:['tc_sign_tc','tc_docs','tc_construct','tc_handover']},
-  ];
-  // đếm luỹ kế: ai ở giai đoạn sau cũng đã qua giai đoạn trước
-  function funnelCounts(pipeLeads, funnel, order){
-    const stageRank={}; order.forEach((id,i)=>stageRank[id]=i);
-    return funnel.map((step,idx)=>{
-      const minRank=Math.min(...step.ids.map(id=>stageRank[id]??999));
-      const n=pipeLeads.filter(l=>(stageRank[l.stage]??-1)>=minRank).length;
-      return {label:step.label, n};
-    });
-  }
-  const tkOrder=STAGES_TK.map(s=>s.id), tcOrder=STAGES_TC.map(s=>s.id);
-  const fTK=funnelCounts(tkLeads,funnelTK,tkOrder);
-  const fTC=funnelCounts(tcLeads,funnelTC,tcOrder);
-  const maxFunnel=Math.max(1,...fTK.map(x=>x.n),...fTC.map(x=>x.n));
-
   document.getElementById('page-content').innerHTML=`
     <div class="stats-row">
-      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">💰 Tổng Pipeline</div><div class="stat-value">${formatB(tkV+tcV)}</div><div class="stat-sub">${active.length} KH đang theo</div></div>
-      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">📈 Doanh thu dự báo</div><div class="stat-value">${formatB(forecast)}</div><div class="stat-sub">theo xác suất chốt</div></div>
-      <div class="stat-card" style="--accent:var(--tk-color)"><div class="stat-label">✅ Đã ký (giá trị)</div><div class="stat-value">${formatB(won)}</div><div class="stat-sub">${wonCount} hợp đồng</div></div>
-      <div class="stat-card" style="--accent:var(--tc-color)"><div class="stat-label">🎯 Tỷ lệ thắng</div><div class="stat-value">${winRate}%</div><div class="stat-sub">${wonCount} thắng / ${lostCount} mất</div></div>
+      <div class="stat-card" style="--accent:var(--tk-color)"><div class="stat-label">🎨 Pipeline TK</div><div class="stat-value">${formatB(tkV)}</div><div class="stat-sub">${tkLeads.length} KH</div></div>
+      <div class="stat-card" style="--accent:var(--tc-color)"><div class="stat-label">🔨 Pipeline TC</div><div class="stat-value">${formatB(tcV)}</div><div class="stat-sub">${tcLeads.length} KH</div></div>
+      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Tổng Pipeline</div><div class="stat-value">${formatB(tkV+tcV)}</div></div>
+      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Score TB</div><div class="stat-value">${leads.length?Math.round(leads.reduce((s,l)=>s+(Number(l.score)||0),0)/leads.length):0}</div></div>
+      <div class="stat-card" style="--accent:var(--purple)"><div class="stat-label">Chuyển TK→TC</div><div class="stat-value">${leads.filter(l=>l.inBothPipelines).length}</div><div class="stat-sub">KH cả 2 pipeline</div></div>
     </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-      <div class="chart-card"><div class="chart-title">🎨 Phễu chuyển đổi — Thiết kế</div>
-        ${fTK.map((x,i)=>{const pct=Math.round(x.n/maxFunnel*100);const conv=i>0&&fTK[i-1].n?Math.round(x.n/fTK[i-1].n*100):null;return`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${x.label}</span><span class="bar-amount">${x.n} KH${conv!=null?` · ${conv}%`:''}</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--tk-color)"></div></div></div>`;}).join('')}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="chart-card"><div class="chart-title">📣 Lead theo nguồn</div>
+        ${srcArr.map(([s,n])=>`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s}</span><span class="bar-amount">${n} KH</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/maxS*100)}%;background:var(--navy)"></div></div></div>`).join('')||'<div style="color:var(--mgray);text-align:center;padding:20px">Chưa có dữ liệu</div>'}
       </div>
-      <div class="chart-card"><div class="chart-title">🔨 Phễu chuyển đổi — Thi công</div>
-        ${fTC.map((x,i)=>{const pct=Math.round(x.n/maxFunnel*100);const conv=i>0&&fTC[i-1].n?Math.round(x.n/fTC[i-1].n*100):null;return`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${x.label}</span><span class="bar-amount">${x.n} KH${conv!=null?` · ${conv}%`:''}</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:var(--tc-color)"></div></div></div>`;}).join('')}
+      <div class="chart-card"><div class="chart-title">🎨 Giai đoạn Thiết kế</div>
+        ${STAGES_TK.map(s=>{const n=leads.filter(l=>l.stage===s.id).length;return`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s.label}</span><span class="bar-amount">${n} KH</span></div><div class="bar-track"><div class="bar-fill" style="width:${tkLeads.length?Math.round(n/tkLeads.length*100):0}%;background:${s.color}"></div></div></div>`;}).join('')}
       </div>
-    </div>
-
-    <div class="chart-card" style="margin-bottom:14px"><div class="chart-title">💵 Giá trị theo giai đoạn (× xác suất chốt = dự báo)</div>
-      ${[...STAGES_TK,...STAGES_TC].filter(s=>!s.id.includes('lost')).map(s=>{
-        const ls=all.filter(l=>l.stage===s.id);
-        if(!ls.length) return '';
-        const val=ls.reduce((a,l)=>a+leadValue(l),0);
-        const exp=val*stageProb(s.id);
-        return `<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s.label} <span style="color:var(--mgray)">(${Math.round(stageProb(s.id)*100)}%)</span></span><span class="bar-amount">${formatB(val)} → <b>${formatB(exp)}</b></span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(stageProb(s.id)*100)}%;background:${s.color}"></div></div></div>`;
-      }).join('')||'<div style="color:var(--mgray);text-align:center;padding:20px">Chưa có dữ liệu</div>'}
-    </div>
-
-    <div class="chart-card"><div class="chart-title">📣 Lead theo nguồn</div>
-      ${srcArr.map(([s,n])=>`<div class="bar-group"><div class="bar-label-row"><span class="bar-label">${s}</span><span class="bar-amount">${n} KH</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(n/maxS*100)}%;background:var(--navy)"></div></div></div>`).join('')||'<div style="color:var(--mgray);text-align:center;padding:20px">Chưa có dữ liệu</div>'}
     </div>`;
 }
 
@@ -2787,15 +2714,15 @@ async function updateStage(id,stage){
 async function handleTransferAccept(id){
   document.getElementById('transfer-modal').classList.remove('open');
   const l=leads.find(l=>l.id==id); if(!l) return;
-  logActivity('transferPipeline','KH',l.id,l.name,'Chuyển sang Pipeline Thi công','tk_quote_tc','tc_sign_tc');
+  logActivity('transferPipeline','KH',l.id,l.name,'Chuyển sang Pipeline Thi công','tk_quote_tc','tc_new');
 
   // KH trong TK → chuyển sang Nghiệm thu TK
   l.stage='tk_accept';
   l.inBothPipelines=true;
-  l.stageTc='tc_sign_tc'; // đã đồng ý báo giá TC → sang bước Ký HĐ thi công
+  l.stageTc='tc_new'; // đồng thời mở đầu TC
 
   if(!Array.isArray(l.history)) l.history=[];
-  l.history.unshift({t:'⚡ Chuyển sang Pipeline Thi công (giai đoạn: Ký HĐ TC)',time:nowStr()});
+  l.history.unshift({t:'⚡ Chuyển sang Pipeline Thi công (giai đoạn: Mới)',time:nowStr()});
   l.history.unshift({t:'TK → Nghiệm thu TK (đã nghiệm thu thiết kế)',time:nowStr()});
   l.lastContact=new Date().toISOString().split('T')[0];
   touch(l);
