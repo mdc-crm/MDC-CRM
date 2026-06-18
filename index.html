@@ -1421,6 +1421,9 @@ function enqueue(body){
 async function flushQueue(){
   let q=loadQueue();
   if(!q.length) return;
+  // ★ Loại bỏ mọi item saveStaff tồn đọng trong hàng đợi: nhân sự lấy Sheets làm nguồn sự thật,
+  // không cho phép hàng đợi offline (có thể chứa dữ liệu cũ/lệch) ghi đè sheet Nhân sự.
+  q = q.filter(body => !(body && body.action === 'saveStaff'));
   const remain=[];
   for(const body of q){
     try{ await apiPost(body); }
@@ -1539,7 +1542,12 @@ function openAssignMenu(id, event){
   document.body.appendChild(box);
 }
 function closeAssignMenu(){const b=document.getElementById('assign-menu');if(b)b.remove();}
-async function pushStaff(arr){ return safePush({action:'saveStaff',staff:arr}); }
+async function pushStaff(arr){
+  if(!getApiUrl()) return;
+  // KHÔNG dùng hàng đợi cho staff (tránh tích tụ item cũ ghi đè). Gửi thẳng; lỗi thì báo để thử lại.
+  try{ await apiPost({action:'saveStaff',staff:arr}); updatePendingBadge(); }
+  catch(e){ toast('⚠️ Lưu nhân sự lên Sheets thất bại, vui lòng thử lại','⚠️'); }
+}
 
 // ══ Ghi nhật ký thao tác nhân viên lên Sheets ══
 function logActivity(action, target, targetId, targetName, detail='', oldStage='', newStage=''){
