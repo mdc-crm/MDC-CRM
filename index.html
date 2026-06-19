@@ -1365,8 +1365,17 @@ function applySettingsUI(s){
 // API
 // ══════════════════════════════════════════════════════════════
 function getApiUrl(){
-  const DEFAULT='https://script.google.com/macros/s/AKfycbzVMYIh9fgmNo3omy9b0xL4OAKoQt7EZJ1jTgXTDlE1JzgRRGORVeZgshODS5Smpw4S/exec';
-  const url=localStorage.getItem(LS_API_KEY)||DEFAULT;
+  // URL backend CRM MỚI (bản CRM-2026.06-staffguard). Mọi thiết bị phải dùng đúng URL này.
+  const DEFAULT='https://script.google.com/macros/s/AKfycbzz3Bm5qLRRoxipVP4LNJPQJEU_ABdhfXj3sBrszjyqr6u21xmCTbffvBZbuo01Ktnv/exec';
+  // Danh sách URL backend CŨ đã ngừng dùng — nếu thiết bị còn lưu thì tự xóa để rơi về DEFAULT mới.
+  const OBSOLETE=[
+    'AKfycbzVMYIh9fgmNo3omy9b0xL4OAKoQt7EZJ1jTgXTDlE1JzgRRGORVeZgshODS5Smpw4S',
+    'AKfycbz-PGPFlH1hBfa_vbOi3cLNQsr-ZUjtyH2KhfyqWkgkGMWGlNAvfQY9WkdIjtChLP9Z',
+    'AKfycbxzFBPP_xG-CYXUwnZg9JcDJrhT_jBS_6G2pdFdd2mbW4NPAvU_cvKmib806nNfr3DA'
+  ];
+  let url=localStorage.getItem(LS_API_KEY)||'';
+  if(url && OBSOLETE.some(o=>url.indexOf(o)>-1)){ localStorage.removeItem(LS_API_KEY); url=''; } // dọn URL cũ
+  if(!url) url=DEFAULT;
   return url;
 }
 function setApiUrl(url){apiUrl=url;localStorage.setItem(LS_API_KEY,url);}
