@@ -722,6 +722,14 @@ const GD_KET_THUC = ['tk_lost','tc_lost','tk_accept','tc_handover'];
 var HT = { baogia:[], khaosat:[], lichsulv:[], hopdongKH:[], thanhtoan:[] };
 try { var _ht = JSON.parse(localStorage.getItem('mdc_crm_ht') || 'null'); if(_ht) HT = Object.assign(HT, _ht); } catch(e){}
 
+// ── Xác suất thắng theo giai đoạn (khai báo sớm — mọi hàm dự báo/dashboard đọc lúc chạy) ──
+const XAC_SUAT = {
+  tk_new:10, tk_consult:20, tk_survey:35, tk_quote_tk:50, tk_sign_tk:90,
+  tk_design:95, tk_handover:95, tk_quote_tc:60, tk_accept:100, tk_lost:0,
+  tc_new:10, tc_consult:20, tc_survey:35, tc_quote_tc:50, tc_sign_tc:90,
+  tc_docs:95, tc_construct:95, tc_handover:100, tc_lost:0
+};
+
 function loadStaffList(){try{return JSON.parse(localStorage.getItem(LS_STAFF)||'[]')}catch(e){return[]}}
 function saveStaffList(arr){localStorage.setItem(LS_STAFF,JSON.stringify(arr))}
 // Chuẩn hóa nhân sự đến từ Sheets — ưu tiên cột tiếng Việt (nguồn hiển thị chính)
@@ -3282,13 +3290,8 @@ function moDoTrung(){
 }
 
 /* ─── 3. DỰ BÁO DOANH THU THEO TRỌNG SỐ ─────────────────────────
-   Xác suất thắng theo giai đoạn — càng về cuối phễu càng chắc. */
-const XAC_SUAT = {
-  tk_new:10, tk_consult:20, tk_survey:35, tk_quote_tk:50, tk_sign_tk:90,
-  tk_design:95, tk_handover:95, tk_quote_tc:60, tk_accept:100, tk_lost:0,
-  tc_new:10, tc_consult:20, tc_survey:35, tc_quote_tc:50, tc_sign_tc:90,
-  tc_docs:95, tc_construct:95, tc_handover:100, tc_lost:0
-};
+   Xác suất thắng theo giai đoạn — càng về cuối phễu càng chắc.
+   (XAC_SUAT đã khai báo sớm ở đầu script) */
 function giaTriLead(l){ return (parseInt(l.valueTk)||0) + (parseInt(l.valueTc)||0); }
 function duBaoLead(l){
   const p = XAC_SUAT[l.stage] ?? 10;
