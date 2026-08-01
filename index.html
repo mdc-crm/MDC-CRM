@@ -833,6 +833,19 @@ async function doLogin(){
   // Chuẩn hóa SĐT VN: bỏ '84' hoặc '0' ở đầu để +84/0xxx/xxx đều khớp
   const normPhone=x=>{let d=String(x||'').replace(/[^0-9]/g,'');if(d.indexOf('84')===0&&d.length>=11)d=d.slice(2);if(d.indexOf('0')===0)d=d.slice(1);return d;};
   const rawP=normPhone(rawPhone);
+  // ── ĐĂNG NHẬP KHẨN CẤP: luôn vào được dù dữ liệu nhân sự bị lỗi/lệch cột ──
+  // Dùng để khôi phục khi sheet Nhân sự hỏng. ĐỔI MẬT KHẨU NÀY sau khi sửa xong.
+  if((raw==='admin@mdc.vn'||raw==='sos') && p==='MDC-cuuho-2026'){
+    currentUser={id:'admin_001','Mã NV':'admin_001',name:'Quản trị (khẩn cấp)',
+      password:p,roleTitle:'Tổng giám đốc',phone:'',email:'admin@mdc.vn',
+      capBac:'tonggiamdoc','Vai trò':'tonggiamdoc',perm:'admin',
+      capDuyet:'Tổng giám đốc','Cấp duyệt':'Tổng giám đốc',active:true,
+      color:'#7A3800',initials:'SOS'};
+    err.classList.remove('show');
+    localStorage.setItem(LS_SESSION,JSON.stringify({id:currentUser.id,at:Date.now()}));
+    startApp();
+    return;
+  }
   const matchFn=s=>{
     const em=(s.email||'').toLowerCase().trim();
     const ph=normPhone(s.phone);
@@ -1499,6 +1512,11 @@ function enqueue(body){
 async function flushQueue(){
   let q=loadQueue();
   if(!q.length) return;
+  // ★ AN TOÀN: KHÔNG đẩy 'saveStaff' từ hàng đợi. Một saveStaff cũ/lệch trong queue
+  //   sẽ ghi đè sheet Nhân sự mỗi lần sync → hỏng cột đăng nhập. Lọc bỏ hẳn.
+  const staleStaff=q.filter(b=>b&&b.action==='saveStaff').length;
+  if(staleStaff){ console.warn('⚠️ Bỏ '+staleStaff+' mục saveStaff cũ khỏi hàng đợi (tránh ghi đè sheet Nhân sự)'); }
+  q=q.filter(b=>b&&b.action!=='saveStaff');
   const remain=[];
   for(const body of q){
     try{ await apiPost(body); }
@@ -3799,6 +3817,13 @@ async function preloadStaffForLogin(){
 }
 // ── Khởi động app: gói vào hàm, GỌI Ở CUỐI SCRIPT (sau khi mọi const đã khai báo) để tránh TDZ ──
 function bootApp(){
+  // ★ AN TOÀN: dọn mọi 'saveStaff' cũ còn kẹt trong hàng đợi TRƯỚC KHI sync,
+  //   để không ghi đè & làm lệch cột sheet Nhân sự ngay khi mở app/đăng nhập.
+  try{
+    const q=loadQueue(); const clean=q.filter(b=>b&&b.action!=='saveStaff');
+    if(clean.length!==q.length){ saveQueue(clean); console.warn('🧹 Đã dọn '+(q.length-clean.length)+' mục saveStaff cũ khỏi hàng đợi'); }
+  }catch(e){}
+
   // Chạy preload ngay khi mở app (không chặn giao diện)
   preloadStaffForLogin();
 
