@@ -4236,6 +4236,256 @@ function htChuyenDuAn(){
     + '<button class="btn btn-outline" onclick="htRender()">Đóng</button></div>');
 }
 
+
+/* ═══ MODULE CHUẨN HÓA v8.0 ═══ */
+/* ═══════════════════════════════════════════════════════════════
+   ★ CRM v8.0 — CHUẨN HÓA HỆ THỐNG
+   1. Menu phân nhóm · kích hoạt 3 trang bị bỏ quên
+   2. Điện thoại: bảng → thẻ · thanh điều hướng dưới · khôi phục tìm kiếm
+   3. Chuẩn hóa cỡ chữ, vùng chạm, khoảng cách
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── 1. CƠ CẤU MENU CHUẨN ────────────────────────────────────── */
+var MENU_CRM = [
+  {nhom:null, muc:[
+    {id:'dashboard', ten:'Tổng quan',        icon:'📊', mb:true, mbTen:'Tổng quan'}
+  ]},
+  {nhom:'Bán hàng', muc:[
+    {id:'leads',       ten:'Tất cả khách hàng', icon:'👥', mb:true, mbTen:'Khách hàng'},
+    {id:'pipeline_tk', ten:'Pipeline Thiết kế', icon:'🎨', mb:false},
+    {id:'pipeline_tc', ten:'Pipeline Thi công', icon:'🔨', mb:false},
+    {id:'tasks',       ten:'Công việc',         icon:'✅', mb:true, mbTen:'Công việc'}
+  ]},
+  {nhom:'Phân tích', muc:[
+    {id:'reports', ten:'Báo cáo & Dự báo', icon:'📈', mb:true, mbTen:'Báo cáo'}
+  ]},
+  {nhom:'Quản trị', muc:[
+    {id:'staff',    ten:'Nhân sự & Phân quyền', icon:'👤', mb:false, admin:true},
+    {id:'actlog',   ten:'Nhật ký thao tác',     icon:'📋', mb:false, admin:true},
+    {id:'connect',  ten:'Kết nối Google Sheets',icon:'🔗', mb:false},
+    {id:'settings', ten:'Cài đặt',              icon:'⚙️', mb:true, mbTen:'Cài đặt'}
+  ]}
+];
+
+function dungMenuCRM(){
+  var nav = document.querySelector('.sidebar-nav');
+  if(!nav) return;
+  var admin = (typeof isAdmin === 'function') ? isAdmin() : true;
+  var h = '';
+  MENU_CRM.forEach(function(g){
+    var muc = g.muc.filter(function(m){ return !m.admin || admin; });
+    if(!muc.length) return;
+    if(g.nhom) h += '<div class="nav-group">'+g.nhom+'</div>';
+    muc.forEach(function(m){
+      h += '<div class="nav-item'+(currentPage===m.id?' active':'')+'" data-page="'+m.id+'" '
+        + 'onclick="showPage(\''+m.id+'\',this)"><span class="nav-ico">'+m.icon+'</span>'
+        + '<span class="nav-txt">'+m.ten+'</span>'
+        + '<span class="nav-badge" id="nb-'+m.id+'"></span></div>';
+    });
+  });
+  nav.innerHTML = h;
+  capNhatBadge();
+}
+
+/* Badge số liệu trên menu — cho biết chỗ nào cần xử lý */
+function capNhatBadge(){
+  var d = {};
+  try {
+    d.leads = (typeof dsLeadNguoi === 'function') ? dsLeadNguoi().length : 0;
+    d.tasks = (typeof tasks !== 'undefined')
+      ? tasks.filter(function(t){ return !t.done && (!t.assignee || !currentUser || t.assignee===currentUser.id); }).length : 0;
+  } catch(e){}
+  Object.keys(d).forEach(function(k){
+    var el = document.getElementById('nb-'+k);
+    if(!el) return;
+    el.textContent = d[k] > 0 ? d[k] : '';
+    el.style.display = d[k] > 0 ? '' : 'none';
+  });
+}
+
+/* ─── 2. THANH ĐIỀU HƯỚNG DƯỚI (điện thoại) ───────────────────── */
+function dungThanhDuoi(){
+  if(document.getElementById('crm-tabbar')) return;
+  var muc = [];
+  MENU_CRM.forEach(function(g){ g.muc.forEach(function(m){ if(m.mb) muc.push(m); }); });
+  var el = document.createElement('nav');
+  el.id = 'crm-tabbar';
+  el.innerHTML = muc.map(function(m){
+    return '<button data-tab="'+m.id+'" onclick="chuyenTab(\''+m.id+'\')">'
+      + '<span class="tb-ico">'+m.icon+'</span><span class="tb-txt">'+(m.mbTen||m.ten)+'</span>'
+      + '<span class="tb-dot" id="tb-dot-'+m.id+'"></span></button>';
+  }).join('');
+  document.body.appendChild(el);
+  dongBoTab();
+}
+function chuyenTab(id){
+  var el = document.querySelector('.nav-item[data-page="'+id+'"]');
+  showPage(id, el);
+  var sb = document.querySelector('.sidebar'); if(sb) sb.classList.remove('open');
+  var ov = document.querySelector('.sidebar-overlay'); if(ov) ov.classList.remove('open');
+  dongBoTab();
+}
+function dongBoTab(){
+  document.querySelectorAll('#crm-tabbar button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.tab === currentPage);
+  });
+  try {
+    var n = (typeof dsLeadNguoi === 'function') ? dsLeadNguoi().length : 0;
+    var d = document.getElementById('tb-dot-leads');
+    if(d) d.style.display = n > 0 ? 'block' : 'none';
+  } catch(e){}
+}
+
+/* ─── 3. BẢNG → THẺ TRÊN ĐIỆN THOẠI ──────────────────────────────
+   Gán data-label cho mọi ô theo tiêu đề cột → CSS dựng lại thành thẻ.
+   Làm chung một lần cho MỌI bảng, không phải sửa từng hàm render. */
+function bangThanhThe(){
+  document.querySelectorAll('#page-content table').forEach(function(tb){
+    var th = tb.querySelectorAll('thead th');
+    if(!th.length) return;
+    var nhan = Array.prototype.map.call(th, function(t){ return t.textContent.trim(); });
+    tb.classList.add('tbl-mb');
+    tb.querySelectorAll('tbody tr').forEach(function(tr){
+      var td = tr.children;
+      for(var i = 0; i < td.length; i++){
+        if(nhan[i] && !td[i].getAttribute('data-label')) td[i].setAttribute('data-label', nhan[i]);
+      }
+    });
+  });
+}
+
+/* ─── 4. CSS CHUẨN HÓA ────────────────────────────────────────── */
+function napCSSChuan(){
+  if(document.getElementById('crm-css-v8')) return;
+  var s = document.createElement('style');
+  s.id = 'crm-css-v8';
+  s.textContent = `
+/* ══ MENU PHÂN NHÓM ══ */
+.nav-group{font-size:9.5px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;
+  color:rgba(255,255,255,.38);padding:15px 20px 6px}
+.sidebar-nav .nav-item{display:flex;align-items:center;gap:11px;padding:10px 20px;font-size:13.5px;
+  cursor:pointer;color:rgba(255,255,255,.78);border-left:3px solid transparent;transition:.15s}
+.sidebar-nav .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.sidebar-nav .nav-item.active{background:rgba(184,150,62,.16);border-left-color:#B8963E;color:#fff;font-weight:600}
+.nav-ico{width:20px;text-align:center;font-size:15px;flex:none}
+.nav-txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-badge{font-size:10px;font-weight:800;background:#B3261E;color:#fff;border-radius:99px;
+  padding:1px 6px;min-width:17px;text-align:center;display:none}
+
+/* ══ CHUẨN HÓA CHỮ & VÙNG CHẠM ══ */
+.btn{min-height:36px}
+.badge,.tag{font-size:11px!important}
+
+@media (max-width:768px){
+  /* — Cỡ chữ tối thiểu để đọc được ngoài công trường — */
+  body,td,th,input,select,textarea,button{font-size:13.5px}
+  .stat-value{font-size:22px!important}
+  [style*="font-size:9px"],[style*="font-size:9.5px"],[style*="font-size:10px"],
+  [style*="font-size:10.5px"]{font-size:11.5px!important}
+  [style*="font-size:11px"]{font-size:12px!important}
+
+  /* — Vùng chạm tối thiểu 40px — */
+  .btn,.nav-item,.qa-btn,.stage-btn{min-height:40px}
+  .btn{padding:9px 15px!important}
+  .icon-btn{width:40px;height:40px}
+
+  /* — KHÔI PHỤC tìm kiếm: chuyển xuống dòng riêng thay vì ẩn — */
+  .search-bar{display:flex!important;position:absolute;left:0;right:0;top:52px;
+    padding:7px 10px;background:var(--navy);z-index:99;border-top:1px solid rgba(255,255,255,.08)}
+  .search-bar input{width:100%;font-size:14px;padding:9px 12px;border-radius:9px}
+  .content{padding-top:56px!important}
+
+  /* — BẢNG → THẺ: bỏ cuộn ngang, mỗi dòng thành một thẻ — */
+  table.tbl-mb{min-width:0!important;width:100%;border-collapse:separate;border-spacing:0}
+  table.tbl-mb thead{display:none}
+  table.tbl-mb tbody,table.tbl-mb tr,table.tbl-mb td{display:block;width:auto}
+  table.tbl-mb tr{background:#fff;border:1px solid #E5DFD5;border-radius:11px;
+    padding:11px 13px;margin-bottom:9px;box-shadow:0 1px 3px rgba(43,33,26,.05)}
+  table.tbl-mb td{border:none!important;padding:4px 0!important;display:flex;
+    align-items:flex-start;gap:10px;text-align:left!important}
+  table.tbl-mb td::before{content:attr(data-label);flex:none;width:88px;font-size:10.5px;
+    font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#9A8F82;padding-top:2px}
+  table.tbl-mb td:first-child{padding-bottom:8px!important;margin-bottom:6px;
+    border-bottom:1px solid #F1EBE0!important}
+  table.tbl-mb td:first-child::before{display:none}
+  table.tbl-mb td:first-child>*{font-size:15px}
+  .table-wrap{overflow-x:visible!important}
+
+  /* — Thanh điều hướng dưới — */
+  #crm-tabbar{display:flex!important}
+  .content{padding-bottom:76px!important}
+  .sidebar{padding-bottom:70px}
+
+  /* — Panel & modal tràn màn hình — */
+  .detail-panel{width:100%!important;right:-100%!important}
+  .detail-panel.open{right:0!important}
+  #crm-modal2>div{max-height:94vh!important;border-radius:14px 14px 0 0!important;
+    margin-top:auto;width:100%!important}
+  #crm-modal2{align-items:flex-end!important;padding:0!important}
+
+  /* — Hành trình cuộn ngang mượt — */
+  .stats-row{grid-template-columns:repeat(2,1fr)!important}
+}
+
+/* ══ THANH ĐIỀU HƯỚNG DƯỚI ══ */
+#crm-tabbar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:400;
+  background:rgba(255,255,255,.97);backdrop-filter:blur(12px);
+  border-top:1px solid #E5DFD5;padding:5px 4px calc(5px + env(safe-area-inset-bottom))}
+#crm-tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  border:none;background:none;padding:6px 2px;cursor:pointer;color:#9A8F82;
+  font-size:10px;font-weight:600;position:relative;min-height:48px;justify-content:center}
+#crm-tabbar button.on{color:#0F3460}
+#crm-tabbar .tb-ico{font-size:19px;line-height:1}
+#crm-tabbar .tb-txt{font-size:10px;white-space:nowrap}
+#crm-tabbar .tb-dot{display:none;position:absolute;top:5px;right:calc(50% - 15px);
+  width:7px;height:7px;border-radius:50%;background:#B3261E}
+
+/* ══ AN TOÀN VÙNG KHUYẾT iPhone ══ */
+@supports(padding:max(0px)){
+  .sidebar{padding-bottom:max(12px,env(safe-area-inset-bottom))}
+}
+`;
+  document.head.appendChild(s);
+}
+
+/* ─── 5. GẮN VÀO VÒNG ĐỜI ỨNG DỤNG ────────────────────────────── */
+(function chuanHoaCRM(){
+  napCSSChuan();
+
+  // Bọc showPage: sau mỗi lần render thì mộng hóa bảng + đồng bộ tab
+  var _show = window.showPage;
+  window.showPage = function(page, el){
+    _show.apply(this, arguments);
+    try { bangThanhThe(); dongBoTab(); capNhatBadge(); } catch(e){}
+  };
+
+  // Bọc rerenderCurrent nếu có
+  if(typeof window.rerenderCurrent === 'function'){
+    var _re = window.rerenderCurrent;
+    window.rerenderCurrent = function(){
+      _re.apply(this, arguments);
+      try { bangThanhThe(); capNhatBadge(); } catch(e){}
+    };
+  }
+
+  // Dựng menu + thanh dưới khi app khởi động
+  var _start = window.startApp;
+  if(typeof _start === 'function'){
+    window.startApp = function(){
+      _start.apply(this, arguments);
+      setTimeout(function(){
+        try { dungMenuCRM(); dungThanhDuoi(); bangThanhThe(); } catch(e){}
+      }, 60);
+    };
+  }
+  // Trường hợp đã đăng nhập sẵn
+  setTimeout(function(){
+    if(document.querySelector('.sidebar-nav') && !document.querySelector('.nav-group')){
+      try { dungMenuCRM(); dungThanhDuoi(); bangThanhThe(); } catch(e){}
+    }
+  }, 700);
+})();
+
 </script>
 </body>
 </html>
