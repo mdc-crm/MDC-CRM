@@ -1634,7 +1634,7 @@ function showPage(page,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
   const titles={dashboard:'Dashboard',pipeline_tk:'Pipeline Thiết kế',pipeline_tc:'Pipeline Thi công',leads:'Tất cả Khách hàng',tasks:'Công việc',reports:'Báo cáo',staff:'Nhân sự & Phân quyền',connect:'Kết nối Google Sheets',settings:'Cài đặt',actlog:'Nhật ký thao tác'};
-  document.getElementById('page-title').textContent=titles[page]||page;
+  const _pt=document.getElementById('page-title'); if(_pt) _pt.textContent=titles[page]||page;
   const renders={
     dashboard:renderDashboard,
     pipeline_tk:()=>renderPipelineBoard('tk'),
@@ -3095,7 +3095,8 @@ function updateBadges(){
   // Badge "Công việc" chỉ đếm việc ĐÃ NHẬN và chưa hoàn thành.
   // Task mẫu (chưa ai nhận) vẫn hiện để gợi ý nhưng KHÔNG tính vào quản lý,
   // nên con số phản ánh đúng "việc đang thực sự được làm/cần theo dõi".
-  document.getElementById('task-count').textContent=tasks.filter(t=>!t.done && t.claimed).length;
+  const _tc = document.getElementById('task-count');
+  if(_tc) _tc.textContent = tasks.filter(t=>!t.done && t.claimed).length;
 }
 
 // ══════════════════════════════════════════════════════════════
