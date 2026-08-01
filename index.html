@@ -3113,31 +3113,34 @@ async function preloadStaffForLogin(){
     }
   }catch(e){ console.warn('Preload staff lỗi (vẫn đăng nhập được bằng dữ liệu local):', e); }
 }
-// Chạy preload ngay khi mở app (không chặn giao diện)
-preloadStaffForLogin();
+// ── Khởi động app: gói vào hàm, GỌI Ở CUỐI SCRIPT (sau khi mọi const đã khai báo) để tránh TDZ ──
+function bootApp(){
+  // Chạy preload ngay khi mở app (không chặn giao diện)
+  preloadStaffForLogin();
 
-// Restore session (nếu đã đăng nhập trước đó, < 8 tiếng)
-if(restoreSession()){
-  console.log('🔐 Session restored, starting app with immediate sync...');
-  startApp();
-  
-  // ✅ IMMEDIATE SYNC khi app khởi động
-  if(getApiUrl() && !isSyncing){
-    console.log('🔄 Triggering initial sync on startup...');
-    syncFromSheets().then(ok=>{
-      if(ok && currentUser){
-        console.log('✅ Initial sync complete');
-        rerenderCurrent();
-      }
-    }).catch(err=>{
-      console.error('❌ Initial sync failed:', err);
-    });
+  // Restore session (nếu đã đăng nhập trước đó, < 8 tiếng)
+  if(restoreSession()){
+    console.log('🔐 Session restored, starting app with immediate sync...');
+    startApp();
+
+    // ✅ IMMEDIATE SYNC khi app khởi động
+    if(getApiUrl() && !isSyncing){
+      console.log('🔄 Triggering initial sync on startup...');
+      syncFromSheets().then(ok=>{
+        if(ok && currentUser){
+          console.log('✅ Initial sync complete');
+          rerenderCurrent();
+        }
+      }).catch(err=>{
+        console.error('❌ Initial sync failed:', err);
+      });
+    }
   }
-}
-// Else: login screen đã hiển thị sẵn
+  // Else: login screen đã hiển thị sẵn
 
-// Hiển thị số mục đang chờ đồng bộ (nếu có từ phiên trước)
-updatePendingBadge();
+  // Hiển thị số mục đang chờ đồng bộ (nếu có từ phiên trước)
+  updatePendingBadge();
+}
 
 // Auto-sync định kỳ (45s). syncFromSheets đã tự flushQueue trước khi kéo về.
 setInterval(()=>{if(currentUser&&getApiUrl()&&!isSyncing)syncFromSheets().then(()=>{if(currentUser)rerenderCurrent();});},45*1000);
@@ -4491,6 +4494,9 @@ function napCSSChuan(){
     }
   }, 700);
 })();
+
+// ── GỌI KHỞI ĐỘNG SAU CÙNG: mọi const/var trên toàn script đã khởi tạo xong → hết lỗi TDZ ──
+bootApp();
 
 </script>
 </body>
