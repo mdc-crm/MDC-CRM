@@ -707,6 +707,21 @@ const LS_SESSION = 'mdc_crm_session_v2';
 
 let currentUser = null;
 
+// ── Cấu hình LEAD NGUỘI (khai báo sớm để tránh TDZ khi restoreSession()→startApp() chạy trước khối gốc) ──
+const NGUONG_NGUOI = {
+  tk_new:2,  tk_consult:5,  tk_survey:7,  tk_quote_tk:5,  tk_sign_tk:14,
+  tk_design:14, tk_handover:10, tk_quote_tc:5, tk_accept:30,
+  tc_new:2,  tc_consult:5,  tc_survey:7,  tc_quote_tc:5,  tc_sign_tc:14,
+  tc_docs:14, tc_construct:14, tc_handover:10
+};
+const NGUONG_MAC_DINH = 7;
+// Giai đoạn đã kết thúc → không tính nguội
+const GD_KET_THUC = ['tk_lost','tc_lost','tk_accept','tc_handover'];
+
+// ── KHO DỮ LIỆU HÀNH TRÌNH (khai báo sớm để syncFromSheets chạy lúc khởi động không gặp HT=undefined) ──
+var HT = { baogia:[], khaosat:[], lichsulv:[], hopdongKH:[], thanhtoan:[] };
+try { var _ht = JSON.parse(localStorage.getItem('mdc_crm_ht') || 'null'); if(_ht) HT = Object.assign(HT, _ht); } catch(e){}
+
 function loadStaffList(){try{return JSON.parse(localStorage.getItem(LS_STAFF)||'[]')}catch(e){return[]}}
 function saveStaffList(arr){localStorage.setItem(LS_STAFF,JSON.stringify(arr))}
 // Chuẩn hóa nhân sự đến từ Sheets — ưu tiên cột tiếng Việt (nguồn hiển thị chính)
@@ -3148,16 +3163,8 @@ document.querySelectorAll('.nav-item').forEach(el=>{el.addEventListener('click',
 
 /* ─── 1. LEAD NGUỘI ─────────────────────────────────────────────
    Ngưỡng khác nhau theo giai đoạn: khách mới cần phản hồi trong ngày,
-   khách đang triển khai thì nhịp chậm hơn là bình thường. */
-const NGUONG_NGUOI = {
-  tk_new:2,  tk_consult:5,  tk_survey:7,  tk_quote_tk:5,  tk_sign_tk:14,
-  tk_design:14, tk_handover:10, tk_quote_tc:5, tk_accept:30,
-  tc_new:2,  tc_consult:5,  tc_survey:7,  tc_quote_tc:5,  tc_sign_tc:14,
-  tc_docs:14, tc_construct:14, tc_handover:10
-};
-const NGUONG_MAC_DINH = 7;
-// Giai đoạn đã kết thúc → không tính nguội
-const GD_KET_THUC = ['tk_lost','tc_lost','tk_accept','tc_handover'];
+   khách đang triển khai thì nhịp chậm hơn là bình thường.
+   (NGUONG_NGUOI / NGUONG_MAC_DINH / GD_KET_THUC đã khai báo sớm ở đầu script) */
 
 function ngayTuLienHe(l){
   const d = l.lastContact || l.created;
@@ -3448,9 +3455,8 @@ function dongModal2(){ var e = document.getElementById('crm-modal2'); if(e) e.st
    Toàn bộ dữ liệu ghi vào Sheet dùng chung → PM đọc được ngay.
    ═══════════════════════════════════════════════════════════════ */
 
-/* ─── KHO DỮ LIỆU ─────────────────────────────────────────────── */
-var HT = { baogia:[], khaosat:[], lichsulv:[], hopdongKH:[], thanhtoan:[] };
-try { var _ht = JSON.parse(localStorage.getItem('mdc_crm_ht') || 'null'); if(_ht) HT = Object.assign(HT, _ht); } catch(e){}
+/* ─── KHO DỮ LIỆU ───────────────────────────────────────────────
+   (HT đã khai báo & nạp localStorage sớm ở đầu script) */
 function htSave(){ try{ localStorage.setItem('mdc_crm_ht', JSON.stringify(HT)); }catch(e){} }
 function htOf(kho, maKH){ return (HT[kho]||[]).filter(function(x){ return String(x['Mã KH']) === String(maKH); }); }
 
