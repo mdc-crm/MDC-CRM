@@ -54,6 +54,23 @@ body{font-family:'Be Vietnam Pro',sans-serif;background:var(--cream);color:var(-
 .tag-x:hover{opacity:1}
 .tag-add{cursor:pointer;border:1px dashed #c9bfae;background:transparent;color:var(--mgray);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
 .tag-add:hover{border-color:var(--gold);color:var(--gold)}
+/* ── Tổng quan 360° dự án (PM → CRM, chỉ đọc) ── */
+.pm360-box{margin-bottom:14px}
+.pm360-box:empty{display:none}
+.pm360-loading{font-size:12px;color:var(--mgray);padding:10px 12px;background:var(--lgray);border-radius:9px}
+.pm360-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.pm360-ro{font-size:9px;font-weight:600;letter-spacing:.5px;color:var(--mgray);background:var(--lgray);padding:2px 7px;border-radius:10px;text-transform:none}
+.pm360-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.pm360-stat{background:linear-gradient(135deg,#FBF7EF,#F4EEE1);border:1px solid var(--line);border-radius:11px;padding:11px 8px;text-align:center}
+.pm360-num{font-size:18px;font-weight:800;color:var(--navy);font-family:'Be Vietnam Pro',sans-serif;line-height:1}
+.pm360-lbl{font-size:10px;color:var(--mgray);margin-top:3px}
+.pm360-fin{background:var(--white);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin-bottom:10px}
+.pm360-finrow{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;color:var(--charcoal)}
+.pm360-finrow+.pm360-finrow{border-top:1px solid #F3EEE4}
+.pm360-proj{background:var(--white);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;padding:11px 13px;margin-bottom:8px}
+.pm360-bar{height:7px;background:#EDE7DB;border-radius:20px;overflow:hidden}
+.pm360-fill{height:100%;background:linear-gradient(90deg,#B98A3C,#CBA25A);border-radius:20px;transition:width .5s}
+.pm360-foot{font-size:10.5px;color:var(--mgray);font-style:italic;padding:2px 2px 0}
 /* ── Bộ lọc nâng cao ── */
 .adv-filter{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
 .adv-search{flex:1;min-width:200px;font-size:13px}
@@ -3133,6 +3150,9 @@ function openPanel(id){
       <span style="display:block;font-size:11px;font-weight:400;opacity:.85;margin-top:2px">
         Báo giá · Khảo sát · Hợp đồng · Đợt thanh toán</span>
     </button>
+    <div id="pm360-${l.id}" class="pm360-box">
+      <div class="pm360-loading">🏗️ Đang tải dữ liệu dự án từ PM…</div>
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
       <span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;background:${pipe==='tc'?'#E0F4F1':'#EBF3FC'};color:${pipe==='tc'?'#8F6A2B':'#0F3460'}">${pipe==='tc'?'🔨 Pipeline Thi công':'🎨 Pipeline Thiết kế'}</span>
       ${l.inBothPipelines?`<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;background:#FFF0E0;color:#7A3800">⚡ Có trong cả 2 Pipeline</span>`:''}
@@ -3201,6 +3221,60 @@ function openPanel(id){
     </div>`:''}
     <button class="btn btn-outline btn-sm" style="width:100%;margin-top:7px;font-size:11.5px" onclick="openAddTask('${l.id}');closePanel()">📝 Thêm công việc cho KH này</button>
     </div>`;
+  // Tải tổng quan dự án 360° từ PM (chỉ đọc, không chặn giao diện)
+  loadPM360(l.id);
+}
+
+// ── TỔNG QUAN 360°: đọc dữ liệu dự án bên PM về hiển thị trong CRM ──
+async function loadPM360(id){
+  const box=document.getElementById('pm360-'+id);
+  if(!box) return;
+  if(!getApiUrl()){ box.innerHTML=''; return; }
+  try{
+    const d=await apiFetch({action:'getCustomer360', maKH:id});
+    if(!d || !d.hasProject){ box.innerHTML=''; return; }   // chưa có dự án → ẩn hẳn
+    box.innerHTML=renderPM360(d);
+  }catch(e){
+    box.innerHTML='<div class="pm360-loading" style="color:var(--mgray)">Chưa lấy được dữ liệu dự án từ PM.</div>';
+  }
+}
+function renderPM360(d){
+  const f=d.taiChinh||{};
+  const cv=d.congViec||{};
+  const pct=Math.max(0,Math.min(100,d.tienDoTB||0));
+  const money=v=>formatShort(Number(v)||0);
+  const proj=(d.duAn||[]).map(p=>{
+    const pp=Math.max(0,Math.min(100,p.tienDo||0));
+    return `<div class="pm360-proj">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <span style="font-weight:700;font-size:12.5px;color:var(--navy)">${esc2(p.ten||p.maDA||'Dự án')}</span>
+        <span style="font-size:10px;color:var(--mgray);margin-left:auto">${esc2(p.maDA||'')}</span>
+      </div>
+      <div style="font-size:11px;color:var(--mgray);margin-bottom:6px">
+        ${p.giaiDoan?'📍 '+esc2(p.giaiDoan)+' · ':''}${p.trangThai?esc2(p.trangThai):''}${p.phuTrach?' · 👤 '+esc2(p.phuTrach):''}
+      </div>
+      <div class="pm360-bar"><div class="pm360-fill" style="width:${pp}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--mgray);margin-top:3px">
+        <span>Tiến độ ${pp}%</span>${p.ketThucDK?`<span>Dự kiến xong: ${esc2(p.ketThucDK)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="pm360-header">🏗️ Tổng quan dự án (từ PM) <span class="pm360-ro">chỉ xem</span></div>
+    <div class="pm360-stats">
+      <div class="pm360-stat"><div class="pm360-num">${d.soDuAn}</div><div class="pm360-lbl">Dự án</div></div>
+      <div class="pm360-stat"><div class="pm360-num">${pct}%</div><div class="pm360-lbl">Tiến độ TB</div></div>
+      <div class="pm360-stat"><div class="pm360-num">${cv.xong}/${cv.tong}</div><div class="pm360-lbl">Việc xong${cv.vuong?` · ⚠${cv.vuong}`:''}</div></div>
+    </div>
+    <div class="pm360-fin">
+      <div class="pm360-finrow"><span>💰 Giá trị hợp đồng</span><b>${money(f.tongHD)}</b></div>
+      <div class="pm360-finrow"><span>✅ Đã thu</span><b style="color:var(--emerald)">${money(f.daThu)}</b></div>
+      <div class="pm360-finrow"><span>⏳ Còn phải thu</span><b style="color:${f.conLai>0?'#B3261E':'var(--mgray)'}">${money(f.conLai)}</b></div>
+      <div class="pm360-finrow"><span>🧾 Chi phí đã ghi</span><b>${money(f.chiPhi)}</b></div>
+    </div>
+    ${proj}
+    <div class="pm360-foot">Dữ liệu đọc từ hệ thống PM · Cập nhật ${esc2(d.capNhat||'')}. Sửa dữ liệu này trong app Quản lý dự án.</div>
+  `;
 }
 
 function closePanel(){document.getElementById('panel-overlay').classList.remove('open');document.getElementById('detail-panel').classList.remove('open');selectedLead=null;}
