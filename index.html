@@ -567,6 +567,10 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
       <span class="icon">🔨</span> Pipeline Thi công
       <span class="nav-badge" id="count-tc">0</span>
     </div>
+    <div class="nav-item" data-page="pipeline_cs" onclick="showPage('pipeline_cs',this)">
+      <span class="icon">💚</span> Chăm sóc sau bán
+      <span class="nav-badge" id="count-cs">0</span>
+    </div>
     <div class="nav-section">Quản lý</div>
     <div class="nav-item" data-page="leads" onclick="showPage('leads',this)"><span class="icon">👥</span> Tất cả KH<span class="nav-badge" id="lead-count">0</span></div>
     <div class="nav-item" data-page="tasks" onclick="showPage('tasks',this)"><span class="icon">✅</span> Công việc<span class="nav-badge" id="task-count">0</span></div>
@@ -638,7 +642,7 @@ input[type="time"].form-input{font-family:'Be Vietnam Pro',sans-serif;font-size:
         <div class="form-group"><label class="form-label">Số điện thoại *</label><input type="text" class="form-input" id="f-phone" placeholder="0901 234 567" oninput="kiemTraTrungSDT()"><div id="f-phone-warn" style="display:none;margin-top:6px;padding:8px 10px;border-radius:7px;background:#FBE4E2;border:1px solid #F2C9C5;color:#B3261E;font-size:11.5px;line-height:1.5"></div></div>
         <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="f-email"></div>
         <div class="form-group"><label class="form-label">Loại công trình</label><select class="form-input" id="f-type"><option>Căn hộ</option><option>Nhà phố</option><option>Biệt thự</option><option>Văn phòng</option><option>Showroom</option></select></div>
-        <div class="form-group"><label class="form-label">Nguồn lead</label><select class="form-input" id="f-source"><option>Facebook Ads</option><option>Instagram</option><option>Zalo OA</option><option>Giới thiệu KH cũ</option><option>Google Ads</option><option>Website</option><option>Telesale lạnh</option></select></div>
+        <div class="form-group"><label class="form-label">Nguồn lead</label><select class="form-input" id="f-source"><option>Facebook Ads</option><option>Instagram</option><option>Zalo OA</option><option>Giới thiệu KH cũ</option><option>Cộng tác viên</option><option>Đối tác</option><option>Google Ads</option><option>Website</option><option>Telesale lạnh</option></select></div>
         <div class="form-group"><label class="form-label">Ngân sách</label><select class="form-input" id="f-budget"><option>Dưới 200 triệu</option><option>200–500 triệu</option><option>500 triệu – 1 tỷ</option><option>1–2 tỷ</option><option>Trên 2 tỷ</option></select></div>
         <div class="form-group"><label class="form-label">Giá trị HĐ Thiết kế (đ)</label><input type="number" class="form-input" id="f-value-tk" placeholder="50000000"></div>
         <div class="form-group"><label class="form-label">Giá trị HĐ Thi công (đ)</label><input type="number" class="form-input" id="f-value-tc" placeholder="500000000"></div>
@@ -1232,16 +1236,30 @@ const STAGES_TC = [
   {id:'tc_lost',     label:'Mất deal',          color:'#555',    badge:'badge-tc-lost'},
 ];
 
+// ═══ PIPELINE CHĂM SÓC SAU BÁN HÀNG ═══
+// Vòng đời khách sau khi bàn giao: hỏi thăm → bảo hành → tri ân → giữ quan hệ → cơ hội mới.
+const STAGES_CS = [
+  {id:'cs_new',      label:'Vừa bàn giao',       color:'#0F5132', badge:'badge-cs'},
+  {id:'cs_7d',       label:'Hỏi thăm 7 ngày',    color:'#8F6A2B', badge:'badge-cs'},
+  {id:'cs_30d',      label:'Kiểm tra 30 ngày',   color:'#1A5C87', badge:'badge-cs'},
+  {id:'cs_warranty', label:'Bảo hành 6 tháng',   color:'#7A3800', badge:'badge-cs'},
+  {id:'cs_1y',       label:'Tri ân 1 năm',       color:'#3D0D6E', badge:'badge-cs'},
+  {id:'cs_loyal',    label:'Khách trung thành',  color:'#0F5132', badge:'badge-cs'},
+  {id:'cs_upsell',   label:'Cơ hội dự án mới',   color:'#6B3400', badge:'badge-cs'},
+];
+
 // Color maps
 const SBG_TK = {tk_new:'#EEF3FB',tk_consult:'#F0E8FB',tk_survey:'#E0F4F1',tk_quote_tk:'#FFF0E0',tk_sign_tk:'#E6F4EC',tk_design:'#EBF3FC',tk_handover:'#F0E8FB',tk_quote_tc:'#FFF0E0',tk_accept:'#E6F4EC',tk_lost:'#F5F5F5'};
 const SBG_TC = {tc_new:'#E0F4F1',tc_consult:'#EBF3FC',tc_survey:'#F0E8FB',tc_quote_tc:'#FFF0E0',tc_sign_tc:'#E6F4EC',tc_docs:'#FFF0E0',tc_construct:'#FDEEF1',tc_handover:'#E6F4EC',tc_lost:'#F5F5F5'};
 const SC_TK  = {tk_new:'#0F3460',tk_consult:'#3D0D6E',tk_survey:'#8F6A2B',tk_quote_tk:'#7A3800',tk_sign_tk:'#0F5132',tk_design:'#1A5C87',tk_handover:'#3D0D6E',tk_quote_tc:'#6B3400',tk_accept:'#0F5132',tk_lost:'#555'};
 const SC_TC  = {tc_new:'#8F6A2B',tc_consult:'#1A5C87',tc_survey:'#3D0D6E',tc_quote_tc:'#7A3800',tc_sign_tc:'#0F5132',tc_docs:'#6B3400',tc_construct:'#7B1A2B',tc_handover:'#0F5132',tc_lost:'#555'};
+const SBG_CS = {cs_new:'#E6F4EC',cs_7d:'#FFF6E0',cs_30d:'#EBF3FC',cs_warranty:'#FFF0E0',cs_1y:'#F0E8FB',cs_loyal:'#E6F4EC',cs_upsell:'#FDF0E4'};
+const SC_CS  = {cs_new:'#0F5132',cs_7d:'#8F6A2B',cs_30d:'#1A5C87',cs_warranty:'#7A3800',cs_1y:'#3D0D6E',cs_loyal:'#0F5132',cs_upsell:'#6B3400'};
 
-function getStages(pipeline){ return pipeline==='tc'?STAGES_TC:STAGES_TK; }
-function getSBG(stage){ return SBG_TK[stage]||SBG_TC[stage]||'#F5F5F5'; }
-function getSC(stage){ return SC_TK[stage]||SC_TC[stage]||'#555'; }
-function getPipe(stageId){return(stageId||'tk_new').startsWith('tc_')?'tc':'tk'}
+function getStages(pipeline){ return pipeline==='cs'?STAGES_CS:pipeline==='tc'?STAGES_TC:STAGES_TK; }
+function getSBG(stage){ return SBG_TK[stage]||SBG_TC[stage]||SBG_CS[stage]||'#F5F5F5'; }
+function getSC(stage){ return SC_TK[stage]||SC_TC[stage]||SC_CS[stage]||'#555'; }
+function getPipe(stageId){const s=stageId||'tk_new';return s.startsWith('cs_')?'cs':s.startsWith('tc_')?'tc':'tk'}
 
 // ══════════════════════════════════════════════════════════════
 // CUSTOMER HEALTH & CARE LOGIC — Bám sát KH, không bỏ lỡ cơ hội
@@ -1453,12 +1471,12 @@ function pipeProgress(l){
 
 
 function getPipelineOfStage(stageId){return getPipe(stageId);}
-function getStageObj(stageId){return STAGES_TK.find(s=>s.id===stageId)||STAGES_TC.find(s=>s.id===stageId)||{label:stageId,color:'#555',badge:''};}
+function getStageObj(stageId){return STAGES_TK.find(s=>s.id===stageId)||STAGES_TC.find(s=>s.id===stageId)||STAGES_CS.find(s=>s.id===stageId)||{label:stageId,color:'#555',badge:''};}
 
 // Aliases SBG/SC — dùng khắp nơi trong render functions
 // SBG_TK, SC_TK, SBG_TC, SC_TC được khai báo ở trên; merge thành SBG/SC để code gọn
-const SBG = {...SBG_TK, ...SBG_TC};
-const SC  = {...SC_TK,  ...SC_TC};
+const SBG = {...SBG_TK, ...SBG_TC, ...SBG_CS};
+const SC  = {...SC_TK,  ...SC_TC,  ...SC_CS};
 
 // ══════════════════════════════════════════════════════════════
 // STATE
@@ -1776,7 +1794,7 @@ async function syncNow(){
 }
 
 function rerenderCurrent(){
-  const r={dashboard:renderDashboard,pipeline_tk:()=>renderPipelineBoard('tk'),pipeline_tc:()=>renderPipelineBoard('tc'),leads:renderLeads,tasks:renderTasks,calendar:renderCalendar,reports:renderReports,staff:renderStaff,trash:renderTrash,actlog:renderActivityLog};
+  const r={dashboard:renderDashboard,pipeline_tk:()=>renderPipelineBoard('tk'),pipeline_tc:()=>renderPipelineBoard('tc'),pipeline_cs:()=>renderPipelineBoard('cs'),leads:renderLeads,tasks:renderTasks,calendar:renderCalendar,reports:renderReports,staff:renderStaff,trash:renderTrash,actlog:renderActivityLog};
   if(r[currentPage]) r[currentPage]();
 }
 
@@ -1802,12 +1820,13 @@ function showPage(page,el){
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  const titles={dashboard:'Dashboard',pipeline_tk:'Pipeline Thiết kế',pipeline_tc:'Pipeline Thi công',leads:'Tất cả Khách hàng',tasks:'Công việc',calendar:'📅 Lịch hẹn',reports:'Báo cáo',staff:'Nhân sự & Phân quyền',connect:'Kết nối Google Sheets',settings:'Cài đặt',actlog:'Nhật ký thao tác',trash:'🗑️ Thùng rác'};
+  const titles={dashboard:'Dashboard',pipeline_tk:'Pipeline Thiết kế',pipeline_tc:'Pipeline Thi công',pipeline_cs:'💚 Chăm sóc sau bán',leads:'Tất cả Khách hàng',tasks:'Công việc',calendar:'📅 Lịch hẹn',reports:'Báo cáo',staff:'Nhân sự & Phân quyền',connect:'Kết nối Google Sheets',settings:'Cài đặt',actlog:'Nhật ký thao tác',trash:'🗑️ Thùng rác'};
   const _pt=document.getElementById('page-title'); if(_pt) _pt.textContent=titles[page]||page;
   const renders={
     dashboard:renderDashboard,
     pipeline_tk:()=>renderPipelineBoard('tk'),
     pipeline_tc:()=>renderPipelineBoard('tc'),
+    pipeline_cs:()=>renderPipelineBoard('cs'),
     leads:renderLeads,tasks:renderTasks,
     calendar:renderCalendar,
     reports:renderReports,connect:renderConnect,settings:renderSettings,
@@ -1968,6 +1987,61 @@ async function quickLogContact(id){
 }
 
 // ── PIPELINE BOARD// ── PIPELINE BOARD ────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// PIPELINE CHĂM SÓC SAU BÁN HÀNG
+// ══════════════════════════════════════════════════════════════
+function renderCarePipeline(vl){
+  const stages=STAGES_CS;
+  const csLeads=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='cs');
+  const money=v=>formatShort(Number(v)||0);
+  const totalValue=csLeads.reduce((s,l)=>s+(Number(l.valueTk)||0)+(Number(l.valueTc)||0),0);
+  const upsell=csLeads.filter(l=>l.stage==='cs_upsell').length;
+  const loyal=csLeads.filter(l=>l.stage==='cs_loyal').length;
+  // Khách chăm sóc có việc quá hạn (task chăm sóc chưa xong, đã tới hạn)
+  const today=new Date().toISOString().split('T')[0];
+  const overdueCare=csLeads.filter(l=>tasks.some(t=>t.leadId===l.id && t.isCare && !t.done && t.date && t.date<today)).length;
+
+  document.getElementById('page-content').innerHTML=`
+    <div class="pipeline-type-badge" style="background:#E6F4EC;color:#0F5132">💚 Chăm sóc sau bán hàng</div>
+    <div class="transfer-notice" style="background:#F3FAF5;border-color:#CBE8D5">
+      <span class="tn-icon">💚</span>
+      <div><strong>Vòng đời sau bàn giao:</strong> Khách hoàn thành dự án tự động vào đây. Kéo qua từng chặng chăm sóc — từ hỏi thăm, bảo hành, tri ân đến giữ quan hệ và khai thác <strong>dự án mới / giới thiệu</strong>.</div>
+    </div>
+    <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Đang chăm sóc</div><div class="stat-value">${csLeads.length}</div><div class="stat-sub">khách sau bàn giao</div></div>
+      <div class="stat-card" style="--accent:var(--ruby)"><div class="stat-label">Việc chăm sóc trễ</div><div class="stat-value">${overdueCare}</div><div class="stat-sub">cần liên hệ ngay</div></div>
+      <div class="stat-card" style="--accent:var(--gold)"><div class="stat-label">Cơ hội dự án mới</div><div class="stat-value">${upsell}</div><div class="stat-sub">upsell / giới thiệu</div></div>
+      <div class="stat-card" style="--accent:var(--emerald)"><div class="stat-label">Tổng giá trị đã bàn giao</div><div class="stat-value">${formatB(totalValue)}</div></div>
+    </div>
+    <div style="font-size:12px;color:var(--mgray);margin-bottom:12px">${csLeads.length} khách trong pipeline chăm sóc</div>
+    <div class="pipeline-board">
+      ${stages.map(s=>{
+        const cols=csLeads.filter(l=>l.stage===s.id);
+        return`<div class="pipeline-col">
+          <div class="pipeline-header" style="background:${s.color}">
+            <span>${s.label}</span><span class="pipeline-count">${cols.length}</span>
+          </div>
+          ${cols.map(l=>{
+            const since=l.afterSaleSince?Math.floor((Date.now()-new Date(l.afterSaleSince).getTime())/86400000):null;
+            const nextCare=tasks.filter(t=>t.leadId===l.id&&t.isCare&&!t.done).sort((a,b)=>(a.date||'').localeCompare(b.date||''))[0];
+            const overdue=nextCare&&nextCare.date&&nextCare.date<today;
+            return `<div class="pipeline-card" style="--sc:${s.color}" onclick="openPanel('${l.id}')">
+              <div class="pc-name">${esc2(l.name)}</div>
+              <div class="pc-value">${money((Number(l.valueTk)||0)+(Number(l.valueTc)||0))}</div>
+              ${since!=null?`<div style="font-size:9.5px;color:var(--mgray);margin-top:3px">🎉 Bàn giao ${since} ngày trước</div>`:''}
+              ${nextCare?`<div style="font-size:9.5px;color:${overdue?'#B3261E':'var(--amber)'};margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${overdue?'⏰':'🔔'} ${esc2((nextCare.text||'').replace(/^\[Chăm sóc\][^:]*:\s*/,''))}</div>`:''}
+              <div class="pc-meta">
+                <div class="pc-owner" style="background:${staffColor(l.owner)}">${staffInitials(l.owner)}</div>
+                ${l.stage==='cs_upsell'?`<span style="font-size:8px;background:#FDF0E4;color:#6B3400;padding:1px 5px;border-radius:8px;font-weight:700">💰 Cơ hội</span>`:l.stage==='cs_loyal'?`<span style="font-size:8px;background:#E6F4EC;color:#0F5132;padding:1px 5px;border-radius:8px;font-weight:700">⭐ Thân thiết</span>`:''}
+              </div>
+            </div>`;
+          }).join('')||'<div style="padding:14px 8px;text-align:center;color:var(--mgray);font-size:11px">—</div>'}
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
 function renderPipelineBoard(pipe){
   const vl=visibleLeads();
   const stages=getStages(pipe);
@@ -1988,6 +2062,8 @@ function renderPipelineBoard(pipe){
   const active=pipeLeads.filter(l=>!['tk_accept','tk_lost','tc_handover','tc_lost'].includes(effStage(l)));
   const done=pipeLeads.filter(l=>['tk_accept','tc_handover'].includes(effStage(l)));
   const pv=active.reduce((s,l)=>s+(Number(pipe==='tk'?l.valueTk:l.valueTc)||0),0);
+
+  if(pipe==='cs'){ renderCarePipeline(vl); return; }
 
   document.getElementById('page-content').innerHTML=`
     <div class="${pipe==='tk'?'pipeline-type-badge tk':'pipeline-type-badge tc'}">
@@ -3254,7 +3330,7 @@ function openPanel(id){
     </div>
     <div class="section-title">📝 Ghi chú</div>
     <div style="background:var(--lgray);border-radius:8px;padding:11px;font-size:12.5px;color:var(--charcoal);margin-bottom:16px;line-height:1.6">${l.note||'Chưa có ghi chú'}</div>
-    <div class="section-title">🏷️ Cập nhật Giai đoạn (${pipe==='tc'?'Thi công':'Thiết kế'})</div>
+    <div class="section-title">🏷️ Cập nhật Giai đoạn (${pipe==='cs'?'Chăm sóc sau bán':pipe==='tc'?'Thi công':'Thiết kế'})</div>
     <div class="stage-selector">
       ${stages.map(s=>`<div class="stage-btn ${l.stage===s.id?'active':''} ${s.autoTransfer?'highlight-auto':''}" 
         style="--stage-bg:${getSBG(s.id)};--stage-c:${getSC(s.id)};--stage-bc:${getSC(s.id)}" 
@@ -3455,13 +3531,14 @@ async function completeStage(id){
   const loai = isTC ? 'Thi công' : (l.inBothPipelines?'Thiết kế & Thi công':'Thiết kế');
   if(!confirm(`Hoàn thành ${loai} cho "${l.name}"?\n\nKhách sẽ chuyển sang DANH SÁCH CHĂM SÓC SAU BÁN HÀNG và hệ thống tự tạo ${CARE_SCHEDULE.length} lịch chăm sóc (7 ngày, 30 ngày, 6 tháng, 1 năm).`)) return;
 
-  // Đánh dấu trạng thái chăm sóc
-  l.stage = isTC ? 'tc_handover' : 'tk_accept';
-  l.afterSale = true;             // cờ: đang chăm sóc sau bán
+  // Đánh dấu trạng thái chăm sóc + CHUYỂN VÀO PIPELINE CHĂM SÓC SAU BÁN
+  l.stagePrev = l.stage;          // lưu giai đoạn hoàn thành gốc (tk_accept/tc_handover)
+  l.stage = 'cs_new';             // vào pipeline chăm sóc sau bán
+  l.afterSale = true;
   l.afterSaleSince = new Date().toISOString().split('T')[0];
   if(!Array.isArray(l.history)) l.history=[];
-  l.history.unshift({t:`🎉 Hoàn thành ${loai} → Chăm sóc sau bán hàng`,time:nowStr()});
-  logActivity('completeStage','KH',l.id,l.name,`Hoàn thành ${loai} → Chăm sóc sau bán`,'','');
+  l.history.unshift({t:`🎉 Hoàn thành ${loai} → Chăm sóc sau bán hàng`,time:nowStr(),ts:Date.now(),kind:'system',by:(currentUser&&currentUser.name)||''});
+  logActivity('completeStage','KH',l.id,l.name,`Hoàn thành ${loai} → Pipeline Chăm sóc sau bán`,'cs_new','');
 
   // Tạo các task chăm sóc theo lịch
   const newCare = CARE_SCHEDULE.map(c=>({
@@ -3839,8 +3916,10 @@ function updateBadges(){
   const vl=visibleLeads();
   const tkN=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tk').length;
   const tcN=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='tc').length;
+  const csN=vl.filter(l=>getPipelineOfStage(l.stage||'tk_new')==='cs').length;
   if(document.getElementById('count-tk'))document.getElementById('count-tk').textContent=tkN;
   if(document.getElementById('count-tc'))document.getElementById('count-tc').textContent=tcN;
+  if(document.getElementById('count-cs'))document.getElementById('count-cs').textContent=csN;
   if(document.getElementById('lead-count'))document.getElementById('lead-count').textContent=vl.length;
   // Badge "Công việc" chỉ đếm việc ĐÃ NHẬN và chưa hoàn thành.
   // Task mẫu (chưa ai nhận) vẫn hiện để gợi ý nhưng KHÔNG tính vào quản lý,
