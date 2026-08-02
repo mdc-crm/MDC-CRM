@@ -3023,7 +3023,10 @@ async function testAndSaveUrl(){
     const json=await res.json();
     if(!(json.ok||json.pong)) throw new Error(json.error||'Phản hồi không hợp lệ');
     hideLoading();
-    toast('✅ Kết nối thành công!');
+    // Kiểm tra phiên bản backend để chắc chắn đã deploy bản mới
+    let verMsg='';
+    try{ const g=await apiFetch({action:'getAll'}); if(g&&g.ver){ verMsg=' · Backend '+g.ver; window.__backendVer=g.ver; } }catch(e){}
+    toast('✅ Kết nối thành công!'+verMsg);
     await syncFromSheets();
     showPage('dashboard',document.querySelector('[data-page=dashboard]'));
   }catch(e){
