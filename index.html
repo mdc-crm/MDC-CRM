@@ -873,14 +873,46 @@ async function doLogin(){
   }
   const matchFn=s=>{
     const em=(s.email||'').toLowerCase().trim();
+    const un=(s.username||'').toLowerCase().trim();
     const ph=normPhone(s.phone);
-    const matchUser=(em&&em===raw)||(rawP&&ph&&ph===rawP);
-    return matchUser && s.password===p;
+    const matchUser=(em&&em===raw)||(un&&un===raw)||(rawP&&ph&&ph===rawP);
+    return matchUser && String(s.password)===String(p);
   };
+
+  // ── ƯU TIÊN XÁC THỰC QUA MÁY CHỦ (verifyLogin) ──
+  // Máy chủ đọc trực tiếp sheet (đã tự chữa header) nên KHÔNG phụ thuộc dữ liệu
+  // lệch/cũ trong localStorage của điện thoại. Đây là cách sửa lỗi "sai mật khẩu"
+  // trên điện thoại khi cache nhân sự bị lệch.
+  if(getApiUrl()){
+    err.textContent='⏳ Đang kiểm tra đăng nhập...';err.classList.add('show');
+    let serverResponded=false, serverResult=null;
+    try{
+      const res=await fetch(getApiUrl()+'?'+new URLSearchParams({action:'verifyLogin',username:raw,password:p}).toString(),{method:'GET',redirect:'follow'});
+      if(res.ok){ serverResult=await res.json(); serverResponded=true; }
+    }catch(e){ /* mất mạng → serverResponded=false */ }
+
+    if(serverResponded){
+      if(serverResult && serverResult.ok && serverResult.user){
+        try{ const data=await apiFetch({action:'getAll'}); if(data&&data.staff&&data.staff.length) saveStaffList(normalizeStaff(data.staff)); }catch(e){}
+        const u=loadStaffList().find(s=>String(s.id)===String(serverResult.user.id)) || normalizeStaff([serverResult.user])[0];
+        if(u.active===false){err.textContent='⛔ Tài khoản đã bị khóa (đã nghỉ việc)';err.classList.add('show');return;}
+        err.classList.remove('show');
+        currentUser=u;
+        localStorage.setItem(LS_SESSION,JSON.stringify({id:u.id,at:Date.now()}));
+        startApp();
+        setTimeout(()=>logActivity('login','Hệ thống','',u.name,'Đăng nhập CRM','',''),2000);
+        return;
+      } else {
+        // Máy chủ trả lời rõ ràng: sai tài khoản/mật khẩu → báo ngay, KHÔNG rơi xuống local
+        err.textContent=(serverResult&&serverResult.error)||'Sai tài khoản hoặc mật khẩu';err.classList.add('show');return;
+      }
+    }
+    // serverResponded=false → mất mạng, rơi xuống kiểm tra local bên dưới
+  }
+
+  // ── DỰ PHÒNG: kiểm tra local (khi offline hoặc server không phản hồi) ──
   let found=loadStaffList().find(matchFn);
-  // Không thấy → có thể staff chưa tải về (điện thoại mới). Thử kéo từ Sheets rồi tìm lại.
   if(!found && getApiUrl()){
-    err.textContent='⏳ Đang tải danh sách nhân sự...';err.classList.add('show');
     try{
       const data=await apiFetch({action:'getAll'});
       if(data && data.staff && data.staff.length){ saveStaffList(normalizeStaff(data.staff)); }
