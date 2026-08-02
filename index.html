@@ -5300,11 +5300,13 @@ function napCSSChuan(){
   .sidebar{padding-bottom:70px}
 
   /* — Panel & modal tràn màn hình — */
-  .detail-panel{width:100%!important;right:-100%!important}
+  .detail-panel{width:100%!important;right:-100%!important;border-radius:16px 16px 0 0}
   .detail-panel.open{right:0!important}
-  #crm-modal2>div{max-height:94vh!important;border-radius:14px 14px 0 0!important;
+  #crm-modal2>div{max-height:94vh!important;border-radius:16px 16px 0 0!important;
     margin-top:auto;width:100%!important}
   #crm-modal2{align-items:flex-end!important;padding:0!important}
+  .modal,.modal-lg{border-radius:16px 16px 0 0!important}
+  .modal-overlay{align-items:flex-end!important}
 
   /* — Hành trình cuộn ngang mượt — */
   .stats-row{grid-template-columns:repeat(2,1fr)!important}
@@ -5317,7 +5319,9 @@ function napCSSChuan(){
 #crm-tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
   border:none;background:none;padding:6px 2px;cursor:pointer;color:#9A8F82;
   font-size:10px;font-weight:600;position:relative;min-height:48px;justify-content:center}
-#crm-tabbar button.on{color:#0F3460}
+#crm-tabbar button.on{color:#A6792F}
+#crm-tabbar button.on .tb-ico{transform:translateY(-1px)}
+#crm-tabbar button.on::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:26px;height:3px;border-radius:0 0 4px 4px;background:linear-gradient(90deg,#B98A3C,#CBA25A)}
 #crm-tabbar .tb-ico{font-size:19px;line-height:1}
 #crm-tabbar .tb-txt{font-size:10px;white-space:nowrap}
 #crm-tabbar .tb-dot{display:none;position:absolute;top:5px;right:calc(50% - 15px);
